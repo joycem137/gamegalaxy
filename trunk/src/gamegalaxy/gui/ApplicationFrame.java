@@ -23,9 +23,10 @@
 
 package gamegalaxy.gui;
 
-import gamegalaxy.games.arimaa.gui.BoardDisplay;
+import gamegalaxy.games.arimaa.gui.ArimaaUI;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import javax.swing.JFrame;
 
@@ -35,16 +36,17 @@ import javax.swing.JFrame;
 public class ApplicationFrame extends JFrame
 {
 	
-	public ApplicationFrame(BoardDisplay boardDisplay)
+	public ApplicationFrame(ArimaaUI gui)
 	{
 		super("Arimaa");
 	
 		//Create the main window.
-		setSize(500, 500);
+		Dimension preferredSize = gui.getPreferredSize();
+		setSize(preferredSize);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		setLayout(new BorderLayout());
-		add(boardDisplay);
+		add(gui);
 		
 		setVisible(true);
 	}

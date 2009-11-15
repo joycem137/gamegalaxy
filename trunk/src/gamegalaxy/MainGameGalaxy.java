@@ -23,8 +23,8 @@
 
 package gamegalaxy;
 
-import gamegalaxy.games.arimaa.data.GameBoardData;
-import gamegalaxy.games.arimaa.gui.BoardDisplay;
+import gamegalaxy.games.arimaa.engine.ArimaaEngine;
+import gamegalaxy.games.arimaa.gui.ArimaaUI;
 import gamegalaxy.gui.ApplicationFrame;
 
 /**
@@ -40,10 +40,9 @@ public class MainGameGalaxy
 	 */
 	public static void main(String[] args)
 	{
-		GameBoardData gameBoard = new GameBoardData();
-		BoardDisplay boardDisplay = new BoardDisplay(gameBoard);
-		
-		new ApplicationFrame(boardDisplay);
+		ArimaaEngine engine = new ArimaaEngine();
+		ArimaaUI gui = new ArimaaUI(engine);
+		new ApplicationFrame(gui);
 	}
 
 }
