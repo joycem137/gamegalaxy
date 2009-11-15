@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
  */
-package gamegalaxy.arimaa.data;
+package gamegalaxy.games.arimaa.data;
 
 import gamegalaxy.tools.SimpleObservable;
 

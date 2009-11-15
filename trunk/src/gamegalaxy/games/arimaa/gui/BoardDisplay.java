@@ -21,9 +21,9 @@
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package gamegalaxy.arimaa.gui;
+package gamegalaxy.games.arimaa.gui;
 
-import gamegalaxy.arimaa.data.GameBoardData;
+import gamegalaxy.games.arimaa.data.GameBoardData;
 
 import java.awt.GridLayout;
 import java.util.Observable;

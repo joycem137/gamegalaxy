@@ -21,9 +21,9 @@
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package gamegalaxy.arimaa.gui;
+package gamegalaxy.games.arimaa.gui;
 
-import gamegalaxy.arimaa.data.SpaceData;
+import gamegalaxy.games.arimaa.data.SpaceData;
 
 import java.awt.Color;
 
