@@ -22,8 +22,8 @@
  */
 package gamegalaxy;
 
-import gamegalaxy.arimaa.data.GameBoardData;
-import gamegalaxy.arimaa.gui.BoardDisplay;
+import gamegalaxy.games.arimaa.data.GameBoardData;
+import gamegalaxy.games.arimaa.gui.BoardDisplay;
 
 import java.awt.BorderLayout;
 
