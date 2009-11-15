@@ -25,6 +25,9 @@ public class ArimaaUI extends JPanel
 	private Image 			boardImage;
 	private Image			goldBucketImage;
 	private Image			silverBucketImage;
+	
+	//Store the test piece object.
+	private PiecePanel		piecePanel;
 
 	public ArimaaUI(ArimaaEngine engine)
 	{
@@ -33,7 +36,7 @@ public class ArimaaUI extends JPanel
 		//Configure this panel
 		setLayout(null);
 
-		//Create the backgroundimage.
+		//Create the background image.
 		try
 		{
 			backgroundImage = ImageIO.read(new File("resources/Arimaa Background.png"));
@@ -52,13 +55,15 @@ public class ArimaaUI extends JPanel
 		goldBucketImage = bucketPainter.drawBucket();
 		silverBucketImage = bucketPainter.drawBucket();
 		
+		//Now add the piece to the board.
+		piecePanel = new PiecePanel();
+		add(piecePanel);
+		
 		setPreferredSize(new Dimension(1024, 768));
 	}
 	
 	public void paint(Graphics g)
 	{
-		super.paint(g);
-		
 		//Paint the background
 		g.drawImage(backgroundImage, 0, 0, this);
 		
@@ -68,5 +73,7 @@ public class ArimaaUI extends JPanel
 		//Paint the buckets.
 		g.drawImage(goldBucketImage, 38, 153, this);
 		g.drawImage(silverBucketImage, 808, 153, this);
+		
+		super.paintComponents(g);
 	}
 }
