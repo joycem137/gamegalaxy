@@ -21,29 +21,31 @@
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package gamegalaxy;
+package gamegalaxy.gui;
 
-import gamegalaxy.games.arimaa.data.GameBoardData;
 import gamegalaxy.games.arimaa.gui.BoardDisplay;
-import gamegalaxy.gui.ApplicationFrame;
+
+import java.awt.BorderLayout;
+
+import javax.swing.JFrame;
 
 /**
  * 
  */
-public class MainGameGalaxy
+public class ApplicationFrame extends JFrame
 {
-
-	/**
-	 * TODO: Describe method
-	 *
-	 * @param args
-	 */
-	public static void main(String[] args)
+	
+	public ApplicationFrame(BoardDisplay boardDisplay)
 	{
-		GameBoardData gameBoard = new GameBoardData();
-		BoardDisplay boardDisplay = new BoardDisplay(gameBoard);
+		super("Arimaa");
+	
+		//Create the main window.
+		setSize(500, 500);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		new ApplicationFrame(boardDisplay);
+		setLayout(new BorderLayout());
+		add(boardDisplay);
+		
+		setVisible(true);
 	}
-
 }
