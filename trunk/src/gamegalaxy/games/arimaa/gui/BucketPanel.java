@@ -24,7 +24,7 @@ public class BucketPanel extends JPanel implements PieceHolder
 	{
 		try
 		{
-			backgroundImage = ImageIO.read(new File("resources/Arimaa Bucket.png"));
+			backgroundImage = ImageIO.read(new File("resources/arimaa/Arimaa Bucket.png"));
 		} catch (IOException e)
 		{
 			e.printStackTrace();

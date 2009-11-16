@@ -43,7 +43,7 @@ public class ArimaaUI extends JPanel
 		//Create the background image.
 		try
 		{
-			backgroundImage = ImageIO.read(new File("resources/Arimaa Background.png"));
+			backgroundImage = ImageIO.read(new File("resources/arimaa/Arimaa Background.png"));
 		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block
