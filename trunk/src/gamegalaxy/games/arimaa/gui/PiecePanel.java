@@ -1,5 +1,7 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.tools.ResourceLoader;
+
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
@@ -23,7 +25,7 @@ public class PiecePanel extends JPanel
 	//Store the object that is currently holding this piece.
 	private PieceHolder	holder;
 	
-	public PiecePanel(final ArimaaUI gui)
+	public PiecePanel(final ArimaaUI gui, ResourceLoader loader)
 	{
 		//Create the mouse listener to listen for mouse events.
 		MouseAdapter ma = new MouseAdapter()
@@ -97,14 +99,7 @@ public class PiecePanel extends JPanel
 		addMouseMotionListener(ma);
 		
 		//Load the image related to this piece.
-		try
-		{
-			pieceImage = ImageIO.read(new File("resources/arimaa/Arimaa Rabitt.png"));
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
+		pieceImage = loader.getResource("SilverDog");
 		
 		//configure the size of this panel
 		setSize(pieceImage.getWidth(this), pieceImage.getHeight(this));

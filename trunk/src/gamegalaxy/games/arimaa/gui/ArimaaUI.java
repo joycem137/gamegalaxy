@@ -1,5 +1,7 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.tools.ResourceLoader;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -33,38 +35,32 @@ public class ArimaaUI extends JPanel
 	/**
 	 * 
 	 * Construct the UI, load any files needed for it, set the layout, etc.
+	 * @param loader 
 	 *
 	 */
-	public ArimaaUI()
+	public ArimaaUI(ResourceLoader loader)
 	{	
 		//Configure this panel
 		setLayout(null);
 
 		//Create the background image.
-		try
-		{
-			backgroundImage = ImageIO.read(new File("resources/arimaa/Arimaa Background.png"));
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		backgroundImage = loader.getResource("AppBackground");
 		
 		//Now add the test piece to the board.
-		piecePanel = new PiecePanel(this);
+		piecePanel = new PiecePanel(this, loader);
 		add(piecePanel);
 		
 		//Create other components
-		boardPanel = new BoardPanel();
+		boardPanel = new BoardPanel(loader);
 		add(boardPanel);
 		boardPanel.setLocation(248, 120);
 		
 		//Create buckets
-		goldBucketPanel = new BucketPanel();
+		goldBucketPanel = new BucketPanel(loader);
 		add(goldBucketPanel);
 		goldBucketPanel.setLocation(38, 153);
 		
-		silverBucketPanel = new BucketPanel();
+		silverBucketPanel = new BucketPanel(loader);
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(808, 153);
 		
