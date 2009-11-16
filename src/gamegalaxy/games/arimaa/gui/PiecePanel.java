@@ -4,13 +4,15 @@ import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.MouseAdapter;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputAdapter;
 
 /**
  * Contains all of the information and code necessary for displaying a single playing piece
@@ -28,7 +30,7 @@ public class PiecePanel extends JPanel
 	public PiecePanel(final ArimaaUI gui, ResourceLoader loader)
 	{
 		//Create the mouse listener to listen for mouse events.
-		MouseAdapter ma = new MouseAdapter()
+		MouseInputAdapter ma = new MouseInputAdapter()
 		{
 			//Stores the position that we started dragging from, in case we don't land anywhere.
 			private int	dragXStart;
@@ -45,8 +47,11 @@ public class PiecePanel extends JPanel
 				dragYStart = ((PiecePanel)me.getSource()).getY();
 					
 				//Store the last known position.
-				lastDragY = me.getYOnScreen();
-				lastDragX = me.getXOnScreen();
+				Point relativePoint = new Point(me.getX(), me.getY());
+				SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
+				
+				lastDragX = relativePoint.x;
+				lastDragY = relativePoint.y;
 			}
 			
 			public void mouseReleased(MouseEvent me)
@@ -82,13 +87,19 @@ public class PiecePanel extends JPanel
 			public void mouseDragged(MouseEvent me)
 			{
 				//Determine the updated position from the deltas.
-				int newX = getX() + (me.getXOnScreen() - lastDragX);
-				int newY = getY() + (me.getYOnScreen() - lastDragY);
+				Point relativePoint = new Point(me.getX(), me.getY());
+				SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
+				
+				int myX = relativePoint.x;
+				int myY = relativePoint.y;
+				
+				int newX = getX() + (myX - lastDragX);
+				int newY = getY() + (myY - lastDragY);
 				
 				//Reset the position to update against in the future.
-				lastDragX = me.getXOnScreen();
-				lastDragY = me.getYOnScreen();
-				
+				lastDragX = myX;
+				lastDragY = myY;
+
 				//Set the new location
 				setLocation(newX, newY);
 			}
