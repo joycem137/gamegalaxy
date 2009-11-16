@@ -99,7 +99,7 @@ public class PiecePanel extends JPanel
 		//Load the image related to this piece.
 		try
 		{
-			pieceImage = ImageIO.read(new File("resources/Arimaa Rabitt.png"));
+			pieceImage = ImageIO.read(new File("resources/arimaa/Arimaa Rabitt.png"));
 		} catch (IOException e)
 		{
 			e.printStackTrace();

@@ -54,7 +54,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 	{
 		try
 		{
-			backgroundImage = ImageIO.read(new File("resources/Arimaa Board.png"));
+			backgroundImage = ImageIO.read(new File("resources/arimaa/Arimaa Board.png"));
 		} catch (IOException e)
 		{
 			e.printStackTrace();
