@@ -23,25 +23,24 @@
 
 package gamegalaxy;
 
-import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 import gamegalaxy.gui.ApplicationFrame;
 
 /**
- * 
+ * This is the main class for activating games in the "Galaxy of Games"
+ * It should be used to launch menus for selecting what game to play, matching controls, etc.
  */
 public class MainGameGalaxy
 {
 
 	/**
-	 * TODO: Describe method
-	 *
-	 * @param args
+	 * Run the main program.
+	 * 
+	 * @param args Command line arguments, if used.
 	 */
 	public static void main(String[] args)
 	{
-		ArimaaEngine engine = new ArimaaEngine();
-		ArimaaUI gui = new ArimaaUI(engine);
+		ArimaaUI gui = new ArimaaUI();
 		new ApplicationFrame(gui);
 	}
 
