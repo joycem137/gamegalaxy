@@ -31,11 +31,20 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 
 /**
- * 
+ * A generic frame for putting game applications into.  This frame may also be used for other
+ * system level UI elements.  Ultimately, it should contain nothing that is game specific,
+ * and only contain data affiliated with  generally running games.
  */
+@SuppressWarnings("serial")
 public class ApplicationFrame extends JFrame
 {
 	
+	/**
+	 * 
+	 * Create our frame and drop the appropriate game UI into it.
+	 *
+	 * @param gui The Game UI associated with this frame.
+	 */
 	public ApplicationFrame(ArimaaUI gui)
 	{
 		super("Arimaa");
@@ -45,9 +54,11 @@ public class ApplicationFrame extends JFrame
 		setSize(preferredSize);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
+		//Drop the GUI in.
 		setLayout(new BorderLayout());
 		add(gui);
 		
+		//Display the frame.
 		setVisible(true);
 	}
 }

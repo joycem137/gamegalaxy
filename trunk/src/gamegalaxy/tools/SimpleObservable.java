@@ -31,8 +31,8 @@ package gamegalaxy.tools;
 import java.util.Observable;
 
 /**
- * class used to call <code>setChanged</code> whenever <code>notifyObservers</code> gets called.
- * 
+ * Class used to call <code>setChanged</code> whenever <code>notifyObservers</code> gets called.
+ * This is necessary if you're not subclassing observable to get the observable functionality.
  *
  */
 public class SimpleObservable extends Observable
