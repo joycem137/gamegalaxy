@@ -1,11 +1,10 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.tools.ResourceLoader;
+
 import java.awt.Graphics;
 import java.awt.Image;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 /**
@@ -20,17 +19,9 @@ public class BucketPanel extends JPanel implements PieceHolder
 	//Store the background image for the bucket.
 	private Image	backgroundImage;
 
-	public BucketPanel()
+	public BucketPanel(ResourceLoader loader)
 	{
-		try
-		{
-			backgroundImage = ImageIO.read(new File("resources/arimaa/Arimaa Bucket.png"));
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		
+		backgroundImage = loader.getResource("BucketBackground");
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
 	}
 	

@@ -23,12 +23,11 @@
 
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.tools.ResourceLoader;
+
 import java.awt.Graphics;
 import java.awt.Image;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 /**
@@ -50,16 +49,9 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 * Create a display for the board.
 	 *
 	 */
-	public BoardPanel()
+	public BoardPanel(ResourceLoader loader)
 	{
-		try
-		{
-			backgroundImage = ImageIO.read(new File("resources/arimaa/Arimaa Board.png"));
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			System.exit(-1);
-		}
+		backgroundImage = loader.getResource("BoardBackground");
 
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
 	}
