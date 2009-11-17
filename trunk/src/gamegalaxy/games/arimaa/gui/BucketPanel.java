@@ -18,11 +18,17 @@ public class BucketPanel extends JPanel implements PieceHolder
 {
 	//Store the background image for the bucket.
 	private Image	backgroundImage;
+	private int		numberOfPieces;
+	
+	private final static int SPACE_WIDTH = 59;
+	private final static int SPACE_HEIGHT = 59;
+	private final static int BORDER_WIDTH = 18;
 
 	public BucketPanel(ResourceLoader loader)
 	{
 		backgroundImage = loader.getResource("BucketBackground");
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
+		numberOfPieces = 0;
 	}
 	
 	/**
@@ -45,8 +51,13 @@ public class BucketPanel extends JPanel implements PieceHolder
 	 */
 	public void dropPiece(PiecePanel piecePanel)
 	{
-		piecePanel.setLocation(getX() + 97, 174);
+		int baseX = getX() + BORDER_WIDTH;
+		int baseY = getY() + BORDER_WIDTH;
+		int col = numberOfPieces / 8;
+		int row = numberOfPieces % 8;
+		piecePanel.setLocation(baseX + col*SPACE_WIDTH, baseY + row*SPACE_HEIGHT);
 		piecePanel.setHolder(this);
+		numberOfPieces += 1;
 	}
 
 	/**
@@ -59,6 +70,11 @@ public class BucketPanel extends JPanel implements PieceHolder
 	public void removePiece(PiecePanel piecePanel)
 	{
 		piecePanel.removeHolder();
+		numberOfPieces -= 1;
 	}
 
+	public int numberOfPieces()
+	{
+		return numberOfPieces;
+	}	
 }

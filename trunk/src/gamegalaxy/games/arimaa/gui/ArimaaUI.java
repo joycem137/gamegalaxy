@@ -7,10 +7,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.io.File;
-import java.io.IOException;
+import java.util.Vector;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 /**
@@ -30,7 +28,7 @@ public class ArimaaUI extends JPanel
 	private Image 			backgroundImage;
 	
 	//Store the test piece object.  This should be removed when using multiple pieces.
-	private PiecePanel		piecePanel;
+	private Vector<PiecePanel>	pieces;
 
 	/**
 	 * 
@@ -45,10 +43,14 @@ public class ArimaaUI extends JPanel
 
 		//Create the background image.
 		backgroundImage = loader.getResource("AppBackground");
-		
-		//Now add the test piece to the board.
-		piecePanel = new PiecePanel(this, loader);
-		add(piecePanel);
+	
+		pieces = new Vector<PiecePanel>(32);
+		for (int x=0; x<32; x++)
+		{
+			PiecePanel tempPiece = new PiecePanel(this, loader);
+			add(tempPiece);
+			pieces.add(tempPiece);
+		}
 		
 		//Create other components
 		boardPanel = new BoardPanel(loader);
@@ -66,8 +68,18 @@ public class ArimaaUI extends JPanel
 		
 		setPreferredSize(new Dimension(1024, 768));
 		
-		//For test purposes, put the bunny in the gold bucket and let's get started.
-		goldBucketPanel.dropPiece(piecePanel);
+		//For test purposes, put test pieces in the buckets and let's get started.
+		
+		for (int x=0; x<16; x++)
+		{
+			PiecePanel tempPiece = pieces.get(x);
+			goldBucketPanel.dropPiece(tempPiece);
+		}
+		for (int x=16; x<32; x++)
+		{
+			PiecePanel tempPiece = pieces.get(x);
+			silverBucketPanel.dropPiece(tempPiece);
+		}
 	}
 	
 	/**

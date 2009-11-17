@@ -110,7 +110,7 @@ public class PiecePanel extends JPanel
 		addMouseMotionListener(ma);
 		
 		//Load the image related to this piece.
-		pieceImage = loader.getResource("SilverDog");
+		pieceImage = loader.getResource("GoldElephant");
 		
 		//configure the size of this panel
 		setSize(pieceImage.getWidth(this), pieceImage.getHeight(this));
