@@ -23,11 +23,12 @@
 
 package gamegalaxy;
 
-import javax.swing.SwingUtilities;
-
+import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 import gamegalaxy.gui.ApplicationFrame;
 import gamegalaxy.tools.ResourceLoader;
+
+import javax.swing.SwingUtilities;
 
 /**
  * This is the main class for activating games in the "Galaxy of Games"
@@ -48,9 +49,17 @@ public class MainGameGalaxy
 		{
 			public void run()
 			{
+				//Load all graphical resources.
 				ResourceLoader loader = new ResourceLoader();
 				loader.loadResources("arimaa");
-				ArimaaUI gui = new ArimaaUI(loader);
+				
+				//Load the game engine
+				ArimaaEngine engine = new ArimaaEngine();
+				
+				//Load the GUI
+				ArimaaUI gui = new ArimaaUI(engine, loader);
+				
+				//Add the GUI to the application frame.
 				new ApplicationFrame(gui);
 			}
 		});
