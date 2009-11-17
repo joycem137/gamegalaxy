@@ -54,24 +54,24 @@ public class GameBoardData
 			for(int c = 0; c < 8; c++)
 			{
 				//Create the space
-				if(spaces[r][c] == null)
+				if(spaces[c][r] == null)
 				{
-					spaces[r][c] = new SpaceData(SpaceData.NORMAL);
+					spaces[c][r] = new SpaceData(SpaceData.NORMAL);
 				}
 			}
 		}
 	}
 	
 	/**
-	 * Return the space at r,c
+	 * Return the space at c,r
 	 *
-	 * @param r
 	 * @param c
+	 * @param r
 	 * @return
 	 */
-	public SpaceData getDataAt(int r, int c)
+	public SpaceData getDataAt(int c, int r)
 	{
-		return spaces[r][c];
+		return spaces[c][r];
 	}
 
 	/**
