@@ -1,5 +1,7 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.PieceData;
+import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Component;
@@ -7,6 +9,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JPanel;
@@ -26,9 +30,7 @@ public class ArimaaUI extends JPanel
 	
 	//Store the background image that we want to draw.
 	private Image 			backgroundImage;
-	
-	//Store the test piece object.  This should be removed when using multiple pieces.
-	private Vector<PiecePanel>	pieces;
+	private List<PiecePanel>	piecePanels;
 
 	/**
 	 * 
@@ -36,21 +38,15 @@ public class ArimaaUI extends JPanel
 	 * @param loader 
 	 *
 	 */
-	public ArimaaUI(ResourceLoader loader)
+	public ArimaaUI(ArimaaEngine engine, ResourceLoader loader)
 	{	
 		//Configure this panel
 		setLayout(null);
 
 		//Create the background image.
 		backgroundImage = loader.getResource("AppBackground");
-	
-		pieces = new Vector<PiecePanel>(32);
-		for (int x=0; x<32; x++)
-		{
-			PiecePanel tempPiece = new PiecePanel(this, loader);
-			add(tempPiece);
-			pieces.add(tempPiece);
-		}
+		
+		createPieces(engine, loader);
 		
 		//Create other components
 		boardPanel = new BoardPanel(loader);
@@ -68,20 +64,51 @@ public class ArimaaUI extends JPanel
 		
 		setPreferredSize(new Dimension(1024, 768));
 		
-		//For test purposes, put test pieces in the buckets and let's get started.
-		
-		for (int x=0; x<16; x++)
-		{
-			PiecePanel tempPiece = pieces.get(x);
-			goldBucketPanel.dropPiece(tempPiece);
-		}
-		for (int x=16; x<32; x++)
-		{
-			PiecePanel tempPiece = pieces.get(x);
-			silverBucketPanel.dropPiece(tempPiece);
-		}
+		//Start with the pieces in the buckets.
+		initializePieceLocations();
 	}
 	
+	/**
+	 * TODO: Describe method
+	 *
+	 */
+	private void initializePieceLocations()
+	{
+		Iterator<PiecePanel> piecePanelIterator = piecePanels.iterator();
+		while(piecePanelIterator.hasNext())
+		{
+			PiecePanel tempPiece = piecePanelIterator.next();
+			if(tempPiece.getData().getColor() == PieceData.GOLD)
+			{
+				goldBucketPanel.dropPiece(tempPiece);
+			}
+			else
+			{
+				silverBucketPanel.dropPiece(tempPiece);
+			}
+		}
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param engine
+	 * @param loader
+	 */
+	private void createPieces(ArimaaEngine engine, ResourceLoader loader)
+	{
+		List<PieceData> pieceDataList = engine.getPieces(); 
+		Iterator<PieceData> iterator = pieceDataList.iterator();
+		piecePanels = new Vector<PiecePanel>(pieceDataList.size());
+		while(iterator.hasNext())
+		{
+			PieceData pieceData = iterator.next();
+			PiecePanel tempPiece = new PiecePanel(this, pieceData, loader);
+			add(tempPiece);
+			piecePanels.add(tempPiece);
+		}
+	}
+
 	/**
 	 * 
 	 * Draw the background image for this panel.  Do not draw anything else.

@@ -1,15 +1,13 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputAdapter;
@@ -26,9 +24,14 @@ public class PiecePanel extends JPanel
 
 	//Store the object that is currently holding this piece.
 	private PieceHolder	holder;
+
+	private PieceData	data;
 	
-	public PiecePanel(final ArimaaUI gui, ResourceLoader loader)
+	public PiecePanel(final ArimaaUI gui, PieceData data, ResourceLoader loader)
 	{
+		//Store the information about this piece.
+		this.data = data;
+		
 		//Create the mouse listener to listen for mouse events.
 		MouseInputAdapter ma = new MouseInputAdapter()
 		{
@@ -110,7 +113,9 @@ public class PiecePanel extends JPanel
 		addMouseMotionListener(ma);
 		
 		//Load the image related to this piece.
-		pieceImage = loader.getResource("GoldElephant");
+		String pieceName = data.getColorString() + data.getNameString();
+		System.out.println("Loading piece image for " + pieceName);
+		pieceImage = loader.getResource(pieceName);
 		
 		//configure the size of this panel
 		setSize(pieceImage.getWidth(this), pieceImage.getHeight(this));
@@ -145,5 +150,15 @@ public class PiecePanel extends JPanel
 	public void removeHolder()
 	{
 		holder = null;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public PieceData getData()
+	{
+		return data;
 	}
 }

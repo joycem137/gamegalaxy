@@ -78,29 +78,53 @@ public class ResourceLoader
 		Iterator iterator = resources.keySet().iterator();
 		
 		while(iterator.hasNext())
-		{
+		{	
 			String name = (String)iterator.next();
 			String filename = resources.getProperty(name);
 			
 			String path = RESOURCE_DIRECTORY + File.separator + applicationName + File.separator + filename;
-			Image image = null;
-			try
+			File imageFile = new File(path);
+			
+			if(imageFile.exists())
 			{
-				image = ImageIO.read(new File(path));
-			} catch (IOException e)
+				try
+				{
+					Image image = ImageIO.read(imageFile);
+					
+					if(image== null)
+					{
+						System.err.println("Error Loading " + path);
+						System.exit(-1);
+					}
+					
+					//Store the image with its name
+					map.put(name, image);
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+					System.err.println("Failed to load " + path);
+					System.exit(-1);
+				}
+			}
+			else
 			{
-				e.printStackTrace();
-				System.err.println("Failed to load " + path);
+				System.err.println("File does not exist " + path);
 				System.exit(-1);
 			}
-			
-			//Store the image with its name
-			map.put(name, image);
 		}
 	}
 	
 	public Image getResource(String name)
 	{
-		return (Image)map.get(name);
+		if(map.containsKey(name))
+		{
+			return (Image)map.get(name);
+		}
+		else
+		{
+			System.err.println("Resource Not Found: " + name);
+			System.exit(-1);
+			return null;
+		}
 	}
 }
