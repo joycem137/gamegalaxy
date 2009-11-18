@@ -238,6 +238,8 @@ public class ArimaaUI extends JPanel
 			int bucketColor;
 			if(dropPanel == goldBucketPanel) bucketColor = GameConstants.GOLD;
 			else bucketColor = GameConstants.SILVER;
+			
+			//Check whether or not we are actually allowed to do this.
 			if(engine.isValidToDropInBucket(piecePanel.getData(), bucketColor))
 			{
 				//Identify the piece's old location on the board, if applicable, and remove it
@@ -256,6 +258,7 @@ public class ArimaaUI extends JPanel
 			}
 			else
 			{
+				//It's invalid to try to drop anything into this bucket.  Give up.
 				piecePanel.resetPosition();
 			}
 		}
