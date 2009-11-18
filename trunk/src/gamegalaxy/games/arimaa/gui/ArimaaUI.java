@@ -234,19 +234,30 @@ public class ArimaaUI extends JPanel
 		}
 		else if(dropPanel == goldBucketPanel || dropPanel == silverBucketPanel)
 		{
-			//Identify the piece's old location on the board, if applicable, and remove it
-			if(holder ==  boardPanel)
+			//Set the bucket color
+			int bucketColor;
+			if(dropPanel == goldBucketPanel) bucketColor = GameConstants.GOLD;
+			else bucketColor = GameConstants.SILVER;
+			if(engine.isValidToDropInBucket(piecePanel.getData(), bucketColor))
 			{
-				//Identify the location on the board.
-				int oldX = piecePanel.getOriginalX() - boardPanel.getX();
-				int oldY = piecePanel.getOriginalY() - boardPanel.getY();
-				BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
-				engine.removePiece(originalSpace);
+				//Identify the piece's old location on the board, if applicable, and remove it
+				if(holder ==  boardPanel)
+				{
+					//Identify the location on the board.
+					int oldX = piecePanel.getOriginalX() - boardPanel.getX();
+					int oldY = piecePanel.getOriginalY() - boardPanel.getY();
+					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
+					engine.removePiece(originalSpace);
+				}
+				
+				//Move the piece into the bucket.
+				holder.removePiece(piecePanel);
+				dropPanel.dropPiece(piecePanel);
 			}
-			
-			//Move the piece into the bucket.
-			holder.removePiece(piecePanel);
-			dropPanel.dropPiece(piecePanel);
+			else
+			{
+				piecePanel.resetPosition();
+			}
 		}
 		else
 		{

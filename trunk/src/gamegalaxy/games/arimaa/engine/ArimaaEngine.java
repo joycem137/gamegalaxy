@@ -1,7 +1,7 @@
 package gamegalaxy.games.arimaa.engine;
 
-import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.BoardData;
+import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 
@@ -13,12 +13,17 @@ import java.util.Vector;
  */
 public class ArimaaEngine
 {
+	private static final int	SETUP_PHASE	= 0;
+	
 	private List<PieceData>	pieces;
 	private int	playerTurn;
 	private BoardData	board;
+	private int	phase;
 
 	public ArimaaEngine()
 	{
+		phase = SETUP_PHASE;
+		
 		playerTurn = GameConstants.GOLD;
 	
 		board = new BoardData();
@@ -124,6 +129,18 @@ public class ArimaaEngine
 	public void removePiece(BoardPosition space)
 	{
 		board.removePiece(space);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piecePanel
+	 * @param bucketColor
+	 * @return
+	 */
+	public boolean isValidToDropInBucket(PieceData pieceData, int bucketColor)
+	{
+		return pieceData.getColor() == bucketColor && phase == SETUP_PHASE;
 	}
 
 }
