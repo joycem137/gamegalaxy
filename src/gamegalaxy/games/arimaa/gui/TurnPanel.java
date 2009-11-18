@@ -40,7 +40,7 @@ public class TurnPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				//gui.endTurn();
+				gui.endTurn();
 			}
 		});
 		endTurnButton.setLocation(148, 17);
@@ -99,6 +99,8 @@ public class TurnPanel extends JPanel
 		else
 		{
 			remove(endTurnButton);
+			
+			//Needs to be called to force the panel to redraw.
 			validate();
 		}
 		repaint();
