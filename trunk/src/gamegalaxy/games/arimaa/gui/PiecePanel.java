@@ -54,6 +54,8 @@ public class PiecePanel extends JPanel
 				if(gui.canDragPiece(piecePanel))
 				{
 					dragging = true;
+					//ensure that the dragged piece is topmost and visible.
+					gui.setComponentZOrder(piecePanel, 0);
 					
 					//Identify where we're starting to drag.
 					dragXStart = ((PiecePanel)me.getSource()).getX();
@@ -77,7 +79,8 @@ public class PiecePanel extends JPanel
 				if(dragging)
 				{
 					PiecePanel piecePanel = (PiecePanel)me.getSource();
-					
+					//allow other dragged pieces to display over this one.
+					gui.setComponentZOrder(piecePanel, 1);					
 					/*
 					 * Determine where we're dragging to, if anywhere.
 					 * Note that we are using the center point to determine this.
