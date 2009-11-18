@@ -1,8 +1,10 @@
 package gamegalaxy.games.arimaa.engine;
 
+import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 
+import java.awt.Point;
 import java.util.List;
 import java.util.Vector;
 
@@ -73,6 +75,25 @@ public class ArimaaEngine
 	public boolean isPiecePlaceable(PieceData data)
 	{
 		return data.getColor() == playerTurn;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param data
+	 * @param space
+	 * @return
+	 */
+	public boolean isValidPiecePlacement(PieceData data, BoardPosition space)
+	{
+		if(data.getColor() == GameConstants.GOLD)
+		{
+			return space.getRow() >= 6;
+		}
+		else
+		{
+			return space.getCol() <= 1;
+		}
 	}
 
 }
