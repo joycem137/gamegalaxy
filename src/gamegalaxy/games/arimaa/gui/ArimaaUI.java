@@ -30,9 +30,10 @@ public class ArimaaUI extends JPanel
 	private BucketPanel		silverBucketPanel;
 	
 	//Store the background image that we want to draw.
-	private Image 			backgroundImage;
+	private Image 				backgroundImage;
 	private List<PiecePanel>	piecePanels;
-	private TurnPanel	turnPanel;
+	private TurnPanel			turnPanel;
+	private ArimaaEngine		engine;
 
 	/**
 	 * 
@@ -42,6 +43,8 @@ public class ArimaaUI extends JPanel
 	 */
 	public ArimaaUI(ArimaaEngine engine, ResourceLoader loader)
 	{	
+		this.engine = engine;
+		
 		//Configure this panel
 		setLayout(null);
 
@@ -176,5 +179,10 @@ public class ArimaaUI extends JPanel
 	
 		//We couldn't find anything.
 		return null;
+	}
+	
+	public boolean canDragPiece(PiecePanel piecePanel)
+	{
+		return engine.isPiecePlaceable(piecePanel.getData());
 	}
 }

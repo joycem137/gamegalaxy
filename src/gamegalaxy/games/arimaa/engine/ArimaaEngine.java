@@ -12,9 +12,12 @@ import java.util.Vector;
 public class ArimaaEngine
 {
 	private List<PieceData>	pieces;
+	private int	playerTurn;
 
 	public ArimaaEngine()
 	{
+		playerTurn = GameConstants.GOLD;
+		
 		pieces = new Vector<PieceData>(32);
 		
 		createPieces();
@@ -59,6 +62,17 @@ public class ArimaaEngine
 	public List<PieceData> getPieces()
 	{
 		return pieces;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param data
+	 * @return
+	 */
+	public boolean isPiecePlaceable(PieceData data)
+	{
+		return data.getColor() == playerTurn;
 	}
 
 }

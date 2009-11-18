@@ -42,69 +42,92 @@ public class PiecePanel extends JPanel
 			//Stores the last known position to update delta values against.
 			private int	lastDragX;
 			private int	lastDragY;
+			
+			//Indicates whether we should respond to dragging events or not.
+			private boolean	dragging;
 
 			public void mousePressed(MouseEvent me)
 			{	
-				//Identify where we're starting to drag.
-				dragXStart = ((PiecePanel)me.getSource()).getX();
-				dragYStart = ((PiecePanel)me.getSource()).getY();
+				//Validate that we can drag this piece.
+				PiecePanel piecePanel = (PiecePanel)me.getSource();
+				if(gui.canDragPiece(piecePanel))
+				{
+					dragging = true;
 					
-				//Store the last known position.
-				Point relativePoint = new Point(me.getX(), me.getY());
-				SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
-				
-				lastDragX = relativePoint.x;
-				lastDragY = relativePoint.y;
+					//Identify where we're starting to drag.
+					dragXStart = ((PiecePanel)me.getSource()).getX();
+					dragYStart = ((PiecePanel)me.getSource()).getY();
+						
+					//Store the last known position.
+					Point relativePoint = new Point(me.getX(), me.getY());
+					SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
+					
+					lastDragX = relativePoint.x;
+					lastDragY = relativePoint.y;
+				}
+				else
+				{
+					dragging = false;
+				}
 			}
 			
 			public void mouseReleased(MouseEvent me)
 			{
-				PiecePanel piecePanel = (PiecePanel)me.getSource();
-				
-				/*
-				 * Determine where we're dragging to, if anywhere.
-				 * Note that we are using the center point to determine this.
-				 * It makes it drag and drop more nicely.
-				 */
-				PieceHolder dropPanel = gui.getHolderAt(getX() + getWidth() / 2, getY() + getHeight() / 2);
-				
-				if(dropPanel == null)
+				if(dragging)
 				{
-					//We didn't go anywhere.  Just reset the position of the object.
-					piecePanel.setLocation(dragXStart, dragYStart);
-				}
-				else
-				{
+					PiecePanel piecePanel = (PiecePanel)me.getSource();
+					
 					/*
-					 * We managed to drop it on somethin that was listening!
-					 * Now go find out what it wants to do about you.
-					 * 
-					 * Until the engine is in place, this just moves the piece without
-					 * validating anything.
+					 * Determine where we're dragging to, if anywhere.
+					 * Note that we are using the center point to determine this.
+					 * It makes it drag and drop more nicely.
 					 */
-					holder.removePiece(piecePanel);
-					dropPanel.dropPiece(piecePanel);
+					PieceHolder dropPanel = gui.getHolderAt(getX() + getWidth() / 2, getY() + getHeight() / 2);
+					
+					if(dropPanel == null)
+					{
+						//We didn't go anywhere.  Just reset the position of the object.
+						piecePanel.setLocation(dragXStart, dragYStart);
+					}
+					else
+					{
+						/*
+						 * We managed to drop it on somethin that was listening!
+						 * Now go find out what it wants to do about you.
+						 * 
+						 * Until the engine is in place, this just moves the piece without
+						 * validating anything.
+						 */
+						holder.removePiece(piecePanel);
+						dropPanel.dropPiece(piecePanel);
+					}
 				}
+				
+				//Reset the dragging flag.
+				dragging = false;
 			}
 			
 			public void mouseDragged(MouseEvent me)
 			{
-				//Determine the updated position from the deltas.
-				Point relativePoint = new Point(me.getX(), me.getY());
-				SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
-				
-				int myX = relativePoint.x;
-				int myY = relativePoint.y;
-				
-				int newX = getX() + (myX - lastDragX);
-				int newY = getY() + (myY - lastDragY);
-				
-				//Reset the position to update against in the future.
-				lastDragX = myX;
-				lastDragY = myY;
-
-				//Set the new location
-				setLocation(newX, newY);
+				if(dragging)
+				{
+					//Determine the updated position from the deltas.
+					Point relativePoint = new Point(me.getX(), me.getY());
+					SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
+					
+					int myX = relativePoint.x;
+					int myY = relativePoint.y;
+					
+					int newX = getX() + (myX - lastDragX);
+					int newY = getY() + (myY - lastDragY);
+					
+					//Reset the position to update against in the future.
+					lastDragX = myX;
+					lastDragY = myY;
+	
+					//Set the new location
+					setLocation(newX, newY);
+				}
 			}
 		};
 		
