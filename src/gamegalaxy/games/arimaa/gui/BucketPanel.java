@@ -22,7 +22,7 @@ public class BucketPanel extends JPanel implements PieceHolder
 	
 	private final static int SPACE_WIDTH = 59;
 	private final static int SPACE_HEIGHT = 59;
-	private final static int BORDER_WIDTH = 18;
+	private final static int BORDER_WIDTH = 16;
 
 	public BucketPanel(ResourceLoader loader)
 	{
