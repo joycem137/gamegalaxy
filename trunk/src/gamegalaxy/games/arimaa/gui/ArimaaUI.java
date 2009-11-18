@@ -302,4 +302,14 @@ public class ArimaaUI extends JPanel
 	{
 		engine.endTurn();
 	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param playerTurn
+	 */
+	public void setTurnState(int playerTurn)
+	{
+		turnPanel.setTurnState(playerTurn);
+	}
 }

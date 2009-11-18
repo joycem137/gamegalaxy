@@ -149,7 +149,7 @@ public class ArimaaEngine
 		}
 		else
 		{
-			return space.getCol() <= 1;
+			return space.getRow() <= 1;
 		}
 	}
 
@@ -218,8 +218,9 @@ public class ArimaaEngine
 	 */
 	public void endTurn()
 	{
-		// TODO Auto-generated method stub
-		
+		playerTurn = (playerTurn + 1) % 2;
+		gui.setTurnState(playerTurn);
+		checkforEndOfTurn();
 	}
 
 	/**
