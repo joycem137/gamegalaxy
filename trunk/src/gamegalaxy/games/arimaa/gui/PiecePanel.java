@@ -172,4 +172,24 @@ public class PiecePanel extends JPanel
 	{
 		setLocation(dragXStart, dragYStart);
 	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public int getOriginalX()
+	{
+		return dragXStart;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public int getOriginalY()
+	{
+		return dragYStart;
+	}
 }
