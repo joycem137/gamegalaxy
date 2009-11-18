@@ -45,7 +45,9 @@ public class ArimaaUI extends JPanel
 	 */
 	public ArimaaUI(ArimaaEngine engine, ResourceLoader loader)
 	{	
+		//Link the engine and GUI.
 		this.engine = engine;
+		engine.linkGUI(this);
 		
 		//Configure this panel
 		setLayout(null);
@@ -69,7 +71,7 @@ public class ArimaaUI extends JPanel
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(808, 153);
 		
-		turnPanel = new TurnPanel(loader);
+		turnPanel = new TurnPanel(this, loader);
 		add(turnPanel);
 		turnPanel.setLocation(282, 659);
 		
@@ -219,6 +221,11 @@ public class ArimaaUI extends JPanel
 					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
 					engine.removePiece(originalSpace);
 				}
+				else if(holder == goldBucketPanel || holder == silverBucketPanel)
+				{
+					//Remove the piece from the bucket
+					engine.removePieceFromBucket(piecePanel.getData());
+				}
 				
 				//Remove the piece from its previous location
 				holder.removePiece(piecePanel);
@@ -251,9 +258,17 @@ public class ArimaaUI extends JPanel
 					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
 					engine.removePiece(originalSpace);
 				}
+				else if(holder == goldBucketPanel || holder == silverBucketPanel)
+				{
+					//Remove the piece from the bucket
+					engine.removePieceFromBucket(piecePanel.getData());
+				}
 				
-				//Move the piece into the bucket.
+				//Remove the piece from its current location
 				holder.removePiece(piecePanel);
+				
+				//Add the piece to the bucket.
+				engine.addPieceToBucket(piecePanel.getData());
 				dropPanel.dropPiece(piecePanel);
 			}
 			else
@@ -267,5 +282,24 @@ public class ArimaaUI extends JPanel
 			//We didn't go anywhere.  Just reset the position of the object.
 			piecePanel.resetPosition();
 		}
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param b
+	 */
+	public void setEndofTurn(boolean b)
+	{
+		turnPanel.showEndTurnButton(b);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 */
+	public void endTurn()
+	{
+		engine.endTurn();
 	}
 }

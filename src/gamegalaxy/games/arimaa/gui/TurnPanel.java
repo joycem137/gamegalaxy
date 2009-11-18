@@ -1,11 +1,14 @@
 package gamegalaxy.games.arimaa.gui;
 
-import java.awt.Graphics;
-import java.awt.Image;
-
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.tools.ResourceLoader;
 
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 /**
@@ -13,10 +16,11 @@ import javax.swing.JPanel;
  */
 public class TurnPanel extends JPanel
 {
-
 	private Image	backgroundImage;
 	private Image 	goldIndicator;
 	private Image	silverIndicator;
+	
+	private JButton endTurnButton;
 	
 	private int turnState;
 
@@ -25,15 +29,32 @@ public class TurnPanel extends JPanel
 	 *
 	 * @param loader
 	 */
-	public TurnPanel(ResourceLoader loader)
+	@SuppressWarnings("serial")
+	public TurnPanel(final ArimaaUI gui, ResourceLoader loader)
 	{
-		backgroundImage = loader.getResource("TurnBackground");
+		//Set the layout to none.
+		setLayout(null);
 		
+		//Create the end turn button, but do not add it to the screen just yet.
+		endTurnButton = new JButton(new AbstractAction("End Turn")
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				//gui.endTurn();
+			}
+		});
+		endTurnButton.setLocation(148, 17);
+		endTurnButton.setSize(164, 33);
+		
+		//Get our images.
+		backgroundImage = loader.getResource("TurnBackground");
 		goldIndicator = loader.getResource("GoldIndicator");
 		silverIndicator = loader.getResource("SilverIndicator");
 		
+		//Set the turn state.
 		turnState = GameConstants.GOLD;
 		
+		//Set the size of this panel.
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
 	}
 	
@@ -62,6 +83,25 @@ public class TurnPanel extends JPanel
 		{
 			g.drawImage(silverIndicator, 407, 10, this);
 		}
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param b
+	 */
+	public void showEndTurnButton(boolean b)
+	{
+		if(b)
+		{
+			add(endTurnButton);
+		}
+		else
+		{
+			remove(endTurnButton);
+			validate();
+		}
+		repaint();
 	}
 
 }
