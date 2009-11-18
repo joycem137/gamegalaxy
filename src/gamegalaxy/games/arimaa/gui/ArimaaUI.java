@@ -1,5 +1,6 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.tools.ResourceLoader;
@@ -31,6 +32,7 @@ public class ArimaaUI extends JPanel
 	//Store the background image that we want to draw.
 	private Image 			backgroundImage;
 	private List<PiecePanel>	piecePanels;
+	private TurnPanel	turnPanel;
 
 	/**
 	 * 
@@ -62,10 +64,15 @@ public class ArimaaUI extends JPanel
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(808, 153);
 		
+		turnPanel = new TurnPanel(loader);
+		add(turnPanel);
+		turnPanel.setLocation(282, 659);
+		
 		setPreferredSize(new Dimension(1024, 768));
 		
 		//Start with the pieces in the buckets.
 		initializePieceLocations();
+		turnPanel.setTurnState(GameConstants.GOLD);
 	}
 	
 	/**
@@ -78,7 +85,7 @@ public class ArimaaUI extends JPanel
 		while(piecePanelIterator.hasNext())
 		{
 			PiecePanel tempPiece = piecePanelIterator.next();
-			if(tempPiece.getData().getColor() == PieceData.GOLD)
+			if(tempPiece.getData().getColor() == GameConstants.GOLD)
 			{
 				goldBucketPanel.dropPiece(tempPiece);
 			}
