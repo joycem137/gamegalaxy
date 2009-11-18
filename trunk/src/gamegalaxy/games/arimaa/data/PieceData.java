@@ -5,9 +5,6 @@ package gamegalaxy.games.arimaa.data;
  */
 public class PieceData
 {
-
-	public static final int	GOLD	= 0;
-	public static final int SILVER 	= 1;
 	
 	public static final int RABBIT 	= 1;
 	public static final int CAT 	= 2;
@@ -52,7 +49,7 @@ public class PieceData
 	 */
 	public String getColorString()
 	{
-		if(color == GOLD) return "Gold";
+		if(color == GameConstants.GOLD) return "Gold";
 		else return "Silver";
 	}
 

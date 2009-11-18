@@ -1,5 +1,6 @@
 package gamegalaxy.games.arimaa.engine;
 
+import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 
 import java.util.List;
@@ -28,26 +29,26 @@ public class ArimaaEngine
 		//Create 8 rabbits of each color
 		for(int i = 0; i < 8; i++)
 		{
-			pieces.add(new PieceData(PieceData.GOLD, PieceData.RABBIT));
-			pieces.add(new PieceData(PieceData.SILVER, PieceData.RABBIT));
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.RABBIT));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.RABBIT));
 		}
 		
 		//Create 2 each of horses, cats, and dogs.
 		for(int i = 0; i < 2; i++)
 		{
-			pieces.add(new PieceData(PieceData.GOLD, PieceData.CAT));
-			pieces.add(new PieceData(PieceData.SILVER, PieceData.CAT));
-			pieces.add(new PieceData(PieceData.GOLD, PieceData.DOG));
-			pieces.add(new PieceData(PieceData.SILVER, PieceData.DOG));
-			pieces.add(new PieceData(PieceData.GOLD, PieceData.HORSE));
-			pieces.add(new PieceData(PieceData.SILVER, PieceData.HORSE));
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.CAT));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.CAT));
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.DOG));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.DOG));
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.HORSE));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.HORSE));
 		}
 		
 		//Create 1 camel and elephant of each color
-		pieces.add(new PieceData(PieceData.GOLD, PieceData.CAMEL));
-		pieces.add(new PieceData(PieceData.SILVER, PieceData.CAMEL));
-		pieces.add(new PieceData(PieceData.GOLD, PieceData.ELEPHANT));
-		pieces.add(new PieceData(PieceData.SILVER, PieceData.ELEPHANT));
+		pieces.add(new PieceData(GameConstants.GOLD, PieceData.CAMEL));
+		pieces.add(new PieceData(GameConstants.SILVER, PieceData.CAMEL));
+		pieces.add(new PieceData(GameConstants.GOLD, PieceData.ELEPHANT));
+		pieces.add(new PieceData(GameConstants.SILVER, PieceData.ELEPHANT));
 	}
 
 	/**
