@@ -31,6 +31,7 @@ public class SpaceData
 	public static final int NORMAL = 0;
 	public static final int TRAP = 1;
 	private int	spaceType;
+	private PieceData piece;
 	
 	/**
 	 * TODO: Describe constructor
@@ -47,9 +48,28 @@ public class SpaceData
 	 *
 	 * @return
 	 */
-	public int getSpaceType()
+	public boolean isOccupied()
 	{
-		return spaceType;
+		return piece != null;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param data
+	 */
+	public void placePiece(PieceData piece)
+	{
+		this.piece = piece;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 */
+	public void removePiece()
+	{
+		piece = null;
 	}
 
 }

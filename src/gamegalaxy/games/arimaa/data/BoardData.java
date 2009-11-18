@@ -24,17 +24,15 @@ package gamegalaxy.games.arimaa.data;
 
 import gamegalaxy.tools.SimpleObservable;
 
-import java.util.Observer;
-
 /**
  * 
  */
-public class GameBoardData
+public class BoardData
 {
 	private SpaceData[][] spaces;
 	private SimpleObservable observable;
 	
-	public GameBoardData()
+	public BoardData()
 	{
 		//Create our observable
 		observable = new SimpleObservable();
@@ -61,27 +59,38 @@ public class GameBoardData
 			}
 		}
 	}
-	
+
 	/**
-	 * Return the space at c,r
+	 * TODO: Describe method
 	 *
-	 * @param c
-	 * @param r
+	 * @param space
 	 * @return
 	 */
-	public SpaceData getDataAt(int c, int r)
+	public boolean isOccupied(BoardPosition space)
 	{
-		return spaces[c][r];
+		return spaces[space.getCol()][space.getRow()].isOccupied();
 	}
 
 	/**
-	 * Add an observer to the data.
+	 * TODO: Describe method
 	 *
-	 * @param boardDisplay
+	 * @param data
+	 * @param space
 	 */
-	public void addObserver(Observer observer)
+	public void placePiece(PieceData data, BoardPosition space)
 	{
-		observable.addObserver(observer);
+		spaces[space.getCol()][space.getRow()].placePiece(data);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param data
+	 * @param space
+	 */
+	public void removePiece(BoardPosition space)
+	{
+		spaces[space.getCol()][space.getRow()].removePiece();
 	}
 
 }

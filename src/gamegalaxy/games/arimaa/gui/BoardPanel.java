@@ -95,16 +95,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 		int centerY = relativeY + SPACE_HEIGHT / 2;
 		
 		BoardPosition space = identifyBoardPosition(centerX, centerY);
-		
-		//And now find the X,Y coordinates of the new row, col.
-		int newX = space.getCol() * SPACE_WIDTH + firstSquareX;
-		int newY = space.getRow() * SPACE_HEIGHT + firstSquareY;
-		
-		//Assign the piece to its new location, since we're not doing any validation yet.
-		piecePanel.setLocation(getX() + newX, getY() + newY);
-		
-		//Assign the new holder.
-		piecePanel.setHolder(this);
+		placePiece(piecePanel, space);
 	}
 
 	/**
@@ -138,5 +129,24 @@ public class BoardPanel extends JPanel implements PieceHolder
 		row = Math.max(0, Math.min(7, row));
 		
 		return new BoardPosition(row, col);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piecePanel
+	 * @param space
+	 */
+	public void placePiece(PiecePanel piecePanel, BoardPosition space)
+	{
+		//And now find the X,Y coordinates of the new row, col.
+		int newX = space.getCol() * SPACE_WIDTH + firstSquareX;
+		int newY = space.getRow() * SPACE_HEIGHT + firstSquareY;
+		
+		//Assign the piece to its new location, since we're not doing any validation yet.
+		piecePanel.setLocation(getX() + newX, getY() + newY);
+		
+		//Assign the new holder.
+		piecePanel.setHolder(this);
 	}
 }

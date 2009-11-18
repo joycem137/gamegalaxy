@@ -199,9 +199,9 @@ public class ArimaaUI extends JPanel
 			Point dropLocation)
 	{
 		PieceHolder dropPanel = getHolderAt(dropLocation.x, dropLocation.y); 
-			
+		
 		if(dropPanel == boardPanel)
-		{
+		{	
 			//Determine what square we dropped this on:
 			int relativeDropX = dropLocation.x - boardPanel.getX();
 			int relativeDropY = dropLocation.y - boardPanel.getY();
@@ -209,9 +209,23 @@ public class ArimaaUI extends JPanel
 			
 			//Check with the engine to see if that's a valid spot or not.
 			if(engine.isValidPiecePlacement(piecePanel.getData(), space))
-			{
+			{	
+				//Identify the piece's old location on the board, if applicable, and remove it
+				if(holder ==  boardPanel)
+				{
+					//Identify the location on the board.
+					int oldX = piecePanel.getOriginalX() - boardPanel.getX();
+					int oldY = piecePanel.getOriginalY() - boardPanel.getY();
+					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
+					engine.removePiece(originalSpace);
+				}
+				
+				//Remove the piece from its previous location
 				holder.removePiece(piecePanel);
-				dropPanel.dropPiece(piecePanel);
+				
+				//Place the piece in its new location;
+				boardPanel.placePiece(piecePanel, space);
+				engine.placePiece(piecePanel.getData(), space);
 			}
 			else
 			{
@@ -220,7 +234,17 @@ public class ArimaaUI extends JPanel
 		}
 		else if(dropPanel == goldBucketPanel || dropPanel == silverBucketPanel)
 		{
-			//Just move the piece into the bucket for now.
+			//Identify the piece's old location on the board, if applicable, and remove it
+			if(holder ==  boardPanel)
+			{
+				//Identify the location on the board.
+				int oldX = piecePanel.getOriginalX() - boardPanel.getX();
+				int oldY = piecePanel.getOriginalY() - boardPanel.getY();
+				BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
+				engine.removePiece(originalSpace);
+			}
+			
+			//Move the piece into the bucket.
 			holder.removePiece(piecePanel);
 			dropPanel.dropPiece(piecePanel);
 		}
