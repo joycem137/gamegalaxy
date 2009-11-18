@@ -65,11 +65,11 @@ public class ArimaaUI extends JPanel
 		//Create buckets
 		goldBucketPanel = new BucketPanel(loader);
 		add(goldBucketPanel);
-		goldBucketPanel.setLocation(38, 153);
+		goldBucketPanel.setLocation(48, 132);
 		
 		silverBucketPanel = new BucketPanel(loader);
 		add(silverBucketPanel);
-		silverBucketPanel.setLocation(808, 153);
+		silverBucketPanel.setLocation(822, 132);
 		
 		turnPanel = new TurnPanel(this, loader);
 		add(turnPanel);
