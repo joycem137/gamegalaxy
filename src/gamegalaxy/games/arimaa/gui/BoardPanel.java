@@ -23,10 +23,12 @@
 
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 
 import javax.swing.JPanel;
 
@@ -43,6 +45,10 @@ public class BoardPanel extends JPanel implements PieceHolder
 	private final static int BORDER_WIDTH = 27;
 	private final static int SPACE_WIDTH = 59;
 	private final static int SPACE_HEIGHT = 59;
+	
+	//Get the location of the upper left square:
+	private static final int firstSquareX = BORDER_WIDTH + 1;
+	private static final int firstSquareY = BORDER_WIDTH + 1;
 	
 	/**
 	 * 
@@ -88,21 +94,11 @@ public class BoardPanel extends JPanel implements PieceHolder
 		int centerX = relativeX + SPACE_WIDTH / 2;
 		int centerY = relativeY + SPACE_HEIGHT / 2;
 		
-		//Get the location of the upper left square:
-		int firstSquareX = BORDER_WIDTH + 1;
-		int firstSquareY = BORDER_WIDTH + 1;
-		
-		//Find out what row and col this piece is near:
-		int col = (centerX - firstSquareX) / SPACE_WIDTH;
-		int row = (centerY - firstSquareY) / SPACE_HEIGHT;
-		
-		//Correct for boundary conditions
-		col = Math.max(0, Math.min(7, col));
-		row = Math.max(0, Math.min(7, row));
+		BoardPosition space = identifyBoardPosition(centerX, centerY);
 		
 		//And now find the X,Y coordinates of the new row, col.
-		int newX = col * SPACE_WIDTH + firstSquareX;
-		int newY = row * SPACE_HEIGHT + firstSquareY;
+		int newX = space.getCol() * SPACE_WIDTH + firstSquareX;
+		int newY = space.getRow() * SPACE_HEIGHT + firstSquareY;
 		
 		//Assign the piece to its new location, since we're not doing any validation yet.
 		piecePanel.setLocation(getX() + newX, getY() + newY);
@@ -122,5 +118,25 @@ public class BoardPanel extends JPanel implements PieceHolder
 	public void removePiece(PiecePanel piecePanel)
 	{
 		piecePanel.removeHolder();
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public BoardPosition identifyBoardPosition(int x, int y)
+	{
+		//Find out what row and col this piece is near:
+		int col = (x - firstSquareX) / SPACE_WIDTH;
+		int row = (y - firstSquareY) / SPACE_HEIGHT;
+		
+		//Correct for boundary conditions
+		col = Math.max(0, Math.min(7, col));
+		row = Math.max(0, Math.min(7, row));
+		
+		return new BoardPosition(row, col);
 	}
 }

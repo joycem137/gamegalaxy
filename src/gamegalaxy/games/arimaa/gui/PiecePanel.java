@@ -27,6 +27,10 @@ public class PiecePanel extends JPanel
 
 	private PieceData	data;
 	
+	//Stores the position that we started dragging from, in case we don't land anywhere.
+	private int	dragXStart;
+	private int	dragYStart;
+	
 	public PiecePanel(final ArimaaUI gui, PieceData data, ResourceLoader loader)
 	{
 		//Store the information about this piece.
@@ -35,9 +39,6 @@ public class PiecePanel extends JPanel
 		//Create the mouse listener to listen for mouse events.
 		MouseInputAdapter ma = new MouseInputAdapter()
 		{
-			//Stores the position that we started dragging from, in case we don't land anywhere.
-			private int	dragXStart;
-			private int	dragYStart;
 			
 			//Stores the last known position to update delta values against.
 			private int	lastDragX;
@@ -80,27 +81,10 @@ public class PiecePanel extends JPanel
 					/*
 					 * Determine where we're dragging to, if anywhere.
 					 * Note that we are using the center point to determine this.
-					 * It makes it drag and drop more nicely.
+					 * It makes it drag and drop work more nicely.
 					 */
-					PieceHolder dropPanel = gui.getHolderAt(getX() + getWidth() / 2, getY() + getHeight() / 2);
-					
-					if(dropPanel == null)
-					{
-						//We didn't go anywhere.  Just reset the position of the object.
-						piecePanel.setLocation(dragXStart, dragYStart);
-					}
-					else
-					{
-						/*
-						 * We managed to drop it on somethin that was listening!
-						 * Now go find out what it wants to do about you.
-						 * 
-						 * Until the engine is in place, this just moves the piece without
-						 * validating anything.
-						 */
-						holder.removePiece(piecePanel);
-						dropPanel.dropPiece(piecePanel);
-					}
+					Point dropLocation = new Point(getX() + getWidth() / 2, getY() + getHeight() / 2);
+					gui.droppedPiece(piecePanel, holder, dropLocation);
 				}
 				
 				//Reset the dragging flag.
@@ -137,7 +121,6 @@ public class PiecePanel extends JPanel
 		
 		//Load the image related to this piece.
 		String pieceName = data.getColorString() + data.getNameString();
-		System.out.println("Loading piece image for " + pieceName);
 		pieceImage = loader.getResource(pieceName);
 		
 		//configure the size of this panel
@@ -183,5 +166,10 @@ public class PiecePanel extends JPanel
 	public PieceData getData()
 	{
 		return data;
+	}
+	
+	public void resetPosition()
+	{
+		setLocation(dragXStart, dragYStart);
 	}
 }

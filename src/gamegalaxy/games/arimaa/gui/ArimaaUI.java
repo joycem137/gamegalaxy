@@ -1,5 +1,6 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.engine.ArimaaEngine;
@@ -9,6 +10,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Iterator;
 import java.util.List;
@@ -145,7 +147,7 @@ public class ArimaaUI extends JPanel
 	 * 			in looking for a drop target.
 	 * @return The drop target associated with this location. 
 	 */
-	public PieceHolder getHolderAt(int x, int y)
+	private PieceHolder getHolderAt(int x, int y)
 	{
 		Component[] components = getComponents();
 		for(int i = 0; i < components.length; i++)
@@ -184,5 +186,48 @@ public class ArimaaUI extends JPanel
 	public boolean canDragPiece(PiecePanel piecePanel)
 	{
 		return engine.isPiecePlaceable(piecePanel.getData());
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piecePanel
+	 * @param holder
+	 * @param dropLocation
+	 */
+	public void droppedPiece(PiecePanel piecePanel, PieceHolder holder,
+			Point dropLocation)
+	{
+		PieceHolder dropPanel = getHolderAt(dropLocation.x, dropLocation.y); 
+			
+		if(dropPanel == boardPanel)
+		{
+			//Determine what square we dropped this on:
+			int relativeDropX = dropLocation.x - boardPanel.getX();
+			int relativeDropY = dropLocation.y - boardPanel.getY();
+			BoardPosition space = boardPanel.identifyBoardPosition(relativeDropX, relativeDropY);
+			
+			//Check with the engine to see if that's a valid spot or not.
+			if(engine.isValidPiecePlacement(piecePanel.getData(), space))
+			{
+				holder.removePiece(piecePanel);
+				dropPanel.dropPiece(piecePanel);
+			}
+			else
+			{
+				piecePanel.resetPosition();
+			}
+		}
+		else if(dropPanel == goldBucketPanel || dropPanel == silverBucketPanel)
+		{
+			//Just move the piece into the bucket for now.
+			holder.removePiece(piecePanel);
+			dropPanel.dropPiece(piecePanel);
+		}
+		else
+		{
+			//We didn't go anywhere.  Just reset the position of the object.
+			piecePanel.resetPosition();
+		}
 	}
 }
