@@ -191,11 +191,35 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Notifies the gui as pieces are being dragged, so that it can respond
+	 * with real-time board highlighting.
 	 *
-	 * @param piecePanel
-	 * @param holder
-	 * @param dropLocation
+	 * @param piecePanel 	The piece that is currently being dragged.
+	 * @param holder 		The holder where this piece originated from.
+	 * @param dragLocation  The (x,y) coordinates of the piece center.
+	 */
+	public void draggedPiece(PiecePanel piecePanel, PieceHolder holder,
+			Point dragLocation)
+	{
+		PieceHolder dragOverPanel = getHolderAt(dragLocation.x, dragLocation.y); 	
+
+		if(dragOverPanel == boardPanel)
+		{
+			//Determine what square we dropped this on:
+			int relativeDragX = dragLocation.x - boardPanel.getX();
+			int relativeDragY = dragLocation.y - boardPanel.getY();
+			BoardPosition space = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);			
+		}
+	}
+	
+	/**
+	 * Notifies the gui as a dragged piece is dropped.  The gui will check with
+	 * the game engine to see if this is a valid piece placement, and updates the
+	 * piece location if so.
+	 *
+	 * @param piecePanel 	The piece that is being dropped.
+	 * @param holder		The holder where this piece originated from.
+	 * @param dropLocation	The (x,y) coordinates of the piece center.
 	 */
 	public void droppedPiece(PiecePanel piecePanel, PieceHolder holder,
 			Point dropLocation)
