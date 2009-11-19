@@ -15,7 +15,7 @@ public class BoardPosition
 	 * @param row
 	 * @param col
 	 */
-	public BoardPosition(int row, int col)
+	public BoardPosition(int col, int row)
 	{
 		this.row = row;
 		this.col = col;

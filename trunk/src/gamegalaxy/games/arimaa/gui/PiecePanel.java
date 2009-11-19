@@ -54,6 +54,7 @@ public class PiecePanel extends JPanel
 				if(gui.canDragPiece(piecePanel))
 				{
 					dragging = true;
+					
 					//ensure that the dragged piece is topmost and visible.
 					gui.setComponentZOrder(piecePanel, 0);
 					
@@ -79,8 +80,10 @@ public class PiecePanel extends JPanel
 				if(dragging)
 				{
 					PiecePanel piecePanel = (PiecePanel)me.getSource();
+					
 					//allow other dragged pieces to display over this one.
-					gui.setComponentZOrder(piecePanel, 1);					
+					gui.setComponentZOrder(piecePanel, 1);		
+					
 					/*
 					 * Determine where we're dragging to, if anywhere.
 					 * Note that we are using the center point to determine this.
@@ -98,6 +101,8 @@ public class PiecePanel extends JPanel
 			{
 				if(dragging)
 				{
+					PiecePanel piecePanel = (PiecePanel)me.getSource();
+
 					//Determine the updated position from the deltas.
 					Point relativePoint = new Point(me.getX(), me.getY());
 					SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
@@ -114,6 +119,10 @@ public class PiecePanel extends JPanel
 	
 					//Set the new location
 					setLocation(newX, newY);
+					
+					//notify the gui where the piece center is so that it can respond with highlighting, etc.
+					Point dragLocation = new Point(getX() + getWidth() / 2, getY() + getHeight() / 2);
+					gui.draggedPiece(piecePanel, holder, dragLocation);
 				}
 			}
 		};

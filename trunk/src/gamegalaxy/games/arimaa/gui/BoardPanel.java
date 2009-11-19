@@ -112,11 +112,12 @@ public class BoardPanel extends JPanel implements PieceHolder
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Determines the column and row of (x,y) coordinates.  The coordinates provided
+	 * need to be relative to the top-left corner of the boardPanel being (0,0).
 	 *
-	 * @param x
-	 * @param y
-	 * @return
+	 * @param x		The x-coordinate of the location being tested.
+	 * @param y		The y-coordinate of the location being tested.
+	 * @return		the corresponding BoardPosition(col,row) in the range (0~7, 0~7) 
 	 */
 	public BoardPosition identifyBoardPosition(int x, int y)
 	{
@@ -128,7 +129,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 		col = Math.max(0, Math.min(7, col));
 		row = Math.max(0, Math.min(7, row));
 		
-		return new BoardPosition(row, col);
+		return new BoardPosition(col, row);
 	}
 
 	/**
