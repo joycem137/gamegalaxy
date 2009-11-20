@@ -49,6 +49,15 @@ public class PiecePanel extends JPanel
 
 			public void mousePressed(MouseEvent me)
 			{	
+				//check which mouse button was pressed.
+				int buttonPressed = me.getButton();
+
+				//for now, do nothing unless the mouse press was a left-click.
+				if (buttonPressed != me.BUTTON1)
+				{
+					return;
+				}
+				
 				//Validate that we can drag this piece.
 				PiecePanel piecePanel = (PiecePanel)me.getSource();
 				if(gui.canDragPiece(piecePanel))
@@ -77,6 +86,15 @@ public class PiecePanel extends JPanel
 			
 			public void mouseReleased(MouseEvent me)
 			{
+				//check which mouse button was pressed.
+				int buttonReleased = me.getButton();
+
+				//for now, do nothing unless the mouse press was a left-click.
+				if (buttonReleased != me.BUTTON1)
+				{
+					return;
+				}
+
 				if(dragging)
 				{
 					PiecePanel piecePanel = (PiecePanel)me.getSource();
