@@ -53,7 +53,7 @@ public class PiecePanel extends JPanel
 				int buttonPressed = me.getButton();
 
 				//for now, do nothing unless the mouse press was a left-click.
-				if (buttonPressed != me.BUTTON1)
+				if (buttonPressed != MouseEvent.BUTTON1)
 				{
 					return;
 				}
@@ -90,7 +90,7 @@ public class PiecePanel extends JPanel
 				int buttonReleased = me.getButton();
 
 				//for now, do nothing unless the mouse press was a left-click.
-				if (buttonReleased != me.BUTTON1)
+				if (buttonReleased != MouseEvent.BUTTON1)
 				{
 					return;
 				}

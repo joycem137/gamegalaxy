@@ -36,7 +36,9 @@ public class ArimaaUI extends JPanel
 	private List<PiecePanel>	piecePanels;
 	private TurnPanel			turnPanel;
 	private ArimaaEngine		engine;
-
+	
+	private HighlightPanel		highlight;
+	
 	/**
 	 * 
 	 * Construct the UI, load any files needed for it, set the layout, etc.
@@ -56,6 +58,10 @@ public class ArimaaUI extends JPanel
 		backgroundImage = loader.getResource("AppBackground");
 		
 		createPieces(engine, loader);
+		
+		//Create highlight panel.
+		highlight = new HighlightPanel(loader);
+		add(highlight);
 		
 		//Create other components
 		boardPanel = new BoardPanel(loader);
@@ -205,10 +211,30 @@ public class ArimaaUI extends JPanel
 
 		if(dragOverPanel == boardPanel)
 		{
-			//Determine what square we dropped this on:
+			//Determine what square we're over:
 			int relativeDragX = dragLocation.x - boardPanel.getX();
 			int relativeDragY = dragLocation.y - boardPanel.getY();
-			BoardPosition space = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);			
+			BoardPosition space = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
+			
+			//is this square a valid placement for the piece we're dragging?
+			if(engine.isValidPiecePlacement(piecePanel.getData(), space))
+			{
+				highlight.setColor(highlight.BLUE);
+			}
+			else
+			{
+				highlight.setColor(highlight.OFF);
+			}
+				
+			//get coords of upper-left corner of this square:
+			Point coords = boardPanel.identifyCoordinates(space);
+			
+			//place our highlighter over this square:
+			highlight.setLocation(coords.x + 248, coords.y + 120);
+		}
+		else
+		{
+			highlight.setColor(highlight.OFF);
 		}
 	}
 	
@@ -224,6 +250,7 @@ public class ArimaaUI extends JPanel
 	public void droppedPiece(PiecePanel piecePanel, PieceHolder holder,
 			Point dropLocation)
 	{
+		highlight.setColor(highlight.OFF);
 		PieceHolder dropPanel = getHolderAt(dropLocation.x, dropLocation.y); 
 		
 		if(dropPanel == boardPanel)

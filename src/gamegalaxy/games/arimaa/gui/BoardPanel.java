@@ -133,6 +133,22 @@ public class BoardPanel extends JPanel implements PieceHolder
 	}
 
 	/**
+	 * Determines the (x,y) coordinates of the top-left corner of a given BoardPosition,
+	 * relative to the top-left corner of the boardPanel being (0,0).
+	 *
+	 * @param space	BoardPosition(col,row) being tested.
+	 * @return		the corresponding (x,y) coordinates of the top-left corner of the BoardPosition.
+	 */
+	public Point identifyCoordinates(BoardPosition space)
+	{
+		//calculate the X,Y coordinates based on our board constants.
+		int newX = space.getCol() * SPACE_WIDTH + firstSquareX;
+		int newY = space.getRow() * SPACE_HEIGHT + firstSquareY;
+		
+		return new Point(newX, newY);
+	}
+	
+	/**
 	 * TODO: Describe method
 	 *
 	 * @param piecePanel
@@ -140,12 +156,11 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 */
 	public void placePiece(PiecePanel piecePanel, BoardPosition space)
 	{
-		//And now find the X,Y coordinates of the new row, col.
-		int newX = space.getCol() * SPACE_WIDTH + firstSquareX;
-		int newY = space.getRow() * SPACE_HEIGHT + firstSquareY;
+		//First grab the X,Y coordinates of the BoardPosition.
+		Point coords = identifyCoordinates(space);
 		
 		//Assign the piece to its new location, since we're not doing any validation yet.
-		piecePanel.setLocation(getX() + newX, getY() + newY);
+		piecePanel.setLocation(getX() + coords.x, getY() + coords.y);
 		
 		//Assign the new holder.
 		piecePanel.setHolder(this);
