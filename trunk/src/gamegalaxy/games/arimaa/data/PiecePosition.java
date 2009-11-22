@@ -1,5 +1,8 @@
 package gamegalaxy.games.arimaa.data;
 
+import java.util.List;
+import java.util.Vector;
+
 /**
  * 
  */
@@ -95,6 +98,21 @@ public class PiecePosition
 	public String toString()
 	{
 		return "" + row + ", " + col;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public List<PiecePosition> getAdjacentSpaces()
+	{
+		List<PiecePosition> spaces = new Vector<PiecePosition>(4);
+		spaces.add(new PiecePosition(col - 1, row));
+		spaces.add(new PiecePosition(col + 1, row));
+		spaces.add(new PiecePosition(col, row - 1));
+		spaces.add(new PiecePosition(col, row + 1));
+		return spaces;
 	}
 
 }
