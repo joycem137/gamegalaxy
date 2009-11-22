@@ -93,4 +93,15 @@ public class BoardData
 		spaces[space.getCol()][space.getRow()].removePiece();
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param space
+	 * @return
+	 */
+	public PieceData getPieceAt(BoardPosition space)
+	{
+		return spaces[space.getCol()][space.getRow()].getPiece();
+	}
+
 }

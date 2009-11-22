@@ -250,7 +250,7 @@ public class ArimaaUI extends JPanel
 	public void droppedPiece(PiecePanel piecePanel, PieceHolder holder,
 			Point dropLocation)
 	{
-		highlight.setColor(highlight.OFF);
+		highlight.setColor(HighlightPanel.OFF);
 		PieceHolder dropPanel = getHolderAt(dropLocation.x, dropLocation.y); 
 		
 		if(dropPanel == boardPanel)
@@ -270,12 +270,13 @@ public class ArimaaUI extends JPanel
 					int oldX = piecePanel.getOriginalX() - boardPanel.getX();
 					int oldY = piecePanel.getOriginalY() - boardPanel.getY();
 					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
-					engine.removePiece(originalSpace);
+					
+					engine.movePiece(originalSpace, space);
 				}
 				else if(holder == goldBucketPanel || holder == silverBucketPanel)
 				{
 					//Remove the piece from the bucket
-					engine.removePieceFromBucket(piecePanel.getData());
+					engine.movePieceFromBucketToBoard(piecePanel.getData(), space);
 				}
 				
 				//Remove the piece from its previous location
@@ -283,7 +284,6 @@ public class ArimaaUI extends JPanel
 				
 				//Place the piece in its new location;
 				boardPanel.placePiece(piecePanel, space);
-				engine.placePiece(piecePanel.getData(), space);
 			}
 			else
 			{
@@ -307,19 +307,18 @@ public class ArimaaUI extends JPanel
 					int oldX = piecePanel.getOriginalX() - boardPanel.getX();
 					int oldY = piecePanel.getOriginalY() - boardPanel.getY();
 					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
-					engine.removePiece(originalSpace);
+					engine.movePieceFromBoardToBucket(originalSpace);
 				}
-				else if(holder == goldBucketPanel || holder == silverBucketPanel)
+				else
 				{
-					//Remove the piece from the bucket
-					engine.removePieceFromBucket(piecePanel.getData());
+					//We went from bucket to bucket or something like that.  abort things.
+					piecePanel.resetPosition();
 				}
 				
 				//Remove the piece from its current location
 				holder.removePiece(piecePanel);
 				
 				//Add the piece to the bucket.
-				engine.addPieceToBucket(piecePanel.getData());
 				dropPanel.dropPiece(piecePanel);
 			}
 			else

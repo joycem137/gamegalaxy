@@ -156,19 +156,6 @@ public class ArimaaEngine
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param data
-	 * @param space
-	 */
-	public void placePiece(PieceData data, BoardPosition space)
-	{
-		board.placePiece(data, space);
-		
-		checkforEndOfTurn();
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
 	 */
 	private void checkforEndOfTurn()
 	{
@@ -187,17 +174,6 @@ public class ArimaaEngine
 			
 			gui.setEndofTurn(bucket.size() == 0);
 		}
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
-	 * @param data
-	 * @param originalSpace
-	 */
-	public void removePiece(BoardPosition space)
-	{
-		board.removePiece(space);
 	}
 
 	/**
@@ -227,9 +203,29 @@ public class ArimaaEngine
 	 * TODO: Describe method
 	 *
 	 * @param data
+	 * @param space
+	 * @param space2 
 	 */
-	public void removePieceFromBucket(PieceData data)
+	public void movePiece(BoardPosition originalSpace, BoardPosition newSpace)
 	{
+		PieceData piece = board.getPieceAt(originalSpace);
+		
+		board.removePiece(originalSpace);
+		
+		board.placePiece(piece, newSpace);
+		
+		checkforEndOfTurn();
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param data
+	 * @param space
+	 */
+	public void movePieceFromBucketToBoard(PieceData data, BoardPosition space)
+	{
+		//First remove the piece from the bucket.
 		List<PieceData> bucket;
 		if(data.getColor() == GameConstants.GOLD)
 		{
@@ -241,17 +237,30 @@ public class ArimaaEngine
 		}
 		
 		bucket.remove(data);
+		
+		//Now place the piece on the board in the correct space.
+		board.placePiece(data, space);
+		
+		checkforEndOfTurn();
 	}
 
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param data
+	 * @param originalSpace
 	 */
-	public void addPieceToBucket(PieceData data)
+	public void movePieceFromBoardToBucket(BoardPosition space)
 	{
+		
+		//Get the piece from the board.
+		PieceData piece = board.getPieceAt(space);
+		
+		//Remove the piece from the board.
+		board.removePiece(space);
+		
+		//Add the piece to the bucket.
 		List<PieceData> bucket;
-		if(data.getColor() == GameConstants.GOLD)
+		if(piece.getColor() == GameConstants.GOLD)
 		{
 			bucket = goldBucket;
 		}
@@ -260,7 +269,8 @@ public class ArimaaEngine
 			bucket = silverBucket;
 		}
 		
-		bucket.add(data);
+		bucket.add(piece);
+		
 		checkforEndOfTurn();
 	}
 
