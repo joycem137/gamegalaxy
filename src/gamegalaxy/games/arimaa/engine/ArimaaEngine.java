@@ -136,30 +136,6 @@ public class ArimaaEngine
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param data
-	 * @param space
-	 * @return
-	 */
-	public boolean isValidPiecePlacement(PieceData data, PiecePosition space)
-	{
-		if(board.isOccupied(space))
-		{
-			return false;
-		}
-		
-		if(data.getColor() == GameConstants.GOLD)
-		{
-			return space.getRow() >= 6;
-		}
-		else
-		{
-			return space.getRow() <= 1;
-		}
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
 	 * @param originalSpace
 	 * @param space
 	 * @return
