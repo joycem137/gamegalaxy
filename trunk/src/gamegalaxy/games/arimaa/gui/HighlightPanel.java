@@ -1,6 +1,6 @@
 package gamegalaxy.games.arimaa.gui;
 
-import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
@@ -32,7 +32,7 @@ public class HighlightPanel extends JPanel
 	private Image highlightImage;
 
 	//BoardPosition where the highlightPanel is located.
-	private BoardPosition boardPosition;
+	private PiecePosition boardPosition;
 
 	
 	public HighlightPanel(ResourceLoader loader)
@@ -41,7 +41,7 @@ public class HighlightPanel extends JPanel
 		this.loader = loader;
 		
 		//Store the information about this highlighter.
-		this.boardPosition = new BoardPosition(0, 0);
+		this.boardPosition = new PiecePosition(0, 0);
 		
 		//Create the mouse listener to listen for mouse events.
 		MouseInputAdapter ma = new MouseInputAdapter()
@@ -86,7 +86,7 @@ public class HighlightPanel extends JPanel
 	 *
 	 * @return BoardPosition(col,row) where the highlighter is displayed.
 	 */
-	public BoardPosition getBoardPosition()
+	public PiecePosition getBoardPosition()
 	{
 		return boardPosition;
 	}
@@ -96,7 +96,7 @@ public class HighlightPanel extends JPanel
 	 *
 	 * @param position	BoardPosition(col,row) we're moving the highlighter to.
 	 */	
-	public void setBoardPosition(BoardPosition position)
+	public void setBoardPosition(PiecePosition position)
 	{
 		this.boardPosition = position;
 	}

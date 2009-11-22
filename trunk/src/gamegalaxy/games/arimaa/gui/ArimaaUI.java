@@ -1,6 +1,6 @@
 package gamegalaxy.games.arimaa.gui;
 
-import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.engine.ArimaaEngine;
@@ -169,20 +169,9 @@ public class ArimaaUI extends JPanel
 				&& y >= bounds.getMinY()
 				&& y <= bounds.getMaxY())
 			{
-				/*
-				 * This is BAD BAD BAD.  You should never use a try/catch when you can
-				 * use a conditional.  However, I don't know a better way to do it without
-				 * access to the internet to do research on the subject.
-				 * 
-				 * Airplanes make for terrible places to get research done.
-				 */
-				try
+				if(component instanceof PieceHolder)
 				{
 					return (PieceHolder)component;
-				}
-				catch(ClassCastException cce)
-				{
-					//Nothing to do, just don't do the return.
 				}
 			}
 		}
@@ -207,6 +196,7 @@ public class ArimaaUI extends JPanel
 	public void draggedPiece(PiecePanel piecePanel, PieceHolder holder,
 			Point dragLocation)
 	{
+		//Find out where we're coming from
 		PieceHolder dragOverPanel = getHolderAt(dragLocation.x, dragLocation.y); 	
 
 		if(dragOverPanel == boardPanel)
@@ -214,43 +204,26 @@ public class ArimaaUI extends JPanel
 			//Determine what square we're over:
 			int relativeDragX = dragLocation.x - boardPanel.getX();
 			int relativeDragY = dragLocation.y - boardPanel.getY();
-			BoardPosition space = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
+			PiecePosition dragOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
 			
-			//If moving over the board panel...
-			if(holder ==  boardPanel)
+			//Determine where we're moving over.
+			PiecePosition originalLocation = getPiecePositionAt(piecePanel.getOriginalLocation());
+			
+			//Set the highlight.
+			if(engine.isValidMove(piecePanel.getData(), originalLocation, dragOverPosition))
 			{
-				//Identify the location on the board.
-				int oldX = piecePanel.getOriginalX() - boardPanel.getX();
-				int oldY = piecePanel.getOriginalY() - boardPanel.getY();
-				BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
+				highlight.setColor(HighlightPanel.BLUE);
 				
-				if(engine.isValidMove(originalSpace, space))
-				{
-					highlight.setColor(HighlightPanel.BLUE);
-				}
-				else
-				{
-					highlight.setColor(HighlightPanel.OFF);
-				}
+				//get coords of upper-left corner of this square:
+				Point coords = boardPanel.identifyCoordinates(dragOverPosition);
+				
+				//place our highlighter over this square:
+				highlight.setLocation(coords.x + 248, coords.y + 120);
 			}
-			else if(holder == goldBucketPanel || holder == silverBucketPanel)
+			else
 			{
-				//is this square a valid placement for the piece we're dragging?
-				if(engine.isValidPiecePlacement(piecePanel.getData(), space))
-				{
-					highlight.setColor(HighlightPanel.BLUE);
-				}
-				else
-				{
-					highlight.setColor(HighlightPanel.OFF);
-				}
+				highlight.setColor(HighlightPanel.OFF);
 			}
-			
-			//get coords of upper-left corner of this square:
-			Point coords = boardPanel.identifyCoordinates(space);
-			
-			//place our highlighter over this square:
-			highlight.setLocation(coords.x + 248, coords.y + 120);
 		}
 		else
 		{
@@ -270,104 +243,68 @@ public class ArimaaUI extends JPanel
 	public void droppedPiece(PiecePanel piecePanel, PieceHolder holder,
 			Point dropLocation)
 	{
+		//Turn off highlighting.
 		highlight.setColor(HighlightPanel.OFF);
-		PieceHolder dropPanel = getHolderAt(dropLocation.x, dropLocation.y); 
 		
-		if(dropPanel == boardPanel)
-		{	
-			//Determine what square we dropped this on:
-			int relativeDropX = dropLocation.x - boardPanel.getX();
-			int relativeDropY = dropLocation.y - boardPanel.getY();
-			BoardPosition space = boardPanel.identifyBoardPosition(relativeDropX, relativeDropY);
-			
-			//Identify the piece's old location on the board, if applicable, and remove it
-			if(holder ==  boardPanel)
-			{
-				//Identify the location on the board.
-				int oldX = piecePanel.getOriginalX() - boardPanel.getX();
-				int oldY = piecePanel.getOriginalY() - boardPanel.getY();
-				BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
-				
-				if(engine.isValidMove(originalSpace, space))
-				{
-					engine.movePiece(originalSpace, space);
-					
-					//Remove the piece from its previous location
-					holder.removePiece(piecePanel);
-					
-					//Place the piece in its new location;
-					boardPanel.placePiece(piecePanel, space);
-				}
-				else
-				{
-					piecePanel.resetPosition();
-				}
-			}
-			else if(holder == goldBucketPanel || holder == silverBucketPanel)
-			{	
-				if(engine.isValidPiecePlacement(piecePanel.getData(), space))
-				{
-					//Remove the piece from the bucket
-					engine.movePieceFromBucketToBoard(piecePanel.getData(), space);
-					
-					//Remove the piece from its previous location
-					holder.removePiece(piecePanel);
-					
-					//Place the piece in its new location;
-					boardPanel.placePiece(piecePanel, space);
-				}
-				else
-				{
-					piecePanel.resetPosition();
-				}
-			}
-			else
-			{
-				piecePanel.resetPosition();
-			}
-		}
-		else if(dropPanel == goldBucketPanel || dropPanel == silverBucketPanel)
+		//Determine where we're going to
+		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
+		
+		//Determine where we're coming from.
+		PiecePosition originalPosition = getPiecePositionAt(piecePanel.getOriginalLocation());
+		
+		//Now see if it makes sense to move this piece.
+		if(engine.isValidMove(piecePanel.getData(), originalPosition, dropPosition))
 		{
-			//Set the bucket color
-			int bucketColor;
-			if(dropPanel == goldBucketPanel) bucketColor = GameConstants.GOLD;
-			else bucketColor = GameConstants.SILVER;
+			engine.movePiece(piecePanel.getData(), originalPosition, dropPosition);
 			
-			//Check whether or not we are actually allowed to do this.
-			if(engine.isValidToDropInBucket(piecePanel.getData(), bucketColor))
+			//Remove the piece from its previous location
+			holder.removePiece(piecePanel);
+			
+			//Place the piece in its new location;
+			if(dropPosition.isOnBoard())
 			{
-				//Identify the piece's old location on the board, if applicable, and remove it
-				if(holder ==  boardPanel)
-				{
-					//Identify the location on the board.
-					int oldX = piecePanel.getOriginalX() - boardPanel.getX();
-					int oldY = piecePanel.getOriginalY() - boardPanel.getY();
-					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
-					engine.movePieceFromBoardToBucket(originalSpace);
-				}
-				else
-				{
-					//We went from bucket to bucket or something like that.  abort things.
-					piecePanel.resetPosition();
-				}
-				
-				//Remove the piece from its current location
-				holder.removePiece(piecePanel);
-				
-				//Add the piece to the bucket.
-				dropPanel.dropPiece(piecePanel);
+				boardPanel.placePiece(piecePanel, dropPosition);
+			}
+			else if(dropPosition.getBucketColor() == GameConstants.GOLD)
+			{
+				goldBucketPanel.dropPiece(piecePanel);
 			}
 			else
 			{
-				//It's invalid to try to drop anything into this bucket.  Give up.
-				piecePanel.resetPosition();
+				silverBucketPanel.dropPiece(piecePanel);
 			}
 		}
 		else
 		{
-			//We didn't go anywhere.  Just reset the position of the object.
 			piecePanel.resetPosition();
 		}
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param dropLocation
+	 * @return
+	 */
+	private PiecePosition getPiecePositionAt(Point location)
+	{
+		PieceHolder dropPanel = getHolderAt(location.x, location.y); 
+		if(dropPanel == boardPanel)
+		{	
+			//Determine what square we dropped this on:
+			int relativeDropX = location.x - boardPanel.getX();
+			int relativeDropY = location.y - boardPanel.getY();
+			return boardPanel.identifyBoardPosition(relativeDropX, relativeDropY);
+		}
+		else if(dropPanel == goldBucketPanel)
+		{
+			return PiecePosition.GOLD_BUCKET;
+		}
+		else if(dropPanel == silverBucketPanel)
+		{
+			return PiecePosition.SILVER_BUCKET;
+		}
+		return null;
 	}
 
 	/**
