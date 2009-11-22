@@ -9,7 +9,9 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  * 
@@ -23,6 +25,7 @@ public class TurnPanel extends JPanel
 	private JButton endTurnButton;
 	
 	private int turnState;
+	private JLabel	winnerLabel;
 
 	/**
 	 * TODO: Describe constructor
@@ -35,6 +38,12 @@ public class TurnPanel extends JPanel
 		//Set the layout to none.
 		setLayout(null);
 		
+		//Create the winner field.
+		winnerLabel = new JLabel("WINNER!");
+		winnerLabel.setLocation(148, 17);
+		winnerLabel.setSize(164, 33);
+		add(winnerLabel);
+		
 		//Create the end turn button, but do not add it to the screen just yet.
 		endTurnButton = new JButton(new AbstractAction("End Turn")
 		{
@@ -46,7 +55,6 @@ public class TurnPanel extends JPanel
 		endTurnButton.setLocation(148, 17);
 		endTurnButton.setSize(164, 33);
 		add(endTurnButton);
-		endTurnButton.setVisible(false);
 		
 		//Get our images.
 		backgroundImage = loader.getResource("TurnBackground");
@@ -58,6 +66,15 @@ public class TurnPanel extends JPanel
 		
 		//Set the size of this panel.
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
+		
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				winnerLabel.setVisible(false);
+				endTurnButton.setVisible(false);
+			}
+		});
 	}
 	
 	public void setTurnState(int turnState)
@@ -95,6 +112,18 @@ public class TurnPanel extends JPanel
 	public void showEndTurnButton(boolean b)
 	{
 		endTurnButton.setVisible(b);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param player
+	 */
+	public void setWinner(int player)
+	{
+		endTurnButton.setVisible(false);
+		turnState = player;
+		winnerLabel.setVisible(true);
 	}
 
 }
