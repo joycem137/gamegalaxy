@@ -16,6 +16,7 @@ import java.util.Vector;
 public class ArimaaEngine
 {
 	private static final int	SETUP_PHASE	= 0;
+	private static final int	GAME_ON = 1;
 	
 	//Store our data.
 	private List<PieceData>	pieces;
@@ -29,9 +30,10 @@ public class ArimaaEngine
 	//Store a link to the UI
 	private ArimaaUI	gui;
 
+	private int	numMoves;
+
 	public ArimaaEngine()
 	{
-		
 		phase = SETUP_PHASE;
 		
 		playerTurn = GameConstants.GOLD;
@@ -42,6 +44,8 @@ public class ArimaaEngine
 		
 		//Initialize our buckets.
 		createBuckets();
+		
+		numMoves = 0;
 	}
 	
 	public void linkGUI(ArimaaUI gui)
@@ -124,9 +128,9 @@ public class ArimaaEngine
 	 * @param data
 	 * @return
 	 */
-	public boolean isPiecePlaceable(PieceData data)
+	public boolean isPieceSelectable(PieceData data)
 	{
-		return data.getColor() == playerTurn;
+		return data.getColor() == playerTurn && numMoves < 4;
 	}
 
 	/**
@@ -156,6 +160,62 @@ public class ArimaaEngine
 	/**
 	 * TODO: Describe method
 	 *
+	 * @param originalSpace
+	 * @param space
+	 * @return
+	 */
+	public boolean isValidMove(BoardPosition originalSpace, BoardPosition newSpace)
+	{
+		if(phase == SETUP_PHASE)
+		{
+			//Return true if this is the same space we are starting from.
+			if(originalSpace.equals(newSpace))
+			{
+				return true;
+			}
+			
+			//Otherwise, if the space is occupied, return false.
+			if(board.isOccupied(newSpace))
+			{
+				return false;
+			}
+			
+			//Otherwise, verify that the pair of rows is okay.
+			PieceData piece = board.getPieceAt(originalSpace);
+			if(piece.getColor() == GameConstants.GOLD)
+			{
+				return newSpace.getRow() >= 6;
+			}
+			else
+			{
+				return newSpace.getRow() <= 1;
+			}
+		}
+		else if(phase == GAME_ON)
+		{
+			//Return true if this is the same space we are starting from.
+			if(originalSpace.equals(newSpace)) return true;
+			
+			//Otherwise, if the space is occupied, return false.
+			/*
+			 * Note that this is temporary.  We have to fix this when we can push/pull pieces.
+			 */
+			if(board.isOccupied(newSpace)) return false;
+			
+			//Verify that we have moves remaining
+			if(numMoves >= 4) return false;
+			
+			//Okay!  Since we are good with that, we can move one space.
+			return originalSpace.distanceFrom(newSpace) == 1;
+		}
+		
+		//We have no moves to do if we're not playing the game or setting things up.
+		return false;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
 	 */
 	private void checkforEndOfTurn()
 	{
@@ -173,6 +233,11 @@ public class ArimaaEngine
 			}
 			
 			gui.setEndofTurn(bucket.size() == 0);
+		}
+		else if(phase == GAME_ON)
+		{
+			//We can set the end of turn if the number of moves is greater than or equal to 1.
+			gui.setEndofTurn(numMoves >= 1);
 		}
 	}
 
@@ -194,8 +259,18 @@ public class ArimaaEngine
 	 */
 	public void endTurn()
 	{
+		//Switch the turn.
 		playerTurn = (playerTurn + 1) % 2;
 		gui.setTurnState(playerTurn);
+		
+		//If we're back to gold, the game phase has changed.
+		if(playerTurn == GameConstants.GOLD)
+		{
+			phase = GAME_ON;
+		}
+		
+		numMoves = 0;
+		
 		checkforEndOfTurn();
 	}
 
@@ -208,13 +283,19 @@ public class ArimaaEngine
 	 */
 	public void movePiece(BoardPosition originalSpace, BoardPosition newSpace)
 	{
-		PieceData piece = board.getPieceAt(originalSpace);
-		
-		board.removePiece(originalSpace);
-		
-		board.placePiece(piece, newSpace);
-		
-		checkforEndOfTurn();
+		//Validate the move and don't move onto the same space.
+		if(isValidMove(originalSpace, newSpace) && !originalSpace.equals(newSpace))
+		{
+			PieceData piece = board.getPieceAt(originalSpace);
+			
+			board.removePiece(originalSpace);
+			
+			board.placePiece(piece, newSpace);
+			
+			if(phase == GAME_ON) numMoves++;
+			
+			checkforEndOfTurn();
+		}
 	}
 
 	/**
@@ -225,23 +306,26 @@ public class ArimaaEngine
 	 */
 	public void movePieceFromBucketToBoard(PieceData data, BoardPosition space)
 	{
-		//First remove the piece from the bucket.
-		List<PieceData> bucket;
-		if(data.getColor() == GameConstants.GOLD)
+		if(isValidPiecePlacement(data, space))
 		{
-			bucket = goldBucket;
+			//First remove the piece from the bucket.
+			List<PieceData> bucket;
+			if(data.getColor() == GameConstants.GOLD)
+			{
+				bucket = goldBucket;
+			}
+			else
+			{
+				bucket = silverBucket;
+			}
+			
+			bucket.remove(data);
+			
+			//Now place the piece on the board in the correct space.
+			board.placePiece(data, space);
+			
+			checkforEndOfTurn();
 		}
-		else
-		{
-			bucket = silverBucket;
-		}
-		
-		bucket.remove(data);
-		
-		//Now place the piece on the board in the correct space.
-		board.placePiece(data, space);
-		
-		checkforEndOfTurn();
 	}
 
 	/**
@@ -251,7 +335,6 @@ public class ArimaaEngine
 	 */
 	public void movePieceFromBoardToBucket(BoardPosition space)
 	{
-		
 		//Get the piece from the board.
 		PieceData piece = board.getPieceAt(space);
 		

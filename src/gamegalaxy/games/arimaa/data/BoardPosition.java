@@ -35,5 +35,29 @@ public class BoardPosition
 	{
 		return row;
 	}
+	
+	public boolean equals(Object o)
+	{
+		if(o instanceof BoardPosition)
+		{
+			BoardPosition other = (BoardPosition)o;
+			return other.row == row && other.col == col;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param newSpace
+	 * @return
+	 */
+	public int distanceFrom(BoardPosition otherSpace)
+	{
+		return Math.abs(row - otherSpace.row + col - otherSpace.col);
+	}
 
 }
