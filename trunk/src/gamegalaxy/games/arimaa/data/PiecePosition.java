@@ -10,6 +10,7 @@ public class PiecePosition
 {
 	public static final PiecePosition	GOLD_BUCKET	= new PiecePosition(-1, GameConstants.GOLD);
 	public static final PiecePosition 	SILVER_BUCKET = new PiecePosition(-1, GameConstants.SILVER);
+	private static PiecePosition	EDGE = new PiecePosition(-1, -1);
 	
 	private int	row;
 	private int	col;
@@ -108,10 +109,10 @@ public class PiecePosition
 	public List<PiecePosition> getAdjacentSpaces()
 	{
 		List<PiecePosition> spaces = new Vector<PiecePosition>(4);
-		spaces.add(new PiecePosition(col - 1, row));
-		spaces.add(new PiecePosition(col + 1, row));
-		spaces.add(new PiecePosition(col, row - 1));
-		spaces.add(new PiecePosition(col, row + 1));
+		spaces.add(moveUp());
+		spaces.add(moveDown());
+		spaces.add(moveLeft());
+		spaces.add(moveRight());
 		return spaces;
 	}
 
@@ -122,21 +123,49 @@ public class PiecePosition
 	 */
 	public PiecePosition moveLeft()
 	{
-		return new PiecePosition(col - 1, row);
+		if(col - 1 >= 0)
+		{
+			return new PiecePosition(col - 1, row);
+		}
+		else
+		{
+			return PiecePosition.EDGE;
+		}
 	}
 	
 	public PiecePosition moveUp()
 	{
-		return new PiecePosition(col, row - 1);
+		if(row - 1 >= 0)
+		{
+			return new PiecePosition(col, row - 1);
+		}
+		else
+		{
+			return PiecePosition.EDGE;
+		}
 	}
 
 	public PiecePosition moveRight()
 	{
-		return new PiecePosition(col + 1, row);
+		if(col + 1 <= 7)
+		{
+			return new PiecePosition(col + 1, row);
+		}
+		else
+		{
+			return PiecePosition.EDGE;
+		}
 	}
 	
 	public PiecePosition moveDown()
 	{
-		return new PiecePosition(col, row + 1);
+		if(row + 1 <= 7)
+		{
+			return new PiecePosition(col, row + 1);
+		}
+		else
+		{
+			return PiecePosition.EDGE;
+		}
 	}
 }

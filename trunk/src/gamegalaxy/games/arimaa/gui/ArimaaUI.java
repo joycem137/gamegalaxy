@@ -378,4 +378,14 @@ public class ArimaaUI extends JPanel
 			goldBucketPanel.dropPiece(pieceToMove);
 		}
 	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param silver
+	 */
+	public void setGameWinner(int player)
+	{
+		turnPanel.setWinner(player);
+	}
 }

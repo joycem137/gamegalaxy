@@ -65,7 +65,14 @@ public class BoardData
 	 */
 	public boolean isOccupied(PiecePosition space)
 	{
-		return spaces[space.getCol()][space.getRow()].isOccupied();
+		if(space.isOnBoard())
+		{
+			return spaces[space.getCol()][space.getRow()].isOccupied();
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -76,8 +83,11 @@ public class BoardData
 	 */
 	public void placePiece(PieceData piece, PiecePosition space)
 	{
-		piece.setPosition(space);
-		spaces[space.getCol()][space.getRow()].placePiece(piece);
+		if(space.isOnBoard())
+		{
+			piece.setPosition(space);
+			spaces[space.getCol()][space.getRow()].placePiece(piece);
+		}
 	}
 
 	/**
@@ -88,10 +98,13 @@ public class BoardData
 	 */
 	public void removePiece(PiecePosition space)
 	{
-		//Get the piece data.
-		SpaceData spaceData = spaces[space.getCol()][space.getRow()];
-		spaceData.getPiece().setPosition(null);
-		spaceData.removePiece();
+		if(space.isOnBoard())
+		{
+			//Get the piece data.
+			SpaceData spaceData = spaces[space.getCol()][space.getRow()];
+			spaceData.getPiece().setPosition(null);
+			spaceData.removePiece();
+		}
 	}
 
 	/**
@@ -102,12 +115,14 @@ public class BoardData
 	 */
 	public PieceData getPieceAt(PiecePosition space)
 	{
-		if(!space.isOnBoard())
+		if(space.isOnBoard())
 		{
-			System.err.println("" + space + " is not on the board!");
-			System.exit(-1);
+			return spaces[space.getCol()][space.getRow()].getPiece();
 		}
-		return spaces[space.getCol()][space.getRow()].getPiece();
+		else
+		{
+			return null;
+		}
 	}
 
 	/**
