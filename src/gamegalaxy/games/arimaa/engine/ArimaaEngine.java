@@ -128,9 +128,54 @@ public class ArimaaEngine
 	 * @param data
 	 * @return
 	 */
-	public boolean isPieceSelectable(PieceData data)
+	public boolean isPieceSelectable(PieceData piece)
 	{
-		return data.getColor() == playerTurn && numMoves < 4;
+		//If we've exceeded our moves, we can't do this.
+		if(numMoves >= 4) return false;
+		
+		//If we've got the wrong color, we can't move this piece.
+		if(piece.getColor() != playerTurn) return false;
+		
+		//Check if we're adjacent to a more powerful piece of the opposite color.
+		if(phase == GAME_ON)
+		{
+			PiecePosition piecePosition = piece.getPosition();
+			if(piecePosition != null)
+			{
+				boolean pieceIsFree = true;
+				List<PiecePosition> adjacentPositions = piecePosition.getAdjacentSpaces();
+				Iterator<PiecePosition> iterator = adjacentPositions.iterator();
+				while(iterator.hasNext())
+				{
+					PiecePosition positionToTest = iterator.next();
+					if(board.isOccupied(positionToTest))
+					{
+						PieceData otherPiece = board.getPieceAt(positionToTest);
+						if(otherPiece.getColor() == piece.getColor())
+						{
+							//If we're next to a piece of our color, we can move, regardless.
+							return true;
+						}
+						else
+						{
+							if(otherPiece.getValue() > piece.getValue())
+							{
+								pieceIsFree = false;
+							}
+						}
+					}
+				}
+				return pieceIsFree;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
@@ -142,6 +187,9 @@ public class ArimaaEngine
 	 */
 	public boolean isValidMove(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
 	{
+		//Abort stupid cases.
+		if(newSpace == null) return false;
+		
 		if(phase == SETUP_PHASE)
 		{
 			//Handle the bucket case:
@@ -198,7 +246,7 @@ public class ArimaaEngine
 			//Verify that we have moves remaining
 			if(numMoves >= 4) return false;
 			
-			if(piece.getType() == PieceData.RABBIT)
+			if(piece.getValue() == PieceData.RABBIT)
 			{
 				//Movement is only okay forward, left, and right.
 				if(newSpace.equals(originalSpace.moveLeft())) return true;

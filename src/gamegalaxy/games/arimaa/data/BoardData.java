@@ -71,12 +71,13 @@ public class BoardData
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param data
+	 * @param piece
 	 * @param space
 	 */
-	public void placePiece(PieceData data, PiecePosition space)
+	public void placePiece(PieceData piece, PiecePosition space)
 	{
-		spaces[space.getCol()][space.getRow()].placePiece(data);
+		piece.setPosition(space);
+		spaces[space.getCol()][space.getRow()].placePiece(piece);
 	}
 
 	/**
@@ -87,7 +88,10 @@ public class BoardData
 	 */
 	public void removePiece(PiecePosition space)
 	{
-		spaces[space.getCol()][space.getRow()].removePiece();
+		//Get the piece data.
+		SpaceData spaceData = spaces[space.getCol()][space.getRow()];
+		spaceData.getPiece().setPosition(null);
+		spaceData.removePiece();
 	}
 
 	/**
@@ -111,7 +115,7 @@ public class BoardData
 	 *
 	 * @return
 	 */
-	public List<PiecePosition> getTrapPosition()
+	public static List<PiecePosition> getTrapPosition()
 	{
 		List<PiecePosition> traps = new Vector<PiecePosition>(4);
 		traps.add(new PiecePosition(2, 5));
