@@ -1,7 +1,7 @@
 package gamegalaxy.games.arimaa.engine;
 
 import gamegalaxy.games.arimaa.data.BoardData;
-import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
@@ -140,7 +140,7 @@ public class ArimaaEngine
 	 * @param space
 	 * @return
 	 */
-	public boolean isValidPiecePlacement(PieceData data, BoardPosition space)
+	public boolean isValidPiecePlacement(PieceData data, PiecePosition space)
 	{
 		if(board.isOccupied(space))
 		{
@@ -164,10 +164,25 @@ public class ArimaaEngine
 	 * @param space
 	 * @return
 	 */
-	public boolean isValidMove(BoardPosition originalSpace, BoardPosition newSpace)
+	public boolean isValidMove(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
 	{
 		if(phase == SETUP_PHASE)
 		{
+			//Handle the bucket case:
+			if(newSpace.isABucket())
+			{
+				//Verify that the piece's color matches the color of the bucket.
+				if(originalSpace.isOnBoard())
+				{
+					return piece.getColor() == newSpace.getBucketColor();
+				}
+				else
+				{
+					//We should be returning the piece to the original bucket.
+					return originalSpace.equals(newSpace);
+				}
+			}
+			
 			//Return true if this is the same space we are starting from.
 			if(originalSpace.equals(newSpace))
 			{
@@ -181,7 +196,6 @@ public class ArimaaEngine
 			}
 			
 			//Otherwise, verify that the pair of rows is okay.
-			PieceData piece = board.getPieceAt(originalSpace);
 			if(piece.getColor() == GameConstants.GOLD)
 			{
 				return newSpace.getRow() >= 6;
@@ -193,6 +207,9 @@ public class ArimaaEngine
 		}
 		else if(phase == GAME_ON)
 		{
+			//You can't move things to buckets here.
+			if(newSpace.isABucket()) return false;
+			
 			//Return true if this is the same space we are starting from.
 			if(originalSpace.equals(newSpace)) return true;
 			
@@ -244,18 +261,6 @@ public class ArimaaEngine
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param piecePanel
-	 * @param bucketColor
-	 * @return
-	 */
-	public boolean isValidToDropInBucket(PieceData pieceData, int bucketColor)
-	{
-		return pieceData.getColor() == bucketColor && phase == SETUP_PHASE;
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
 	 */
 	public void endTurn()
 	{
@@ -281,80 +286,66 @@ public class ArimaaEngine
 	 * @param space
 	 * @param space2 
 	 */
-	public void movePiece(BoardPosition originalSpace, BoardPosition newSpace)
+	public void movePiece(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
 	{
 		//Validate the move and don't move onto the same space.
-		if(isValidMove(originalSpace, newSpace) && !originalSpace.equals(newSpace))
+		if(isValidMove(piece, originalSpace, newSpace) && !originalSpace.equals(newSpace))
 		{
-			PieceData piece = board.getPieceAt(originalSpace);
-			
-			board.removePiece(originalSpace);
-			
-			board.placePiece(piece, newSpace);
-			
-			if(phase == GAME_ON) numMoves++;
-			
-			checkforEndOfTurn();
-		}
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
-	 * @param data
-	 * @param space
-	 */
-	public void movePieceFromBucketToBoard(PieceData data, BoardPosition space)
-	{
-		if(isValidPiecePlacement(data, space))
-		{
-			//First remove the piece from the bucket.
-			List<PieceData> bucket;
-			if(data.getColor() == GameConstants.GOLD)
+			if(originalSpace.isABucket() && newSpace.isOnBoard())
 			{
-				bucket = goldBucket;
+				//Moving from bucket to board.
+				
+				//Get the piece on the original space
+				
+				//First remove the piece from the bucket.
+				List<PieceData> bucket;
+				if(piece.getColor() == GameConstants.GOLD)
+				{
+					bucket = goldBucket;
+				}
+				else
+				{
+					bucket = silverBucket;
+				}
+				
+				bucket.remove(piece);
+				
+				//Now place the piece on the board in the correct space.
+				board.placePiece(piece, newSpace);
+			}
+			else if(newSpace.isOnBoard())
+			{
+				//Moving from board to board.
+				board.removePiece(originalSpace);
+				
+				board.placePiece(piece, newSpace);
+				
+				if(phase == GAME_ON) numMoves++;
 			}
 			else
 			{
-				bucket = silverBucket;
+				//Moving from board to bucket.
+
+				//Remove the piece from the board.
+				board.removePiece(originalSpace);
+				
+				//Add the piece to the bucket.
+				List<PieceData> bucket;
+				if(newSpace.getBucketColor() == GameConstants.GOLD)
+				{
+					bucket = goldBucket;
+				}
+				else
+				{
+					bucket = silverBucket;
+				}
+				
+				bucket.add(piece);
 			}
 			
-			bucket.remove(data);
-			
-			//Now place the piece on the board in the correct space.
-			board.placePiece(data, space);
-			
+			//And the end of the move, see if its the end of the turn.
 			checkforEndOfTurn();
 		}
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
-	 * @param originalSpace
-	 */
-	public void movePieceFromBoardToBucket(BoardPosition space)
-	{
-		//Get the piece from the board.
-		PieceData piece = board.getPieceAt(space);
-		
-		//Remove the piece from the board.
-		board.removePiece(space);
-		
-		//Add the piece to the bucket.
-		List<PieceData> bucket;
-		if(piece.getColor() == GameConstants.GOLD)
-		{
-			bucket = goldBucket;
-		}
-		else
-		{
-			bucket = silverBucket;
-		}
-		
-		bucket.add(piece);
-		
-		checkforEndOfTurn();
 	}
 
 }

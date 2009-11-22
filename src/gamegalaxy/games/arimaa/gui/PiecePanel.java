@@ -222,4 +222,14 @@ public class PiecePanel extends JPanel
 	{
 		return dragYStart;
 	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public Point getOriginalLocation()
+	{
+		return new Point(dragXStart, dragYStart);
+	}
 }

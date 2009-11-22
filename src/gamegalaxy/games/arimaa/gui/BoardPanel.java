@@ -23,7 +23,7 @@
 
 package gamegalaxy.games.arimaa.gui;
 
-import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
@@ -94,7 +94,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 		int centerX = relativeX + SPACE_WIDTH / 2;
 		int centerY = relativeY + SPACE_HEIGHT / 2;
 		
-		BoardPosition space = identifyBoardPosition(centerX, centerY);
+		PiecePosition space = identifyBoardPosition(centerX, centerY);
 		placePiece(piecePanel, space);
 	}
 
@@ -119,7 +119,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 * @param y		The y-coordinate of the location being tested.
 	 * @return		the corresponding BoardPosition(col,row) in the range (0~7, 0~7) 
 	 */
-	public BoardPosition identifyBoardPosition(int x, int y)
+	public PiecePosition identifyBoardPosition(int x, int y)
 	{
 		//Find out what row and col this piece is near:
 		int col = (x - firstSquareX) / SPACE_WIDTH;
@@ -129,7 +129,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 		col = Math.max(0, Math.min(7, col));
 		row = Math.max(0, Math.min(7, row));
 		
-		return new BoardPosition(col, row);
+		return new PiecePosition(col, row);
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 * @param space	BoardPosition(col,row) being tested.
 	 * @return		the corresponding (x,y) coordinates of the top-left corner of the BoardPosition.
 	 */
-	public Point identifyCoordinates(BoardPosition space)
+	public Point identifyCoordinates(PiecePosition space)
 	{
 		//calculate the X,Y coordinates based on our board constants.
 		int newX = space.getCol() * SPACE_WIDTH + firstSquareX;
@@ -154,7 +154,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 * @param piecePanel
 	 * @param space
 	 */
-	public void placePiece(PiecePanel piecePanel, BoardPosition space)
+	public void placePiece(PiecePanel piecePanel, PiecePosition space)
 	{
 		//First grab the X,Y coordinates of the BoardPosition.
 		Point coords = identifyCoordinates(space);

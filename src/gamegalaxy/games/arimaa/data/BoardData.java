@@ -66,7 +66,7 @@ public class BoardData
 	 * @param space
 	 * @return
 	 */
-	public boolean isOccupied(BoardPosition space)
+	public boolean isOccupied(PiecePosition space)
 	{
 		return spaces[space.getCol()][space.getRow()].isOccupied();
 	}
@@ -77,7 +77,7 @@ public class BoardData
 	 * @param data
 	 * @param space
 	 */
-	public void placePiece(PieceData data, BoardPosition space)
+	public void placePiece(PieceData data, PiecePosition space)
 	{
 		spaces[space.getCol()][space.getRow()].placePiece(data);
 	}
@@ -88,7 +88,7 @@ public class BoardData
 	 * @param data
 	 * @param space
 	 */
-	public void removePiece(BoardPosition space)
+	public void removePiece(PiecePosition space)
 	{
 		spaces[space.getCol()][space.getRow()].removePiece();
 	}
@@ -99,8 +99,13 @@ public class BoardData
 	 * @param space
 	 * @return
 	 */
-	public PieceData getPieceAt(BoardPosition space)
+	public PieceData getPieceAt(PiecePosition space)
 	{
+		if(!space.isOnBoard())
+		{
+			System.err.println("" + space + " is not on the board!");
+			System.exit(-1);
+		}
 		return spaces[space.getCol()][space.getRow()].getPiece();
 	}
 
