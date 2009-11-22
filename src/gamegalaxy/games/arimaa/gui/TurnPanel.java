@@ -45,6 +45,8 @@ public class TurnPanel extends JPanel
 		});
 		endTurnButton.setLocation(148, 17);
 		endTurnButton.setSize(164, 33);
+		add(endTurnButton);
+		endTurnButton.setVisible(false);
 		
 		//Get our images.
 		backgroundImage = loader.getResource("TurnBackground");
@@ -92,18 +94,7 @@ public class TurnPanel extends JPanel
 	 */
 	public void showEndTurnButton(boolean b)
 	{
-		if(b)
-		{
-			add(endTurnButton);
-		}
-		else
-		{
-			remove(endTurnButton);
-			
-			//Needs to be called to force the panel to redraw.
-			validate();
-		}
-		repaint();
+		endTurnButton.setVisible(b);
 	}
 
 }
