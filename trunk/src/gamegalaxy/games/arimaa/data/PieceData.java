@@ -14,13 +14,14 @@ public class PieceData
 	public static final int ELEPHANT= 6;
 	
 	private int	color;
-	private int	type;
+	private int	value;
+	private PiecePosition	position;
 
 	
-	public PieceData(int color, int type)
+	public PieceData(int color, int value)
 	{
 		this.color = color;
-		this.type = type;
+		this.value = value;
 	}
 	
 	/**
@@ -30,7 +31,7 @@ public class PieceData
 	 */
 	public String getNameString()
 	{
-		switch(type)
+		switch(value)
 		{
 			case RABBIT: return "Rabbit";
 			case CAT: return "Cat";
@@ -73,9 +74,29 @@ public class PieceData
 	 *
 	 * @return
 	 */
-	public int getType()
+	public int getValue()
 	{
-		return type;
+		return value;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param space
+	 */
+	public void setPosition(PiecePosition position)
+	{
+		this.position = position;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public PiecePosition getPosition()
+	{
+		return position;
 	}
 
 }
