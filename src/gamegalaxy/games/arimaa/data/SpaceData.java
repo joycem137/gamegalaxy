@@ -72,4 +72,14 @@ public class SpaceData
 		piece = null;
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public PieceData getPiece()
+	{
+		return piece;
+	}
+
 }
