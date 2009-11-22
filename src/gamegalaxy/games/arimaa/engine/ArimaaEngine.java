@@ -222,8 +222,26 @@ public class ArimaaEngine
 			//Verify that we have moves remaining
 			if(numMoves >= 4) return false;
 			
-			//Okay!  Since we are good with that, we can move one space.
-			return originalSpace.distanceFrom(newSpace) == 1;
+			if(piece.getType() == PieceData.RABBIT)
+			{
+				//Movement is only okay forward, left, and right.
+				if(newSpace.equals(originalSpace.moveLeft())) return true;
+				if(newSpace.equals(originalSpace.moveRight())) return true;
+				if(piece.getColor() == GameConstants.GOLD)
+				{
+					if(newSpace.equals(originalSpace.moveUp())) return true;
+				}
+				else
+				{
+					if(newSpace.equals(originalSpace.moveDown())) return true;
+				}
+				return false;
+			}
+			else
+			{
+				//Okay!  Since we are good with that, we can move one space.
+				return originalSpace.distanceFrom(newSpace) == 1;
+			}
 		}
 		
 		//We have no moves to do if we're not playing the game or setting things up.

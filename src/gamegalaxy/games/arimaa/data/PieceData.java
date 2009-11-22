@@ -68,4 +68,14 @@ public class PieceData
 		return getColorString() + " " + getNameString();
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public int getType()
+	{
+		return type;
+	}
+
 }

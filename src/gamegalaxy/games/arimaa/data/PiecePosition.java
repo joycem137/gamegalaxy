@@ -115,4 +115,28 @@ public class PiecePosition
 		return spaces;
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public PiecePosition moveLeft()
+	{
+		return new PiecePosition(col - 1, row);
+	}
+	
+	public PiecePosition moveUp()
+	{
+		return new PiecePosition(col, row - 1);
+	}
+
+	public PiecePosition moveRight()
+	{
+		return new PiecePosition(col + 1, row);
+	}
+	
+	public PiecePosition moveDown()
+	{
+		return new PiecePosition(col, row + 1);
+	}
 }
