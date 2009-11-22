@@ -193,7 +193,7 @@ public class ArimaaUI extends JPanel
 	
 	public boolean canDragPiece(PiecePanel piecePanel)
 	{
-		return engine.isPiecePlaceable(piecePanel.getData());
+		return engine.isPieceSelectable(piecePanel.getData());
 	}
 
 	/**
@@ -216,16 +216,36 @@ public class ArimaaUI extends JPanel
 			int relativeDragY = dragLocation.y - boardPanel.getY();
 			BoardPosition space = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
 			
-			//is this square a valid placement for the piece we're dragging?
-			if(engine.isValidPiecePlacement(piecePanel.getData(), space))
+			//If moving over the board panel...
+			if(holder ==  boardPanel)
 			{
-				highlight.setColor(highlight.BLUE);
-			}
-			else
-			{
-				highlight.setColor(highlight.OFF);
-			}
+				//Identify the location on the board.
+				int oldX = piecePanel.getOriginalX() - boardPanel.getX();
+				int oldY = piecePanel.getOriginalY() - boardPanel.getY();
+				BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
 				
+				if(engine.isValidMove(originalSpace, space))
+				{
+					highlight.setColor(HighlightPanel.BLUE);
+				}
+				else
+				{
+					highlight.setColor(HighlightPanel.OFF);
+				}
+			}
+			else if(holder == goldBucketPanel || holder == silverBucketPanel)
+			{
+				//is this square a valid placement for the piece we're dragging?
+				if(engine.isValidPiecePlacement(piecePanel.getData(), space))
+				{
+					highlight.setColor(HighlightPanel.BLUE);
+				}
+				else
+				{
+					highlight.setColor(HighlightPanel.OFF);
+				}
+			}
+			
 			//get coords of upper-left corner of this square:
 			Point coords = boardPanel.identifyCoordinates(space);
 			
@@ -234,7 +254,7 @@ public class ArimaaUI extends JPanel
 		}
 		else
 		{
-			highlight.setColor(highlight.OFF);
+			highlight.setColor(HighlightPanel.OFF);
 		}
 	}
 	
@@ -260,30 +280,46 @@ public class ArimaaUI extends JPanel
 			int relativeDropY = dropLocation.y - boardPanel.getY();
 			BoardPosition space = boardPanel.identifyBoardPosition(relativeDropX, relativeDropY);
 			
-			//Check with the engine to see if that's a valid spot or not.
-			if(engine.isValidPiecePlacement(piecePanel.getData(), space))
-			{	
-				//Identify the piece's old location on the board, if applicable, and remove it
-				if(holder ==  boardPanel)
+			//Identify the piece's old location on the board, if applicable, and remove it
+			if(holder ==  boardPanel)
+			{
+				//Identify the location on the board.
+				int oldX = piecePanel.getOriginalX() - boardPanel.getX();
+				int oldY = piecePanel.getOriginalY() - boardPanel.getY();
+				BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
+				
+				if(engine.isValidMove(originalSpace, space))
 				{
-					//Identify the location on the board.
-					int oldX = piecePanel.getOriginalX() - boardPanel.getX();
-					int oldY = piecePanel.getOriginalY() - boardPanel.getY();
-					BoardPosition originalSpace = boardPanel.identifyBoardPosition(oldX, oldY);
-					
 					engine.movePiece(originalSpace, space);
+					
+					//Remove the piece from its previous location
+					holder.removePiece(piecePanel);
+					
+					//Place the piece in its new location;
+					boardPanel.placePiece(piecePanel, space);
 				}
-				else if(holder == goldBucketPanel || holder == silverBucketPanel)
+				else
+				{
+					piecePanel.resetPosition();
+				}
+			}
+			else if(holder == goldBucketPanel || holder == silverBucketPanel)
+			{	
+				if(engine.isValidPiecePlacement(piecePanel.getData(), space))
 				{
 					//Remove the piece from the bucket
 					engine.movePieceFromBucketToBoard(piecePanel.getData(), space);
+					
+					//Remove the piece from its previous location
+					holder.removePiece(piecePanel);
+					
+					//Place the piece in its new location;
+					boardPanel.placePiece(piecePanel, space);
 				}
-				
-				//Remove the piece from its previous location
-				holder.removePiece(piecePanel);
-				
-				//Place the piece in its new location;
-				boardPanel.placePiece(piecePanel, space);
+				else
+				{
+					piecePanel.resetPosition();
+				}
 			}
 			else
 			{
