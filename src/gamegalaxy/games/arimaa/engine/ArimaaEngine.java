@@ -234,34 +234,6 @@ public class ArimaaEngine
 	 * TODO: Describe method
 	 *
 	 */
-	private void checkforEndOfTurn()
-	{
-		if(phase == SETUP_PHASE)
-		{
-			//Check to see if the current player's pieces are all out of the bucket.
-			List<PieceData> bucket;
-			if(playerTurn == GameConstants.GOLD)
-			{
-				bucket = goldBucket;
-			}
-			else
-			{
-				bucket = silverBucket;
-			}
-			
-			gui.setEndofTurn(bucket.size() == 0);
-		}
-		else if(phase == GAME_ON)
-		{
-			//We can set the end of turn if the number of moves is greater than or equal to 1.
-			gui.setEndofTurn(numMoves >= 1);
-		}
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
-	 */
 	public void endTurn()
 	{
 		//Switch the turn.
@@ -276,7 +248,7 @@ public class ArimaaEngine
 		
 		numMoves = 0;
 		
-		checkforEndOfTurn();
+		gui.setEndofTurn(false);
 	}
 
 	/**
@@ -343,8 +315,76 @@ public class ArimaaEngine
 				bucket.add(piece);
 			}
 			
-			//And the end of the move, see if its the end of the turn.
-			checkforEndOfTurn();
+			//Check the traps to see if there are pieces in them and if they are dead.
+			Iterator<PiecePosition> iterator = board.getTrapPosition().iterator();
+			while(iterator.hasNext())
+			{
+				PiecePosition trapPosition = iterator.next();
+				if(board.isOccupied(trapPosition))
+				{
+					PieceData trappedPiece = board.getPieceAt(trapPosition);
+					boolean pieceIsDead = true;
+					
+					//Check for allies in each direction:
+					List<PiecePosition> adjacentSpaces = trapPosition.getAdjacentSpaces();
+					Iterator<PiecePosition> adjacentIterator = adjacentSpaces.iterator();
+					while(adjacentIterator.hasNext())
+					{
+						PiecePosition space = adjacentIterator.next();
+						if(board.isOccupied(space))
+						{
+							PieceData adjacentPiece = board.getPieceAt(space);
+							if(adjacentPiece.getColor() == trappedPiece.getColor())
+							{
+								//We found an ally!  We're safe!
+								pieceIsDead = false;
+							}
+						}
+					}
+					
+					//Now kill the piece.
+					if(pieceIsDead)
+					{
+						//Remove the piece from the board.
+						board.removePiece(trapPosition);
+						
+						//Move the piece to the appropriate bucket.
+						if(trappedPiece.getColor() == GameConstants.GOLD)
+						{
+							silverBucket.add(trappedPiece);
+						}
+						else
+						{
+							goldBucket.add(trappedPiece);
+						}
+						
+						//And now tell the GUI to do the same.
+						gui.movePieceToBucket(trapPosition);
+					}
+				}
+			}
+			
+			//And the end of the move, see if the user can end their turn.
+			if(phase == SETUP_PHASE)
+			{
+				//Check to see if the current player's pieces are all out of the bucket.
+				List<PieceData> bucket;
+				if(playerTurn == GameConstants.GOLD)
+				{
+					bucket = goldBucket;
+				}
+				else
+				{
+					bucket = silverBucket;
+				}
+				
+				gui.setEndofTurn(bucket.size() == 0);
+			}
+			else if(phase == GAME_ON)
+			{
+				//We can set the end of turn if the number of moves is greater than or equal to 1.
+				gui.setEndofTurn(numMoves >= 1);
+			}
 		}
 	}
 

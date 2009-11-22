@@ -22,7 +22,8 @@
  */
 package gamegalaxy.games.arimaa.data;
 
-import gamegalaxy.tools.SimpleObservable;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * 
@@ -30,13 +31,9 @@ import gamegalaxy.tools.SimpleObservable;
 public class BoardData
 {
 	private SpaceData[][] spaces;
-	private SimpleObservable observable;
 	
 	public BoardData()
-	{
-		//Create our observable
-		observable = new SimpleObservable();
-		
+	{	
 		//Create our actual board.
 		spaces = new SpaceData[8][8];
 		
@@ -107,6 +104,21 @@ public class BoardData
 			System.exit(-1);
 		}
 		return spaces[space.getCol()][space.getRow()].getPiece();
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public List<PiecePosition> getTrapPosition()
+	{
+		List<PiecePosition> traps = new Vector<PiecePosition>(4);
+		traps.add(new PiecePosition(2, 5));
+		traps.add(new PiecePosition(2, 2));
+		traps.add(new PiecePosition(5, 2));
+		traps.add(new PiecePosition(5, 5));
+		return traps;
 	}
 
 }

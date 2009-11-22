@@ -255,8 +255,6 @@ public class ArimaaUI extends JPanel
 		//Now see if it makes sense to move this piece.
 		if(engine.isValidMove(piecePanel.getData(), originalPosition, dropPosition))
 		{
-			engine.movePiece(piecePanel.getData(), originalPosition, dropPosition);
-			
 			//Remove the piece from its previous location
 			holder.removePiece(piecePanel);
 			
@@ -273,6 +271,9 @@ public class ArimaaUI extends JPanel
 			{
 				silverBucketPanel.dropPiece(piecePanel);
 			}
+			
+			//Now update the engine.
+			engine.movePiece(piecePanel.getData(), originalPosition, dropPosition);
 		}
 		else
 		{
@@ -334,5 +335,47 @@ public class ArimaaUI extends JPanel
 	public void setTurnState(int playerTurn)
 	{
 		turnPanel.setTurnState(playerTurn);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param trapPosition
+	 */
+	public void movePieceToBucket(PiecePosition trapPosition)
+	{
+		PiecePanel pieceToMove = null;
+		
+		//Find the piece in question
+		Iterator<PiecePanel> iterator = piecePanels.iterator();
+		while(iterator.hasNext())
+		{
+			//Get the x,y coords of this piece panel
+			PiecePanel piecePanel = iterator.next();
+			Point location = piecePanel.getLocation();
+			
+			//Get the corresponding piece position
+			PiecePosition piecePosition = getPiecePositionAt(location);
+			
+			//And compare.
+			if(piecePosition.equals(trapPosition))
+			{
+				//This is the piece we want.
+				pieceToMove = piecePanel;
+			}
+		}
+		
+		//Remove it from the board.
+		boardPanel.removePiece(pieceToMove);
+		
+		//Get the opposite colored bucket.
+		if(pieceToMove.getData().getColor() == GameConstants.GOLD)
+		{
+			silverBucketPanel.dropPiece(pieceToMove);
+		}
+		else
+		{
+			goldBucketPanel.dropPiece(pieceToMove);
+		}
 	}
 }

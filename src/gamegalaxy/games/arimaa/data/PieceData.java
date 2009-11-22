@@ -62,5 +62,10 @@ public class PieceData
 	{
 		return color;
 	}
+	
+	public String toString()
+	{
+		return getColorString() + " " + getNameString();
+	}
 
 }
