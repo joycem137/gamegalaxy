@@ -5,12 +5,8 @@ import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.MouseInputAdapter;
 
 /**
  * This class provides the information for highlighting and graphical cues to be placed
@@ -42,31 +38,6 @@ public class HighlightPanel extends JPanel
 		
 		//Store the information about this highlighter.
 		this.boardPosition = new PiecePosition(0, 0);
-		
-		//Create the mouse listener to listen for mouse events.
-		MouseInputAdapter ma = new MouseInputAdapter()
-		{
-
-			public void mousePressed(MouseEvent me)
-			{	
-				//does nothing for now.
-			}
-			
-			public void mouseReleased(MouseEvent me)
-			{
-				//does nothing for now.
-			}
-		
-			
-			public void mouseClicked(MouseEvent me)
-			{
-				//does nothing for now.
-			}
-		};
-		
-		//Actually add the mouse listener to the panel.
-		addMouseListener(ma);
-		addMouseMotionListener(ma);
 	}
 	
 	/**
