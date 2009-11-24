@@ -63,7 +63,7 @@ public class PiecePosition
 	 */
 	public int distanceFrom(PiecePosition otherSpace)
 	{
-		return Math.abs(row - otherSpace.row + col - otherSpace.col);
+		return Math.abs(row - otherSpace.row) + Math.abs(col - otherSpace.col);
 	}
 
 	/**
