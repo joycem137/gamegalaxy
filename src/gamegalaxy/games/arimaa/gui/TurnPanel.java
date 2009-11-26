@@ -124,6 +124,7 @@ public class TurnPanel extends JPanel
 		endTurnButton.setVisible(false);
 		turnState = player;
 		winnerLabel.setVisible(true);
+		repaint();
 	}
 
 }

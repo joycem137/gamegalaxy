@@ -17,6 +17,7 @@ public class ArimaaEngine
 {
 	private static final int	SETUP_PHASE	= 0;
 	private static final int	GAME_ON = 1;
+	private static final int	GAME_WON = 2;
 	
 	//Store our data.
 	private List<PieceData>	pieces;
@@ -538,32 +539,60 @@ public class ArimaaEngine
 	 */
 	private void checkForWinner()
 	{
+		boolean foundGoldRabbit = false;
+		boolean foundSilverRabbit = false;
 		Iterator<PieceData> iterator = pieces.iterator();
 		while(iterator.hasNext())
 		{
 			PieceData piece = iterator.next();
+			
+			//If we find a rabbit piece, check to see if it is in the back row.
 			if(piece.getValue() == PieceData.RABBIT)
 			{
+				//Check if the rabbit is in the back row.
 				if(piece.getPosition() != null)
 				{
 					if(piece.getPosition().isOnBoard())
 					{
 						if(piece.getColor() == GameConstants.GOLD)
 						{
+							foundGoldRabbit = true;
 							if(piece.getPosition().getRow() == 0)
 							{
 								//Gold won!
 								gui.setGameWinner(GameConstants.GOLD);
+								
+								phase = GAME_WON;
 							}
 						}
-						else if(piece.getPosition().getRow() == 7)
+						else 
 						{
-							//Silver won!
-							gui.setGameWinner(GameConstants.SILVER);
+							foundSilverRabbit = true;
+							if(piece.getPosition().getRow() == 7)
+							{
+								//Silver won!
+								gui.setGameWinner(GameConstants.SILVER);
+								
+								phase = GAME_WON;
+							}
 						}
 					}
 				}
 			}
+		}
+		
+		//If we made it here, make sure we found rabbits of each color.
+		if(!foundGoldRabbit)
+		{
+			gui.setGameWinner(GameConstants.SILVER);
+			
+			phase = GAME_WON;
+		}
+		else if(!foundSilverRabbit)
+		{
+			gui.setGameWinner(GameConstants.GOLD);
+			
+			phase = GAME_WON;
 		}
 	}
 
