@@ -179,11 +179,13 @@ public class ArimaaEngine
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Checks to see if the selected piece can be legally moved from their original space to
+	 * the new space selected.
 	 *
-	 * @param originalSpace
-	 * @param space
-	 * @return
+	 * @param piece			PieceData of the piece being checked.
+	 * @param originalSpace	PiecePosition where the selected piece started from.
+	 * @param newSpace		target PiecePosition we want to move to.
+	 * @return	true if a valid move can be made, otherwise false.
 	 */
 	public boolean isValidMove(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
 	{
@@ -213,7 +215,7 @@ public class ArimaaEngine
 				return true;
 			}
 			
-			//Otherwise, if the space is occupied, return false.
+			//If the space is occupied, a move is invalid. (swaps may be okay though.)
 			if(board.isOccupied(newSpace))
 			{
 				return false;
@@ -271,7 +273,47 @@ public class ArimaaEngine
 		//We have no moves to do if we're not playing the game or setting things up.
 		return false;
 	}
+	
+	/**
+	 * Checks to see if the pieces in the original and target squares can be swapped.
+	 * Swaps are only legal during the Setup phase.
+	 *
+	 * @param piece			PieceData of the piece in the original space.
+	 * @param originalSpace	PiecePosition where the selected piece started from.
+	 * @param newSpace		target PiecePosition we want to swap with.
+	 * @return	true if a valid swap can be made, otherwise false.
+	 */
+	public boolean isValidSwap(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
+	{
+		if(newSpace == null) return false;
 
+		//We can only swap during the Setup phase, with pieces of the same color.
+		if(phase == SETUP_PHASE)
+		{
+			//Return false if trying to put the piece back in the bucket.
+			if(newSpace.isABucket())
+			{
+				return false;
+			}
+
+			//Return false if this is the same space we are starting from.
+			if(originalSpace.equals(newSpace))
+			{
+				return false;
+			}
+
+			//Check if the target piece is the same color.
+			if(board.isOccupied(newSpace))
+			{
+				PieceData targetPiece = board.getPieceAt(newSpace);
+				return piece.getColor() == targetPiece.getColor();
+			}
+		}
+		
+		//Return false under all other circumstances.
+		return false;
+	}
+	
 	/**
 	 * TODO: Describe method
 	 *
@@ -307,10 +349,7 @@ public class ArimaaEngine
 		{
 			if(originalSpace.isABucket() && newSpace.isOnBoard())
 			{
-				//Moving from bucket to board.
-				
-				//Get the piece on the original space
-				
+				//Moving from bucket to board.				
 				//First remove the piece from the bucket.
 				List<PieceData> bucket;
 				if(piece.getColor() == GameConstants.GOLD)
@@ -357,17 +396,62 @@ public class ArimaaEngine
 				bucket.add(piece);
 			}
 			
-			//Check the traps to see if there are pieces in them and if they are dead.
-			checkTheTraps();
-			
 			//And the end of the move, see if the user can end their turn.
 			checkForEndOfTurn();
-			
-			//Check to see if anyone has won the game.
-			checkForWinner();
+
+			if (phase == GAME_ON)
+			{
+				//Check the traps to see if there are pieces in them and if they are dead.
+				checkTheTraps();
 				
+				//Check to see if anyone has won the game.
+				checkForWinner();
 			}
 		}
+	}
+	
+	/**
+	 * Swaps the location of two pieces.  This is used only during the Setup phase of the game.
+	 *
+	 * @param piece1	PieceData of the first piece.
+	 * @param piece2	PieceData of the second piece.
+	 * @param space1	PiecePosition of the first piece (either a bucket or board location)
+	 * @param space2 	PiecePosition of the second piece (board location only)
+	 */
+	public void swapPieces (PieceData piece1, PieceData piece2, PiecePosition space1, PiecePosition space2)
+	{
+		//Remove the second piece from the board.
+		board.removePiece(space2);
+		
+		//Check if the first piece came from a bucket.
+		if (space1.isABucket())
+		{		
+			//Grab the correct bucket first.
+			List<PieceData> bucket;
+			if(piece1.getColor() == GameConstants.GOLD)
+			{
+				bucket = goldBucket;
+			}
+			else
+			{
+				bucket = silverBucket;
+			}
+			
+			//remove the first piece and add the second piece to the bucket.
+			bucket.remove(piece1);
+			bucket.add(piece2);
+		}
+		//Otherwise both pieces came from the board.
+		else
+		{
+			//remove the first piece and put the second piece in its place.
+			board.removePiece(space1);
+			board.placePiece(piece2, space1);
+		}
+		//finally, put the first piece where the second one was.
+		board.placePiece(piece1, space2);
+	}
+	
 	/**
 	 * TODO: Describe method
 	 *
@@ -382,18 +466,21 @@ public class ArimaaEngine
 			{
 				if(piece.getPosition() != null)
 				{
-					if(piece.getColor() == GameConstants.GOLD)
+					if(piece.getPosition().isOnBoard())
 					{
-						if(piece.getPosition().getRow() == 0)
+						if(piece.getColor() == GameConstants.GOLD)
 						{
-							//Gold won!
-							gui.setGameWinner(GameConstants.GOLD);
+							if(piece.getPosition().getRow() == 0)
+							{
+								//Gold won!
+								gui.setGameWinner(GameConstants.GOLD);
+							}
 						}
-					}
-					else if(piece.getPosition().getRow() == 7)
-					{
-						//Silver won!
-						gui.setGameWinner(GameConstants.SILVER);
+						else if(piece.getPosition().getRow() == 7)
+						{
+							//Silver won!
+							gui.setGameWinner(GameConstants.SILVER);
+						}
 					}
 				}
 			}
