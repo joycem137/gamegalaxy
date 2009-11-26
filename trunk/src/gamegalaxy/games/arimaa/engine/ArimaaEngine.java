@@ -1,9 +1,9 @@
 package gamegalaxy.games.arimaa.engine;
 
 import gamegalaxy.games.arimaa.data.BoardData;
-import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 
 import java.util.Iterator;
@@ -31,9 +31,13 @@ public class ArimaaEngine
 	private ArimaaUI	gui;
 
 	private int	numMoves;
+	private PiecePosition	pushPosition;
 
 	public ArimaaEngine()
 	{
+		//Start with no forced push/pull scenario.
+		pushPosition = null;
+		
 		phase = SETUP_PHASE;
 		
 		playerTurn = GameConstants.GOLD;
@@ -128,53 +132,84 @@ public class ArimaaEngine
 	 * @param data
 	 * @return
 	 */
-	public boolean isPieceSelectable(PieceData piece)
+	public boolean canPieceBeMoved(PieceData piece)
 	{
 		//If we've exceeded our moves, we can't do this.
 		if(numMoves >= 4) return false;
 		
-		//If we've got the wrong color, we can't move this piece.
-		if(piece.getColor() != playerTurn) return false;
-		
-		//Check if we're adjacent to a more powerful piece of the opposite color.
-		if(phase == GAME_ON)
+		if(phase == SETUP_PHASE)
 		{
+			//If we've got the wrong color, we can't move this piece.
+			return piece.getColor() == playerTurn;
+		}
+		else if(phase == GAME_ON)
+		{	
+			//Get the position of the piece we're looking at.
 			PiecePosition piecePosition = piece.getPosition();
-			if(piecePosition != null)
+			
+			//Handle the case where our piece does not have a position.
+			if(piecePosition == null) return false;
+			
+			//Make sure that this piece has somewhere to move
+			if(!board.pieceHasSpaceToMoveInto(piece)) return false;
+			
+			//Check the color of this piece
+			if(piece.getColor() != playerTurn)
 			{
-				boolean pieceIsFree = true;
-				List<PiecePosition> adjacentPositions = piecePosition.getAdjacentSpaces();
-				Iterator<PiecePosition> iterator = adjacentPositions.iterator();
+				//If we have a forced move, you can't do this.
+				if(pushPosition != null) return false;
+				
+				//The piece can only be moved if there are at least two moves left.
+				if(numMoves > 2) return false;
+				
+				//Get a list of all the pieces next to this one.
+				List<PieceData> adjacentPieces = board.getAdjacentPieces(piece);
+				
+				//You can't select a piece of the opposite color if it has no adjacent pieces.
+				if(adjacentPieces.size() == 0) return false;
+				
+				//This piece must be next to a piece of the opposite color and of a higher value
+				Iterator<PieceData> iterator = adjacentPieces.iterator();
 				while(iterator.hasNext())
 				{
-					PiecePosition positionToTest = iterator.next();
-					if(board.isOccupied(positionToTest))
+					PieceData adjacentPiece = iterator.next();
+					
+					//Check to see if we have a piece of the appropriate properties next to us.
+					if(adjacentPiece.getColor() != piece.getColor() &&
+						adjacentPiece.getValue() > piece.getValue())
 					{
-						PieceData otherPiece = board.getPieceAt(positionToTest);
-						if(otherPiece.getColor() == piece.getColor())
+						//Make sure the adjacent piece is not frozen.
+						if(!board.isPieceFrozen(adjacentPiece))
 						{
-							//If we're next to a piece of our color, we can move, regardless.
 							return true;
 						}
-						else
-						{
-							if(otherPiece.getValue() > piece.getValue())
-							{
-								pieceIsFree = false;
-							}
-						}
-					}
+					}	
 				}
-				return pieceIsFree;
+				
+				//If we made it this far, that means that none of the adjacent pieces are correct.
+				return false;
 			}
 			else
 			{
-				return true;
+				//Verify that the piece is not frozen
+				if(board.isPieceFrozen(piece)) return false;
+				
+				//if we have a pushPosition, verify that we can move into that spot.
+				if(pushPosition != null)
+				{
+					//This piece can move into that space.
+					return piece.getPosition().distanceFrom(pushPosition) == 1;
+				}
+				else
+				{
+					return true;
+				}
 			}
 		}
 		else
 		{
-			return true;
+			//Cannot move piece during other phases of the game.
+			return false;
 		}
 	}
 
@@ -192,6 +227,10 @@ public class ArimaaEngine
 		//Abort stupid cases.
 		if(newSpace == null) return false;
 		
+		//And cases where the piece isn't allowed to move
+		if(!canPieceBeMoved(piece)) return false;
+		
+		//Let's actually see if the move is valid.
 		if(phase == SETUP_PHASE)
 		{
 			//Handle the bucket case:
@@ -248,24 +287,42 @@ public class ArimaaEngine
 			//Verify that we have moves remaining
 			if(numMoves >= 4) return false;
 			
-			if(piece.getValue() == PieceData.RABBIT)
+			//Now check what color we're working with.
+			if(piece.getColor() == playerTurn)
 			{
-				//Movement is only okay forward, left, and right.
-				if(newSpace.equals(originalSpace.moveLeft())) return true;
-				if(newSpace.equals(originalSpace.moveRight())) return true;
-				if(piece.getColor() == GameConstants.GOLD)
+				//If we have to move into the pushPosition, we require the space to match
+				if(pushPosition != null)
 				{
-					if(newSpace.equals(originalSpace.moveUp())) return true;
+					return newSpace.equals(pushPosition);
+				}
+				
+				//This is a piece of the current player's color
+				if(piece.getValue() == PieceData.RABBIT)
+				{
+					//Movement is only okay forward, left, and right.
+					if(newSpace.equals(originalSpace.moveLeft())) return true;
+					if(newSpace.equals(originalSpace.moveRight())) return true;
+					if(piece.getColor() == GameConstants.GOLD)
+					{
+						if(newSpace.equals(originalSpace.moveUp())) return true;
+					}
+					else
+					{
+						if(newSpace.equals(originalSpace.moveDown())) return true;
+					}
+					return false;
 				}
 				else
 				{
-					if(newSpace.equals(originalSpace.moveDown())) return true;
+					//Okay!  Since we are good with that, we can move one space.
+					return originalSpace.distanceFrom(newSpace) == 1;
 				}
-				return false;
 			}
 			else
 			{
-				//Okay!  Since we are good with that, we can move one space.
+				//We're dealing with an opponent's piece.  That means we're pushing or pulling.
+
+				//Since we know the piece movement is valid, we just need to check how many spaces
 				return originalSpace.distanceFrom(newSpace) == 1;
 			}
 		}
@@ -373,7 +430,20 @@ public class ArimaaEngine
 				
 				board.placePiece(piece, newSpace);
 				
-				if(phase == GAME_ON) numMoves++;
+				if(phase == GAME_ON) 
+				{
+					if(piece.getColor() != playerTurn)
+					{
+						pushPosition = originalSpace;
+					}
+					else if(pushPosition != null)
+					{
+						pushPosition = null;
+					}
+					
+					//Increment the number of moves
+					numMoves++;
+				}
 			}
 			else
 			{

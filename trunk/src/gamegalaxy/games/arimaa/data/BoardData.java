@@ -19,9 +19,11 @@
  *   
  *  You should have received a copy of the GNU General Public License
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ *  
  */
 package gamegalaxy.games.arimaa.data;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -65,11 +67,11 @@ public class BoardData
 	 */
 	public boolean isOccupied(PiecePosition space)
 	{
-		if(space.isOnBoard())
+		if(space.isOnBoard()) 
 		{
 			return spaces[space.getCol()][space.getRow()].isOccupied();
 		}
-		else
+		else 
 		{
 			return false;
 		}
@@ -138,6 +140,85 @@ public class BoardData
 		traps.add(new PiecePosition(5, 2));
 		traps.add(new PiecePosition(5, 5));
 		return traps;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piece
+	 * @return
+	 */
+	public List<PieceData> getAdjacentPieces(PieceData piece)
+	{
+		List<PieceData> adjacentPieces = new Vector<PieceData>();
+		
+		List<PiecePosition> adjacentPositions = piece.getPosition().getAdjacentSpaces();
+		Iterator<PiecePosition> iterator = adjacentPositions.iterator();
+		while(iterator.hasNext())
+		{
+			PiecePosition positionToTest = iterator.next();
+			if(isOccupied(positionToTest))
+			{
+				adjacentPieces.add(getPieceAt(positionToTest));
+			}
+		}
+		return adjacentPieces;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piece
+	 * @return
+	 */
+	public boolean isPieceFrozen(PieceData piece)
+	{
+		//Get all of the adjacent pieces
+		List<PieceData> adjacentPieces = getAdjacentPieces(piece);
+		
+		//If there are no pieces next to us, we're not frozen.
+		if(adjacentPieces.size() == 0) return false;
+		
+		//Check to see what sort of pieces we're next to
+		boolean pieceIsFrozen = false;
+		Iterator<PieceData> iterator = adjacentPieces.iterator();
+		while(iterator.hasNext())
+		{
+			PieceData adjacentPiece = iterator.next();
+			
+			//If we're next to any pieces of our color, we are not frozen
+			if(adjacentPiece.getColor() == piece.getColor()) 
+			{
+				return false;
+			}
+			else
+			{
+				//Check to see if we need to raise the frozen piece flag.
+				if(adjacentPiece.getValue() > piece.getValue())
+				{
+					pieceIsFrozen = true;
+				}
+			}
+		}
+		return pieceIsFrozen;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piece
+	 * @return
+	 */
+	public boolean pieceHasSpaceToMoveInto(PieceData piece)
+	{
+		List<PiecePosition> adjacentPositions = piece.getPosition().getAdjacentSpaces();
+		Iterator<PiecePosition> iterator = adjacentPositions.iterator();
+		while(iterator.hasNext())
+		{
+			//If we find an unoccupied space, we're good!
+			if(!isOccupied(iterator.next())) return true;
+		}
+		return false;
 	}
 
 }

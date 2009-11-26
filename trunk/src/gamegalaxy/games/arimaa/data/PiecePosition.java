@@ -1,3 +1,26 @@
+/* 
+ *  LEGAL STUFF
+ * 
+ *  This file is part of gamegalaxy.
+ *  
+ *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  
+ *  Arimaa and other content here copyright their respective copyright holders.
+ *  
+ *  gamegalaxy is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *   
+ *  gamegalaxy is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ */
 package gamegalaxy.games.arimaa.data;
 
 import java.util.List;
@@ -10,7 +33,6 @@ public class PiecePosition
 {
 	public static final PiecePosition	GOLD_BUCKET	= new PiecePosition(-1, GameConstants.GOLD);
 	public static final PiecePosition 	SILVER_BUCKET = new PiecePosition(-1, GameConstants.SILVER);
-	private static PiecePosition	EDGE = new PiecePosition(-1, -1);
 	
 	private int	row;
 	private int	col;
@@ -109,10 +131,18 @@ public class PiecePosition
 	public List<PiecePosition> getAdjacentSpaces()
 	{
 		List<PiecePosition> spaces = new Vector<PiecePosition>(4);
-		spaces.add(moveUp());
-		spaces.add(moveDown());
-		spaces.add(moveLeft());
-		spaces.add(moveRight());
+		PiecePosition temp = moveUp();
+		if(temp != null) spaces.add(temp);
+		
+		temp = moveDown();
+		if(temp != null) spaces.add(temp);
+		
+		temp = moveLeft();
+		if(temp != null) spaces.add(temp);
+		
+		temp = moveRight();
+		if(temp != null) spaces.add(temp);
+		
 		return spaces;
 	}
 
@@ -129,7 +159,7 @@ public class PiecePosition
 		}
 		else
 		{
-			return PiecePosition.EDGE;
+			return null;
 		}
 	}
 	
@@ -141,7 +171,7 @@ public class PiecePosition
 		}
 		else
 		{
-			return PiecePosition.EDGE;
+			return null;
 		}
 	}
 
@@ -153,7 +183,7 @@ public class PiecePosition
 		}
 		else
 		{
-			return PiecePosition.EDGE;
+			return null;
 		}
 	}
 	
@@ -165,7 +195,7 @@ public class PiecePosition
 		}
 		else
 		{
-			return PiecePosition.EDGE;
+			return null;
 		}
 	}
 }

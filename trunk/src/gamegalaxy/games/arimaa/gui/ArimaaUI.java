@@ -182,7 +182,7 @@ public class ArimaaUI extends JPanel
 	
 	public boolean canDragPiece(PiecePanel piecePanel)
 	{
-		return engine.isPieceSelectable(piecePanel.getData());
+		return engine.canPieceBeMoved(piecePanel.getData());
 	}
 
 	/**
