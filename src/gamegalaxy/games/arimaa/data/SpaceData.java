@@ -27,9 +27,9 @@ package gamegalaxy.games.arimaa.data;
  */
 public class SpaceData
 {
-
 	public static final int NORMAL = 0;
 	public static final int TRAP = 1;
+	
 	private int	spaceType;
 	private PieceData piece;
 	
