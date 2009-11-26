@@ -221,4 +221,40 @@ public class BoardData
 		return false;
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piece
+	 * @return
+	 */
+	public boolean pieceCanBePushed(PieceData piece)
+	{
+		//Get a list of all the pieces next to this one.
+		List<PieceData> adjacentPieces = getAdjacentPieces(piece);
+		
+		//You can't select a piece of the opposite color if it has no adjacent pieces.
+		if(adjacentPieces.size() == 0) return false;
+		
+		//This piece must be next to a piece of the opposite color and of a higher value
+		Iterator<PieceData> iterator = adjacentPieces.iterator();
+		while(iterator.hasNext())
+		{
+			PieceData adjacentPiece = iterator.next();
+			
+			//Check to see if we have a piece of the appropriate properties next to us.
+			if(adjacentPiece.getColor() != piece.getColor() &&
+				adjacentPiece.getValue() > piece.getValue())
+			{
+				//Make sure the adjacent piece is not frozen.
+				if(!isPieceFrozen(adjacentPiece))
+				{
+					return true;
+				}
+			}	
+		}
+		
+		//If we made it this far, that means that none of the adjacent pieces are correct.
+		return false;
+	}
+
 }
