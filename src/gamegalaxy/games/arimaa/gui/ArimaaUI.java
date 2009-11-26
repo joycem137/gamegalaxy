@@ -69,11 +69,11 @@ public class ArimaaUI extends JPanel
 		boardPanel.setLocation(248, 120);
 		
 		//Create buckets
-		goldBucketPanel = new BucketPanel(loader);
+		goldBucketPanel = new BucketPanel(loader, GameConstants.GOLD);
 		add(goldBucketPanel);
 		goldBucketPanel.setLocation(48, 132);
 		
-		silverBucketPanel = new BucketPanel(loader);
+		silverBucketPanel = new BucketPanel(loader, GameConstants.SILVER);
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(822, 132);
 		
@@ -210,7 +210,7 @@ public class ArimaaUI extends JPanel
 			PiecePosition originalLocation = getPiecePositionAt(piecePanel.getOriginalLocation());
 			
 			//Set the highlight.
-			if(engine.isValidMove(piecePanel.getData(), originalLocation, dragOverPosition))
+			if(engine.isValidMove(piecePanel.getData(), originalLocation, dragOverPosition) || engine.isValidSwap(piecePanel.getData(), originalLocation, dragOverPosition))
 			{
 				highlight.setColor(HighlightPanel.BLUE);
 				
@@ -275,6 +275,38 @@ public class ArimaaUI extends JPanel
 			//Now update the engine.
 			engine.movePiece(piecePanel.getData(), originalPosition, dropPosition);
 		}
+		else if(engine.isValidSwap(piecePanel.getData(), originalPosition, dropPosition))
+		{
+			//need to identify and grab the piecePanel at dropPosition.
+			PiecePanel targetPanel = getPieceAt(dropPosition);
+			
+			//remove both pieces from their current holders.
+			holder.removePiece(piecePanel);
+			targetPanel.getHolder().removePiece(targetPanel);
+
+			//move the original piece to the target location.
+			boardPanel.placePiece(piecePanel, dropPosition);
+			
+			//move the second piece to the original location.
+			if (originalPosition.isOnBoard())
+			{
+				boardPanel.placePiece(targetPanel, originalPosition);
+			}
+			else
+			{
+				if(targetPanel.getData().getColor() == GameConstants.GOLD)
+				{
+					goldBucketPanel.dropPiece(targetPanel);
+				}
+				else
+				{
+					silverBucketPanel.dropPiece(targetPanel);
+				}
+			}
+	
+			//Update the engine.
+			engine.swapPieces(piecePanel.getData(), targetPanel.getData(), originalPosition, dropPosition);
+		}
 		else
 		{
 			piecePanel.resetPosition();
@@ -282,10 +314,11 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Finds the PiecePosition corresponding to a particular (x,y) gui location.
 	 *
-	 * @param dropLocation
-	 * @return
+	 * @param location	A point (x,y) on the gui.
+	 * @return	A PiecePosition which is either a board position (0~7, 0~7), GOLD_BUCKET,
+	 * 			SILVER_BUCKET, or null.
 	 */
 	private PiecePosition getPiecePositionAt(Point location)
 	{
@@ -338,32 +371,73 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Finds the PiecePanel located at a specific PiecePosition on the board.
+	 * Since PiecePosition can be either a board location, bucket, edge, or null,
+	 * this will automatically return a null PiecePanel unless the PiecePosition
+	 * specified is on the board.
 	 *
-	 * @param trapPosition
+	 * @param position	the PiecePosition we are wanting to check for pieces.
+	 * @return	the PiecePanel at this position if it exists and is unique; null if
+	 * 			there is no piece here or it is not a board location.
+	 */
+	public PiecePanel getPieceAt(PiecePosition position)
+	{
+		PiecePanel targetPiece = null;
+		
+		if (position.isOnBoard())
+		{
+			//we'll use an Iterator to scan the piecePanels for the one we want.
+			Iterator<PiecePanel> iterator = piecePanels.iterator();
+			while(iterator.hasNext())
+			{
+				PiecePanel piecePanel = iterator.next();
+				PiecePosition piecePosition = piecePanel.getData().getPosition();
+				
+				//And compare.
+				if(piecePosition != null)
+				{
+					if(piecePosition.equals(position))
+					{
+						//This is the piece we want.
+						targetPiece = piecePanel;
+					}
+				}
+			}
+			//A piece that has already been removed by the engine will be missed by the first scan.
+			//In this case, scan graphically as well.
+			if(targetPiece == null)
+			{
+				Iterator<PiecePanel> iterator2 = piecePanels.iterator();
+				while(iterator2.hasNext())
+				{
+                    //Get the x,y coords of this piece panel
+                	PiecePanel piecePanel = iterator2.next();
+                	Point location = piecePanel.getLocation();
+                    
+                    //Get the corresponding piece position
+                	PiecePosition piecePosition = getPiecePositionAt(location);
+                    
+                    //And compare.
+                    if(piecePosition.equals(position))
+                	{
+                    	//This is the piece we want.
+                    	targetPiece = piecePanel;
+                    }
+				}
+			}
+		}
+		
+		return targetPiece;
+	}
+
+	/**
+	 * Removes captured pieces from the game board back to the bucket.
+	 *
+	 * @param trapPosition	PiecePosition corresponding to one of the traps on the board.
 	 */
 	public void movePieceToBucket(PiecePosition trapPosition)
 	{
-		PiecePanel pieceToMove = null;
-		
-		//Find the piece in question
-		Iterator<PiecePanel> iterator = piecePanels.iterator();
-		while(iterator.hasNext())
-		{
-			//Get the x,y coords of this piece panel
-			PiecePanel piecePanel = iterator.next();
-			Point location = piecePanel.getLocation();
-			
-			//Get the corresponding piece position
-			PiecePosition piecePosition = getPiecePositionAt(location);
-			
-			//And compare.
-			if(piecePosition.equals(trapPosition))
-			{
-				//This is the piece we want.
-				pieceToMove = piecePanel;
-			}
-		}
+		PiecePanel pieceToMove = getPieceAt(trapPosition);
 		
 		//Remove it from the board.
 		boardPanel.removePiece(pieceToMove);

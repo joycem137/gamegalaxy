@@ -117,7 +117,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 *
 	 * @param x		The x-coordinate of the location being tested.
 	 * @param y		The y-coordinate of the location being tested.
-	 * @return		the corresponding BoardPosition(col,row) in the range (0~7, 0~7) 
+	 * @return		the corresponding PiecePosition(col,row) in the range (0~7, 0~7) 
 	 */
 	public PiecePosition identifyBoardPosition(int x, int y)
 	{

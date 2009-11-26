@@ -1,5 +1,7 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.GameConstants;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
@@ -20,15 +22,27 @@ public class BucketPanel extends JPanel implements PieceHolder
 	private Image	backgroundImage;
 	private int		numberOfPieces;
 	
+	private int				color;
+	private PiecePosition 	position;
+	
 	private final static int SPACE_WIDTH = 59;
 	private final static int SPACE_HEIGHT = 59;
 	private final static int BORDER_WIDTH = 16;
 
-	public BucketPanel(ResourceLoader loader)
+	public BucketPanel(ResourceLoader loader, int color)
 	{
 		backgroundImage = loader.getResource("BucketBackground");
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
 		numberOfPieces = 0;
+		this.color = color;
+		if (color == GameConstants.GOLD)
+		{
+			position = PiecePosition.GOLD_BUCKET;
+		}
+		else
+		{
+			position = PiecePosition.SILVER_BUCKET;
+		}
 	}
 	
 	/**
@@ -57,6 +71,7 @@ public class BucketPanel extends JPanel implements PieceHolder
 		int row = numberOfPieces % 8;
 		piecePanel.setLocation(baseX + col*SPACE_WIDTH, baseY + row*SPACE_HEIGHT);
 		piecePanel.setHolder(this);
+		piecePanel.getData().setPosition(position);
 		numberOfPieces += 1;
 	}
 
@@ -70,6 +85,7 @@ public class BucketPanel extends JPanel implements PieceHolder
 	public void removePiece(PiecePanel piecePanel)
 	{
 		piecePanel.removeHolder();
+		piecePanel.getData().setPosition(null);
 		numberOfPieces -= 1;
 	}
 

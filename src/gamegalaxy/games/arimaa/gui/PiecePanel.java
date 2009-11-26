@@ -170,6 +170,16 @@ public class PiecePanel extends JPanel
 	}
 
 	/**
+	 * Get the object that is currently holding this piece.
+	 *
+	 * @return The object that is holding this piece.
+	 */
+	public PieceHolder getHolder()
+	{
+		return holder;
+	}
+
+	/**
 	 * Set the object that is currently holding this piece.
 	 *
 	 * @param pieceHolder The object that is holding this piece.

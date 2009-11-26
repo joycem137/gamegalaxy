@@ -98,7 +98,7 @@ public class PiecePosition
 	
 	public String toString()
 	{
-		return "" + row + ", " + col;
+		return "" + col + ", " + row;
 	}
 
 	/**
