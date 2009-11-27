@@ -34,7 +34,7 @@ public class ArimaaUI extends JPanel
 	//Store the background image that we want to draw.
 	private Image 				backgroundImage;
 	private List<PiecePanel>	piecePanels;
-	private StatusPanel			turnPanel;
+	private StatusPanel			statusPanel;
 	private ArimaaEngine		engine;
 	
 	private HighlightPanel		highlight;
@@ -77,15 +77,15 @@ public class ArimaaUI extends JPanel
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(822, 132);
 		
-		turnPanel = new StatusPanel(this, loader);
-		add(turnPanel);
-		turnPanel.setLocation(282, 659);
+		statusPanel = new StatusPanel(this, loader);
+		add(statusPanel);
+		statusPanel.setLocation(282, 659);
 		
 		setPreferredSize(new Dimension(1024, 768));
 		
 		//Start with the pieces in the buckets.
 		initializePieceLocations();
-		turnPanel.setTurnState(GameConstants.GOLD);
+		statusPanel.setTurnState(GameConstants.GOLD);
 	}
 	
 	/**
@@ -348,7 +348,7 @@ public class ArimaaUI extends JPanel
 	 */
 	public void setEndofTurn(boolean b)
 	{
-		turnPanel.showEndTurnButton(b);
+		statusPanel.showEndTurnButton(b);
 	}
 
 	/**
@@ -367,7 +367,7 @@ public class ArimaaUI extends JPanel
 	 */
 	public void setTurnState(int playerTurn)
 	{
-		turnPanel.setTurnState(playerTurn);
+		statusPanel.setTurnState(playerTurn);
 	}
 
 	/**
@@ -460,6 +460,6 @@ public class ArimaaUI extends JPanel
 	 */
 	public void setGameWinner(int player)
 	{
-		turnPanel.setWinner(player);
+		statusPanel.setWinner(player);
 	}
 }

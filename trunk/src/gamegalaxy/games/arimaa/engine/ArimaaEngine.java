@@ -43,6 +43,7 @@ public class ArimaaEngine
 		pullPosition = null;
 		pullPiece = null;
 		
+		//Start in the setup phase.
 		phase = SETUP_PHASE;
 		
 		playerTurn = GameConstants.GOLD;
@@ -365,31 +366,6 @@ public class ArimaaEngine
 		//Return false under all other circumstances.
 		return false;
 	}
-	
-	/**
-	 * TODO: Describe method
-	 *
-	 */
-	public void endTurn()
-	{
-		//Reset the pulled pieces.
-		pullPosition = null;
-		pullPiece = null;
-		
-		//Switch the turn.
-		playerTurn = (playerTurn + 1) % 2;
-		gui.setTurnState(playerTurn);
-		
-		//If we're back to gold, the game phase has changed.
-		if(playerTurn == GameConstants.GOLD)
-		{
-			phase = GAME_ON;
-		}
-		
-		numMoves = 0;
-		
-		gui.setEndofTurn(false);
-	}
 
 	/**
 	 * TODO: Describe method
@@ -438,21 +414,31 @@ public class ArimaaEngine
 					{
 						if(pullPosition != null && pullPosition.equals(newSpace))
 						{
+							//This cannot be a push or a pull.
 							pullPosition = null;
 							pullPiece = null;
 							pushPosition = null;
 						}
 						else
 						{
+							//This is a push.
 							pushPosition = originalSpace;
 						}
 					}
 					else
 					{
 						//This is a move of this player's color.
-						pushPosition = null;
-						pullPosition = originalSpace;
-						pullPiece = piece;
+						if(pushPosition == null)
+						{
+							//The last move was *not* a push position.  You can record the piece movement.
+							pullPosition = originalSpace;
+							pullPiece = piece;
+						}
+						else
+						{
+							//The last move was a push.  Reset it.
+							pushPosition = null;
+						}
 					}
 				}
 			}
@@ -531,6 +517,34 @@ public class ArimaaEngine
 		}
 		//finally, put the first piece where the second one was.
 		board.placePiece(piece1, space2);
+	}
+	
+	/**
+	 * TODO: Describe method
+	 *
+	 */
+	public void endTurn()
+	{
+		//You can't end the turn in the middle of a push
+		if(pushPosition != null) return;
+		
+		//Reset the pulled pieces.
+		pullPosition = null;
+		pullPiece = null;
+		
+		//Switch the turn.
+		playerTurn = (playerTurn + 1) % 2;
+		gui.setTurnState(playerTurn);
+		
+		//If we're back to gold, the game phase has changed.
+		if(playerTurn == GameConstants.GOLD)
+		{
+			phase = GAME_ON;
+		}
+		
+		numMoves = 0;
+		
+		gui.setEndofTurn(false);
 	}
 	
 	/**
@@ -675,7 +689,7 @@ public class ArimaaEngine
 		else if(phase == GAME_ON)
 		{
 			//We can set the end of turn if the number of moves is greater than or equal to 1.
-			gui.setEndofTurn(numMoves >= 1);
+			gui.setEndofTurn(pushPosition == null && numMoves >= 1);
 		}
 	}
 
