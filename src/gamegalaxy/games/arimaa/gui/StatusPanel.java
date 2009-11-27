@@ -18,7 +18,7 @@ import javax.swing.SwingUtilities;
 /**
  * 
  */
-public class TurnPanel extends JPanel
+public class StatusPanel extends JPanel
 {
 	private Image	backgroundImage;
 	private Image 	goldIndicator;
@@ -35,7 +35,7 @@ public class TurnPanel extends JPanel
 	 * @param loader
 	 */
 	@SuppressWarnings("serial")
-	public TurnPanel(final ArimaaUI gui, ResourceLoader loader)
+	public StatusPanel(final ArimaaUI gui, ResourceLoader loader)
 	{
 		//Set the layout to none.
 		setLayout(null);
@@ -73,7 +73,6 @@ public class TurnPanel extends JPanel
 		{
 			public void run()
 			{
-				winnerLabel.setVisible(false);
 				endTurnButton.setVisible(false);
 			}
 		});
@@ -88,6 +87,20 @@ public class TurnPanel extends JPanel
 	public void setTurnState(int turnState)
 	{
 		this.turnState = turnState;
+
+		if(turnState == GameConstants.GOLD)
+		{
+			winnerLabel.setForeground(Color.YELLOW);
+			winnerLabel.setText("Gold's Turn");
+		}
+		else
+		{
+			winnerLabel.setForeground(Color.GRAY);
+			winnerLabel.setText("Silver's Turn");
+		}
+
+		winnerLabel.setVisible(true);
+		
 		repaint();
 	}
 	
@@ -100,7 +113,7 @@ public class TurnPanel extends JPanel
 	{
 		//Draw the background
 		g.drawImage(backgroundImage, 0, 0, this);
-		
+
 		//Draw the turn indicator
 		if(turnState == GameConstants.GOLD)
 		{
@@ -120,6 +133,7 @@ public class TurnPanel extends JPanel
 	public void showEndTurnButton(boolean b)
 	{
 		endTurnButton.setVisible(b);
+		winnerLabel.setVisible(!b);
 	}
 
 	/**
