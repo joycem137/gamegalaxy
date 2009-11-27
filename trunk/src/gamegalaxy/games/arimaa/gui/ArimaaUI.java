@@ -34,7 +34,7 @@ public class ArimaaUI extends JPanel
 	//Store the background image that we want to draw.
 	private Image 				backgroundImage;
 	private List<PiecePanel>	piecePanels;
-	private TurnPanel			turnPanel;
+	private StatusPanel			turnPanel;
 	private ArimaaEngine		engine;
 	
 	private HighlightPanel		highlight;
@@ -77,7 +77,7 @@ public class ArimaaUI extends JPanel
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(822, 132);
 		
-		turnPanel = new TurnPanel(this, loader);
+		turnPanel = new StatusPanel(this, loader);
 		add(turnPanel);
 		turnPanel.setLocation(282, 659);
 		
