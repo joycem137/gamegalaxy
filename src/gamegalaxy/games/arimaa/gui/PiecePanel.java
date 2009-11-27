@@ -1,12 +1,15 @@
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -21,6 +24,7 @@ public class PiecePanel extends JPanel
 {
 	//Store the image affiliated with this particular piece.
 	private Image pieceImage;
+	private Image chitImage;
 
 	//Store the object that is currently holding this piece.
 	private PieceHolder	holder;
@@ -153,10 +157,38 @@ public class PiecePanel extends JPanel
 		String pieceName = data.getColorString() + data.getNameString();
 		pieceImage = loader.getResource(pieceName);
 		
+		drawChitImage(loader);
+		
 		//configure the size of this panel
 		setSize(pieceImage.getWidth(this), pieceImage.getHeight(this));
 	}
 	
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param loader
+	 */
+	private void drawChitImage(ResourceLoader loader)
+	{
+		Image singleChitImage = loader.getResource("Chit");
+		
+		//Initialize the image.
+		int chitWidth = singleChitImage.getWidth(this);
+		int chitHeight = singleChitImage.getHeight(this);
+		int multiChitHeight = data.getValue() * chitHeight;
+		chitImage = new BufferedImage(chitWidth, multiChitHeight, BufferedImage.TYPE_INT_ARGB_PRE);
+		
+		Graphics g = chitImage.getGraphics();
+		
+		//Draw the chits
+		for(int i = 0; i <= data.getValue(); i++)
+		{
+			g.drawImage(singleChitImage, 0, (i - 1) * chitHeight, this);
+		}
+		
+		chitImage.flush();
+	}
+
 	/**
 	 * 
 	 * Draws the image associated with this piece, with a transparent background.
@@ -167,6 +199,14 @@ public class PiecePanel extends JPanel
 	public void paintComponent(Graphics g)
 	{
 		g.drawImage(pieceImage, 0, 0, this);
+		if(data.getColor() == GameConstants.GOLD)
+		{
+			g.drawImage(chitImage, 5, 5, this);
+		}
+		else
+		{
+			g.drawImage(chitImage, getWidth() - chitImage.getWidth(this) - 5, 5, this);
+		}
 	}
 
 	/**
