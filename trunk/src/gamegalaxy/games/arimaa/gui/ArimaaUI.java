@@ -1,8 +1,10 @@
 package gamegalaxy.games.arimaa.gui;
 
-import gamegalaxy.games.arimaa.data.PiecePosition;
+import gamegalaxy.games.arimaa.data.BoardData;
 import gamegalaxy.games.arimaa.data.GameConstants;
+import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.tools.ResourceLoader;
 
@@ -12,10 +14,13 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 /**
@@ -39,25 +44,28 @@ public class ArimaaUI extends JPanel
 	
 	private HighlightPanel		highlight;
 	
+	//Store our random setup buttons.
+	private JButton	goldRandomSetupButton;
+	private JButton	silverRandomSetupButton;
+	private ResourceLoader	loader;
+	
 	/**
 	 * 
 	 * Construct the UI, load any files needed for it, set the layout, etc.
 	 * @param loader 
 	 *
 	 */
-	public ArimaaUI(ArimaaEngine engine, ResourceLoader loader)
+	public ArimaaUI(final ArimaaEngine engine, ResourceLoader loader)
 	{	
-		//Link the engine and GUI.
-		this.engine = engine;
-		engine.linkGUI(this);
+		//Store the resource loader
+		this.loader = loader;
 		
 		//Configure this panel
 		setLayout(null);
+		piecePanels = new Vector<PiecePanel>(16);
 
 		//Create the background image.
 		backgroundImage = loader.getResource("AppBackground");
-		
-		createPieces(engine, loader);
 		
 		//Create highlight panel.
 		highlight = new HighlightPanel(loader);
@@ -77,56 +85,43 @@ public class ArimaaUI extends JPanel
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(822, 132);
 		
+		//Create the "random setup" buttons.
+		goldRandomSetupButton = new JButton(new AbstractAction("Place randomly")
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				engine.doRandomSetup();
+			}
+			
+		});
+		goldRandomSetupButton.setLocation(goldBucketPanel.getX(), 
+				goldBucketPanel.getY() + goldBucketPanel.getHeight() + 15);
+		goldRandomSetupButton.setSize(goldBucketPanel.getWidth(), 33);
+		add(goldRandomSetupButton);
+		
+		silverRandomSetupButton = new JButton(new AbstractAction("Place randomly")
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				engine.doRandomSetup();
+			}
+			
+		});
+		silverRandomSetupButton.setLocation(silverBucketPanel.getX(), 
+				silverBucketPanel.getY() + silverBucketPanel.getHeight() + 15);
+		silverRandomSetupButton.setSize(silverBucketPanel.getWidth(), 33);
+		add(silverRandomSetupButton);
+		
+		//Create the status panel
 		statusPanel = new StatusPanel(this, loader);
 		add(statusPanel);
 		statusPanel.setLocation(282, 659);
 		
 		setPreferredSize(new Dimension(1024, 768));
 		
-		//Start with the pieces in the buckets.
-		initializePieceLocations();
-		statusPanel.setTurnState(GameConstants.GOLD);
-	}
-	
-	/**
-	 * TODO: Describe method
-	 *
-	 */
-	private void initializePieceLocations()
-	{
-		Iterator<PiecePanel> piecePanelIterator = piecePanels.iterator();
-		while(piecePanelIterator.hasNext())
-		{
-			PiecePanel tempPiece = piecePanelIterator.next();
-			if(tempPiece.getData().getColor() == GameConstants.GOLD)
-			{
-				goldBucketPanel.dropPiece(tempPiece);
-			}
-			else
-			{
-				silverBucketPanel.dropPiece(tempPiece);
-			}
-		}
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
-	 * @param engine
-	 * @param loader
-	 */
-	private void createPieces(ArimaaEngine engine, ResourceLoader loader)
-	{
-		List<PieceData> pieceDataList = engine.getPieces(); 
-		Iterator<PieceData> iterator = pieceDataList.iterator();
-		piecePanels = new Vector<PiecePanel>(pieceDataList.size());
-		while(iterator.hasNext())
-		{
-			PieceData pieceData = iterator.next();
-			PiecePanel tempPiece = new PiecePanel(this, pieceData, loader);
-			add(tempPiece);
-			piecePanels.add(tempPiece);
-		}
+		//Link the engine and GUI.
+		this.engine = engine;
+		engine.linkGUI(this);
 	}
 
 	/**
@@ -254,24 +249,7 @@ public class ArimaaUI extends JPanel
 		
 		//Now see if it makes sense to move this piece.
 		if(engine.isValidMove(piecePanel.getData(), originalPosition, dropPosition))
-		{
-			//Remove the piece from its previous location
-			holder.removePiece(piecePanel);
-			
-			//Place the piece in its new location;
-			if(dropPosition.isOnBoard())
-			{
-				boardPanel.placePiece(piecePanel, dropPosition);
-			}
-			else if(dropPosition.getBucketColor() == GameConstants.GOLD)
-			{
-				goldBucketPanel.dropPiece(piecePanel);
-			}
-			else
-			{
-				silverBucketPanel.dropPiece(piecePanel);
-			}
-			
+		{	
 			//Now update the engine.
 			engine.movePiece(piecePanel.getData(), originalPosition, dropPosition);
 		}
@@ -279,30 +257,6 @@ public class ArimaaUI extends JPanel
 		{
 			//need to identify and grab the piecePanel at dropPosition.
 			PiecePanel targetPanel = getPieceAt(dropPosition);
-			
-			//remove both pieces from their current holders.
-			holder.removePiece(piecePanel);
-			targetPanel.getHolder().removePiece(targetPanel);
-
-			//move the original piece to the target location.
-			boardPanel.placePiece(piecePanel, dropPosition);
-			
-			//move the second piece to the original location.
-			if (originalPosition.isOnBoard())
-			{
-				boardPanel.placePiece(targetPanel, originalPosition);
-			}
-			else
-			{
-				if(targetPanel.getData().getColor() == GameConstants.GOLD)
-				{
-					goldBucketPanel.dropPiece(targetPanel);
-				}
-				else
-				{
-					silverBucketPanel.dropPiece(targetPanel);
-				}
-			}
 	
 			//Update the engine.
 			engine.swapPieces(piecePanel.getData(), targetPanel.getData(), originalPosition, dropPosition);
@@ -344,30 +298,10 @@ public class ArimaaUI extends JPanel
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param b
-	 */
-	public void setEndofTurn(boolean b)
-	{
-		statusPanel.showEndTurnButton(b);
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
 	 */
 	public void endTurn()
 	{
 		engine.endTurn();
-	}
-
-	/**
-	 * TODO: Describe method
-	 *
-	 * @param playerTurn
-	 */
-	public void setTurnState(int playerTurn)
-	{
-		statusPanel.setTurnState(playerTurn);
 	}
 
 	/**
@@ -431,35 +365,131 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * Removes captured pieces from the game board back to the bucket.
+	 * TODO: Describe method
 	 *
-	 * @param trapPosition	PiecePosition corresponding to one of the traps on the board.
 	 */
-	public void movePieceToBucket(PiecePosition trapPosition)
-	{
-		PiecePanel pieceToMove = getPieceAt(trapPosition);
+	public void updateGameState(GameState gameState)
+	{	
+		//Remove all pieces.
+		clearPieces();
 		
-		//Remove it from the board.
-		boardPanel.removePiece(pieceToMove);
+		//Then populate the buckets.
+		populateBucket(goldBucketPanel, gameState.getGoldBucket());
+		populateBucket(silverBucketPanel, gameState.getSilverBucket());
 		
-		//Get the opposite colored bucket.
-		if(pieceToMove.getData().getColor() == GameConstants.GOLD)
+		//Populate the board
+		populateBoard(gameState.getBoardData());
+		
+		//Now check if the game is over.
+		if(gameState.isGameOver())
 		{
-			silverBucketPanel.dropPiece(pieceToMove);
+			statusPanel.setWinner(gameState.getGameWinner());
 		}
-		else
+		
+		//Display the turn state.
+		statusPanel.setTurnState(gameState.getCurrentPlayer());
+		statusPanel.showEndTurnButton(gameState.canPlayerEndTurn());
+		
+		//Determine whether to show the setup button or not.
+		goldRandomSetupButton.setVisible(gameState.isSetupPhase() && 
+				gameState.getCurrentPlayer() == GameConstants.GOLD && 
+				gameState.getGoldBucket().size() > 0);
+		
+		silverRandomSetupButton.setVisible(gameState.isSetupPhase() && 
+				gameState.getCurrentPlayer() == GameConstants.SILVER &&
+				gameState.getSilverBucket().size() > 0);
+	}
+
+	/**
+	 * Remove all pieces from the board and buckets.
+	 *
+	 */
+	private void clearPieces()
+	{
+		goldBucketPanel.resetCount();
+		silverBucketPanel.resetCount();
+		
+		Iterator<PiecePanel> iterator = piecePanels.iterator();
+		while(iterator.hasNext())
 		{
-			goldBucketPanel.dropPiece(pieceToMove);
+			PiecePanel piecePanel = iterator.next();
+			
+			//Remove the piece panel from the UI.
+			remove(piecePanel);
+		}
+	
+		//Now clear the list
+		piecePanels.clear();
+	}
+
+	/**
+	 * Takes a BoardData object and populates the UI's board with the appropriate data.
+	 *
+	 * @param boardData
+	 */
+	private void populateBoard(BoardData boardData)
+	{
+		for(int row = 0; row < 8; row++)
+		{
+			for(int col = 0; col < 8; col++)
+			{
+				//Get the current position
+				PiecePosition position = new PiecePosition(col, row);
+
+				if(boardData.isOccupied(position))
+				{
+					//Create a new piece panel.
+					PiecePanel piecePanel = new PiecePanel(this, boardData.getPieceAt(position), loader);
+					
+					//Add the piece to the board
+					addPiece(piecePanel);
+					
+					//And now put it on the board.
+					boardPanel.placePiece(piecePanel, position);
+				}
+			}
 		}
 	}
 
 	/**
 	 * TODO: Describe method
 	 *
-	 * @param silver
+	 * @param piecePanel
 	 */
-	public void setGameWinner(int player)
+	private void addPiece(PiecePanel piecePanel)
 	{
-		statusPanel.setWinner(player);
+		//Add the piece to the screen.
+		add(piecePanel);
+		
+		//Add the piece to the piece panel list.
+		piecePanels.add(piecePanel);
+		
+		//Move the piece to the front.
+		setComponentZOrder(piecePanel, 1);
+	}
+
+	/**
+	 * Takes the indicated bucket panel and populates it with the pieces 
+	 * stored in the bucket data.
+	 *
+	 * @param bucketPanel
+	 * @param bucketData
+	 */
+	private void populateBucket(BucketPanel bucketPanel,
+			List<PieceData> bucketData)
+	{
+		Iterator<PieceData> bucketIterator = bucketData.iterator();
+		while(bucketIterator.hasNext())
+		{
+			//Create the piece.
+			PiecePanel piecePanel = new PiecePanel(this, bucketIterator.next(), loader);
+			
+			//Add it to the screen.
+			addPiece(piecePanel);
+			
+			//Then add it to the bucket.
+			bucketPanel.dropPiece(piecePanel);
+		}
+		
 	}
 }

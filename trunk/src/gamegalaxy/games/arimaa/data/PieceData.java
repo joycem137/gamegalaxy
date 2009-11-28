@@ -121,4 +121,31 @@ public class PieceData
 	{
 		return position;
 	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public PieceData copy()
+	{
+		PieceData newPiece = new PieceData(color, value);
+		newPiece.position = position;
+		return newPiece;
+	}
+	
+	public boolean equals(Object o)
+	{
+		//Our abort case.
+		if(o instanceof PieceData)
+		{
+			PieceData otherPiece = (PieceData)o;
+			return color == otherPiece.color && value == otherPiece.value;
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
 }

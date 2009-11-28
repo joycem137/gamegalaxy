@@ -2,6 +2,7 @@ package gamegalaxy.games.arimaa.engine;
 
 import gamegalaxy.games.arimaa.data.BoardData;
 import gamegalaxy.games.arimaa.data.GameConstants;
+import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
@@ -15,9 +16,6 @@ import java.util.Vector;
  */
 public class ArimaaEngine
 {
-	private static final int	SETUP_PHASE	= 0;
-	private static final int	GAME_ON = 1;
-	private static final int	GAME_WON = 2;
 	
 	//Store our data.
 	private List<PieceData>	pieces;
@@ -35,6 +33,7 @@ public class ArimaaEngine
 	private PiecePosition	pushPosition;
 	private PiecePosition	pullPosition;
 	private PieceData		pullPiece;
+	private int	winner;
 
 	public ArimaaEngine()
 	{
@@ -44,7 +43,7 @@ public class ArimaaEngine
 		pullPiece = null;
 		
 		//Start in the setup phase.
-		phase = SETUP_PHASE;
+		phase = GameConstants.SETUP_PHASE;
 		
 		playerTurn = GameConstants.GOLD;
 	
@@ -61,6 +60,8 @@ public class ArimaaEngine
 	public void linkGUI(ArimaaUI gui)
 	{
 		this.gui = gui;
+		
+		gui.updateGameState(getCurrentGameState());
 	}
 
 	/**
@@ -143,12 +144,12 @@ public class ArimaaEngine
 		//If we've exceeded our moves, we can't do this.
 		if(numMoves >= 4) return false;
 		
-		if(phase == SETUP_PHASE)
+		if(phase == GameConstants.SETUP_PHASE)
 		{
 			//If we've got the wrong color, we can't move this piece.
 			return piece.getColor() == playerTurn;
 		}
-		else if(phase == GAME_ON)
+		else if(phase == GameConstants.GAME_ON)
 		{	
 			//Get the position of the piece we're looking at.
 			PiecePosition piecePosition = piece.getPosition();
@@ -218,7 +219,7 @@ public class ArimaaEngine
 		if(!canPieceBeMoved(piece)) return false;
 		
 		//Let's actually see if the move is valid.
-		if(phase == SETUP_PHASE)
+		if(phase == GameConstants.SETUP_PHASE)
 		{
 			//Handle the bucket case:
 			if(newSpace.isABucket())
@@ -257,7 +258,7 @@ public class ArimaaEngine
 				return newSpace.getRow() <= 1;
 			}
 		}
-		else if(phase == GAME_ON)
+		else if(phase == GameConstants.GAME_ON)
 		{
 			//You can't move things to buckets here.
 			if(newSpace.isABucket()) return false;
@@ -341,7 +342,7 @@ public class ArimaaEngine
 		if(newSpace == null) return false;
 
 		//We can only swap during the Setup phase, with pieces of the same color.
-		if(phase == SETUP_PHASE)
+		if(phase == GameConstants.SETUP_PHASE)
 		{
 			//Return false if trying to put the piece back in the bucket.
 			if(newSpace.isABucket())
@@ -393,7 +394,7 @@ public class ArimaaEngine
 					bucket = silverBucket;
 				}
 				
-				bucket.remove(piece);
+				removePieceFromBucket(bucket, piece);
 				
 				//Now place the piece on the board in the correct space.
 				board.placePiece(piece, newSpace);
@@ -405,7 +406,7 @@ public class ArimaaEngine
 				
 				board.placePiece(piece, newSpace);
 				
-				if(phase == GAME_ON) 
+				if(phase == GameConstants.GAME_ON) 
 				{
 					//Increment the number of moves
 					numMoves++;
@@ -462,11 +463,8 @@ public class ArimaaEngine
 				
 				bucket.add(piece);
 			}
-			
-			//And the end of the move, see if the user can end their turn.
-			checkForEndOfTurn();
 
-			if (phase == GAME_ON)
+			if (phase == GameConstants.GAME_ON)
 			{
 				//Check the traps to see if there are pieces in them and if they are dead.
 				checkTheTraps();
@@ -474,9 +472,24 @@ public class ArimaaEngine
 				//Check to see if anyone has won the game.
 				checkForWinner();
 			}
+			
+			//UPdate the UI with the results.
+			gui.updateGameState(getCurrentGameState());
 		}
 	}
 	
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param bucket
+	 * @param piece
+	 */
+	private void removePieceFromBucket(List<PieceData> bucket, PieceData piece)
+	{
+		int pieceIndex = bucket.indexOf(piece);
+		bucket.remove(pieceIndex);
+	}
+
 	/**
 	 * Swaps the location of two pieces.  This is used only during the Setup phase of the game.
 	 *
@@ -517,6 +530,9 @@ public class ArimaaEngine
 		}
 		//finally, put the first piece where the second one was.
 		board.placePiece(piece1, space2);
+		
+		//Update the UI with the latest game state.
+		gui.updateGameState(getCurrentGameState());
 	}
 	
 	/**
@@ -534,17 +550,16 @@ public class ArimaaEngine
 		
 		//Switch the turn.
 		playerTurn = (playerTurn + 1) % 2;
-		gui.setTurnState(playerTurn);
 		
 		//If we're back to gold, the game phase has changed.
 		if(playerTurn == GameConstants.GOLD)
 		{
-			phase = GAME_ON;
+			phase = GameConstants.GAME_ON;
 		}
 		
 		numMoves = 0;
 		
-		gui.setEndofTurn(false);
+		gui.updateGameState(getCurrentGameState());
 	}
 	
 	/**
@@ -573,10 +588,8 @@ public class ArimaaEngine
 							foundGoldRabbit = true;
 							if(piece.getPosition().getRow() == 0)
 							{
-								//Gold won!
-								gui.setGameWinner(GameConstants.GOLD);
-								
-								phase = GAME_WON;
+								//Gold won!!!
+								setGameWinner(GameConstants.GOLD);
 							}
 						}
 						else 
@@ -585,9 +598,7 @@ public class ArimaaEngine
 							if(piece.getPosition().getRow() == 7)
 							{
 								//Silver won!
-								gui.setGameWinner(GameConstants.SILVER);
-								
-								phase = GAME_WON;
+								setGameWinner(GameConstants.SILVER);
 							}
 						}
 					}
@@ -598,16 +609,23 @@ public class ArimaaEngine
 		//If we made it here, make sure we found rabbits of each color.
 		if(!foundGoldRabbit)
 		{
-			gui.setGameWinner(GameConstants.SILVER);
-			
-			phase = GAME_WON;
+			setGameWinner(GameConstants.SILVER);
 		}
 		else if(!foundSilverRabbit)
 		{
-			gui.setGameWinner(GameConstants.GOLD);
-			
-			phase = GAME_WON;
+			setGameWinner(GameConstants.GOLD);
 		}
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param silver
+	 */
+	private void setGameWinner(int player)
+	{
+		phase = GameConstants.GAME_WON;
+		winner = player;
 	}
 
 	/**
@@ -657,40 +675,80 @@ public class ArimaaEngine
 					{
 						goldBucket.add(trappedPiece);
 					}
-					
-					//And now tell the GUI to do the same.
-					gui.movePieceToBucket(trapPosition);
 				}
 			}
 		}
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Randomly move the pieces from the bucket to the board for the current player.
 	 *
 	 */
-	private void checkForEndOfTurn()
+	public void doRandomSetup()
 	{
-		if(phase == SETUP_PHASE)
+		//Abort if this isn't the setup phase.
+		if(phase != GameConstants.SETUP_PHASE) return;
+		
+		//Grab the appropriate bucket.
+		List<PieceData> bucket;
+		int firstValidRow;
+		if(playerTurn == GameConstants.GOLD)
 		{
-			//Check to see if the current player's pieces are all out of the bucket.
-			List<PieceData> bucket;
-			if(playerTurn == GameConstants.GOLD)
-			{
-				bucket = goldBucket;
-			}
-			else
-			{
-				bucket = silverBucket;
-			}
+			bucket = goldBucket;
+			firstValidRow = 6;
+		}
+		else
+		{
+			bucket = silverBucket;
+			firstValidRow = 0;
+		}
+		
+		//Randomly distribute the pieces.
+		Iterator<PieceData> iterator = bucket.iterator();
+		while(iterator.hasNext())
+		{
+			PieceData piece = iterator.next();
 			
-			gui.setEndofTurn(bucket.size() == 0);
+			//Find a valid position.
+			PiecePosition position;
+			do
+			{
+				int randomRow = firstValidRow + getRandomInt(0, 1);
+				int randomCol = getRandomInt(0, 7);
+				position = new PiecePosition(randomCol, randomRow);
+			} while(board.isOccupied(position));
+			
+			//Now place the piece.
+			board.placePiece(piece, position);
 		}
-		else if(phase == GAME_ON)
-		{
-			//We can set the end of turn if the number of moves is greater than or equal to 1.
-			gui.setEndofTurn(pushPosition == null && numMoves >= 1);
-		}
+		
+		//Remove all the pieces from the bucket.
+		bucket.clear();
+		
+		//Update the UI
+		gui.updateGameState(getCurrentGameState());
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	private GameState getCurrentGameState()
+	{
+		return new GameState(goldBucket, silverBucket, board, playerTurn, numMoves, phase, winner, pushPosition, pullPosition, pullPiece);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param i
+	 * @param j
+	 * @return
+	 */
+	private int getRandomInt(int min, int max)
+	{
+		return (int)(Math.random() * (max - min + 1)) + min;
 	}
 
 }
