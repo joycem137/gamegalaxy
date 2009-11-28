@@ -1,3 +1,26 @@
+/* 
+ *  LEGAL STUFF
+ * 
+ *  This file is part of gamegalaxy.
+ *  
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
+ *  
+ *  Arimaa and other content here copyright their respective copyright holders.
+ *  
+ *  gamegalaxy is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *   
+ *  gamegalaxy is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ *  
+ */
 package gamegalaxy.games.arimaa.data;
 
 import java.util.Iterator;
@@ -5,11 +28,11 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * 
+ * This class stores all of the information required to completely recreate the state of
+ * the game at any point in time.
  */
 public final class GameState
 {
-
 	private BoardData	board;
 	private List<PieceData>	goldBucket;
 	private List<PieceData>	silverBucket;
@@ -24,7 +47,7 @@ public final class GameState
 	private int	winner;
 
 	/**
-	 * TODO: Describe constructor
+	 * Constructs the game state from the provided information
 	 *
 	 * @param goldBucket
 	 * @param silverBucket
@@ -59,7 +82,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Does a deep copy of the indicated list.
 	 *
 	 * @param goldBucket
 	 * @return
@@ -76,7 +99,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns the value of the current player.
 	 *
 	 * @return
 	 */
@@ -86,7 +109,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if the game has been won.
 	 *
 	 * @return
 	 */
@@ -96,7 +119,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return the winner of the game, if applicable.
 	 *
 	 * @return
 	 */
@@ -106,7 +129,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return the list of pieces in the gold bucket.
 	 *
 	 * @return
 	 */
@@ -116,7 +139,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if we are currently in the setup phase of the game.
 	 *
 	 * @return
 	 */
@@ -126,7 +149,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns the list of pieces in the silver bucket.
 	 *
 	 * @return
 	 */
@@ -136,7 +159,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if the current player is able to end their turn.
 	 *
 	 * @return
 	 */
@@ -166,7 +189,7 @@ public final class GameState
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns the representation of the board in the current state.
 	 *
 	 * @return
 	 */

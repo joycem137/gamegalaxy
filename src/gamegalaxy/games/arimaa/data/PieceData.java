@@ -3,7 +3,7 @@
  * 
  *  This file is part of gamegalaxy.
  *  
- *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
  *  
  *  Arimaa and other content here copyright their respective copyright holders.
  *  
@@ -25,7 +25,8 @@ package gamegalaxy.games.arimaa.data;
 
 
 /**
- * 
+ * This class stores everything we need to know about a piece, including its color,
+ * value, and current position.
  */
 public class PieceData
 {
@@ -41,6 +42,12 @@ public class PieceData
 	private int	value;
 	private PiecePosition	position;
 	
+	/**
+	 * Construct a piece with the indicated color and value.
+	 *
+	 * @param color
+	 * @param value
+	 */
 	public PieceData(int color, int value)
 	{
 		this.color = color;
@@ -48,7 +55,8 @@ public class PieceData
 	}
 	
 	/**
-	 * TODO: Describe method
+	 * Return a plain string indicating the name of this piece.  Used for accessing
+	 * image files for this piece.
 	 *
 	 * @return
 	 */
@@ -67,7 +75,7 @@ public class PieceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns a string indicating what color piece this is.
 	 *
 	 * @return
 	 */
@@ -78,7 +86,7 @@ public class PieceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return the color of this piece.
 	 *
 	 * @return
 	 */
@@ -86,14 +94,9 @@ public class PieceData
 	{
 		return color;
 	}
-	
-	public String toString()
-	{
-		return getColorString() + " " + getNameString();
-	}
 
 	/**
-	 * TODO: Describe method
+	 * Return the value of this piece.
 	 *
 	 * @return
 	 */
@@ -101,9 +104,21 @@ public class PieceData
 	{
 		return value;
 	}
+	
+	/**
+	 * 
+	 * Return a string indicating the name of this piece, in plain text.
+	 *
+	 * @return
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString()
+	{
+		return getColorString() + " " + getNameString();
+	}
 
 	/**
-	 * TODO: Describe method
+	 * Sets the current position of this piece.
 	 *
 	 * @param space
 	 */
@@ -113,7 +128,7 @@ public class PieceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns the current position of this piece.
 	 *
 	 * @return
 	 */
@@ -123,7 +138,7 @@ public class PieceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns a deep copy of this piece.
 	 *
 	 * @return
 	 */
@@ -134,6 +149,9 @@ public class PieceData
 		return newPiece;
 	}
 	
+	/*
+	 * Overrides Object.equals to provide comparison abilities when in lists.
+	 */
 	public boolean equals(Object o)
 	{
 		//Our abort case.

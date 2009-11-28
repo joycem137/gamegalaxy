@@ -3,7 +3,7 @@
  * 
  *  This file is part of gamegalaxy.
  *  
- *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
  *  
  *  Arimaa and other content here copyright their respective copyright holders.
  *  
@@ -28,12 +28,17 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * 
+ * This class stores all of the information about the board in a game of Arimaa.
  */
 public class BoardData
 {
 	private SpaceData[][] spaces;
 	
+	/**
+	 * 
+	 * Create a blank board.
+	 *
+	 */
 	public BoardData()
 	{	
 		//Create our actual board.
@@ -60,7 +65,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if the given space is occupied by a piece.
 	 *
 	 * @param space
 	 * @return
@@ -78,7 +83,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Places the indicated piece at the indicated position.
 	 *
 	 * @param piece
 	 * @param space
@@ -93,7 +98,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Removes the piece on the board that is on the indicated space.
 	 *
 	 * @param data
 	 * @param space
@@ -110,7 +115,8 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns the piece that is loaded at the given position  
+	 * Returns null if the position is not on the board.
 	 *
 	 * @param space
 	 * @return
@@ -128,7 +134,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns a list of all of the trap positions
 	 *
 	 * @return
 	 */
@@ -143,7 +149,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns a list of all of the pieces that are adjacent to the indicated piece.
 	 *
 	 * @param piece
 	 * @return
@@ -152,10 +158,12 @@ public class BoardData
 	{
 		List<PieceData> adjacentPieces = new Vector<PieceData>();
 		
+		//Look at all of the adjacent spaces.
 		List<PiecePosition> adjacentPositions = piece.getPosition().getAdjacentSpaces();
 		Iterator<PiecePosition> iterator = adjacentPositions.iterator();
 		while(iterator.hasNext())
 		{
+			//Check to see if the space is occupied.
 			PiecePosition positionToTest = iterator.next();
 			if(isOccupied(positionToTest))
 			{
@@ -166,7 +174,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if the piece is frozen by a larger piece of the opposite player.
 	 *
 	 * @param piece
 	 * @return
@@ -204,7 +212,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if the piece has an empty space that it can move into.
 	 *
 	 * @param piece
 	 * @return
@@ -222,7 +230,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns true if it is possible for the indicated piece to be pushed.
 	 *
 	 * @param piece
 	 * @return
@@ -258,7 +266,7 @@ public class BoardData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns a "deep copy" of this board, using an entirely new board and new PieceData objects
 	 *
 	 * @return
 	 */

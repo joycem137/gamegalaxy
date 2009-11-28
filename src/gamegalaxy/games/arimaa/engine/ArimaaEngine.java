@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * 
+ * This class does all the work of 
  */
 public class ArimaaEngine
 {
@@ -61,7 +61,7 @@ public class ArimaaEngine
 	{
 		this.gui = gui;
 		
-		gui.updateGameState(getCurrentGameState());
+		gui.displayGameState(getCurrentGameState());
 	}
 
 	/**
@@ -475,7 +475,7 @@ public class ArimaaEngine
 		}
 		
 		//UPdate the UI with the results.
-		gui.updateGameState(getCurrentGameState());
+		gui.displayGameState(getCurrentGameState());
 	}
 	
 	/**
@@ -532,7 +532,7 @@ public class ArimaaEngine
 		board.placePiece(piece1, space2);
 		
 		//Update the UI with the latest game state.
-		gui.updateGameState(getCurrentGameState());
+		gui.displayGameState(getCurrentGameState());
 	}
 	
 	/**
@@ -559,7 +559,7 @@ public class ArimaaEngine
 		
 		numMoves = 0;
 		
-		gui.updateGameState(getCurrentGameState());
+		gui.displayGameState(getCurrentGameState());
 	}
 	
 	/**
@@ -726,7 +726,7 @@ public class ArimaaEngine
 		bucket.clear();
 		
 		//Update the UI
-		gui.updateGameState(getCurrentGameState());
+		gui.displayGameState(getCurrentGameState());
 	}
 
 	/**
