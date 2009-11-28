@@ -472,10 +472,10 @@ public class ArimaaEngine
 				//Check to see if anyone has won the game.
 				checkForWinner();
 			}
-			
-			//UPdate the UI with the results.
-			gui.updateGameState(getCurrentGameState());
 		}
+		
+		//UPdate the UI with the results.
+		gui.updateGameState(getCurrentGameState());
 	}
 	
 	/**
