@@ -60,6 +60,9 @@ public class ArimaaUI extends JPanel
 	 */
 	public ArimaaUI(final ArimaaEngine engine, ResourceLoader loader)
 	{	
+		//Store a link to the engine
+		this.engine = engine;
+		
 		//Store the resource loader
 		this.loader = loader;
 		
@@ -75,7 +78,6 @@ public class ArimaaUI extends JPanel
 		setPreferredSize(new Dimension(1024, 768));
 		
 		//Link the engine and GUI.
-		this.engine = engine;
 		engine.linkGUI(this);
 	}
 
