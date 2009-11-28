@@ -257,4 +257,29 @@ public class BoardData
 		return false;
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public BoardData copy()
+	{
+		BoardData newBoard = new BoardData();
+		for(int col = 0; col < 8; col++)
+		{
+			for(int row = 0; row < 8; row++)
+			{
+				//Construct the piece position
+				PiecePosition position = new PiecePosition(col, row);
+				
+				if(isOccupied(position))
+				{
+					PieceData piece = getPieceAt(position).copy();
+					newBoard.placePiece(piece, position);
+				}
+			}
+		}
+		return newBoard;
+	}
+
 }

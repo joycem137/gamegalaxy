@@ -92,5 +92,14 @@ public class BucketPanel extends JPanel implements PieceHolder
 	public int numberOfPieces()
 	{
 		return numberOfPieces;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 */
+	public void resetCount()
+	{
+		numberOfPieces = 0;
 	}	
 }

@@ -29,7 +29,7 @@ import java.util.Vector;
 /**
  * 
  */
-public class PiecePosition
+public final class PiecePosition
 {
 	public static final PiecePosition	GOLD_BUCKET	= new PiecePosition(-1, GameConstants.GOLD);
 	public static final PiecePosition 	SILVER_BUCKET = new PiecePosition(-1, GameConstants.SILVER);
