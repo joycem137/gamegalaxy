@@ -32,21 +32,24 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class ArimaaUI extends JPanel
 {
+	//Store the background image that we want to draw.
+	private Image 				backgroundImage;
+	
+	//Store some basic data.
+	private List<PiecePanel>	piecePanels;
+	private ArimaaEngine		engine;
+	
+	//Store all of the objects attached to this panel.
+	private JButton	goldRandomSetupButton;
+	private JButton	silverRandomSetupButton;
 	private BoardPanel		boardPanel;
 	private BucketPanel		goldBucketPanel;
 	private BucketPanel		silverBucketPanel;
-	
-	//Store the background image that we want to draw.
-	private Image 				backgroundImage;
-	private List<PiecePanel>	piecePanels;
-	private StatusPanel			statusPanel;
-	private ArimaaEngine		engine;
+	private StatusPanel		statusPanel;
 	
 	private HighlightPanel		highlight;
 	
-	//Store our random setup buttons.
-	private JButton	goldRandomSetupButton;
-	private JButton	silverRandomSetupButton;
+	//Store the resource loader
 	private ResourceLoader	loader;
 	
 	/**
@@ -67,6 +70,20 @@ public class ArimaaUI extends JPanel
 		//Create the background image.
 		backgroundImage = loader.getResource("AppBackground");
 		
+		createChildrenPanels();
+		
+		setPreferredSize(new Dimension(1024, 768));
+		
+		//Link the engine and GUI.
+		this.engine = engine;
+		engine.linkGUI(this);
+	}
+
+	/**
+	 * Create all of the children panels that are attached to this UI.
+	 */
+	private void createChildrenPanels()
+	{
 		//Create highlight panel.
 		highlight = new HighlightPanel(loader);
 		add(highlight);
@@ -77,11 +94,11 @@ public class ArimaaUI extends JPanel
 		boardPanel.setLocation(248, 120);
 		
 		//Create buckets
-		goldBucketPanel = new BucketPanel(loader, GameConstants.GOLD);
+		goldBucketPanel = new BucketPanel(loader);
 		add(goldBucketPanel);
 		goldBucketPanel.setLocation(48, 132);
 		
-		silverBucketPanel = new BucketPanel(loader, GameConstants.SILVER);
+		silverBucketPanel = new BucketPanel(loader);
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(822, 132);
 		
@@ -113,28 +130,9 @@ public class ArimaaUI extends JPanel
 		add(silverRandomSetupButton);
 		
 		//Create the status panel
-		statusPanel = new StatusPanel(this, loader);
+		statusPanel = new StatusPanel(engine, loader);
 		add(statusPanel);
 		statusPanel.setLocation(282, 659);
-		
-		setPreferredSize(new Dimension(1024, 768));
-		
-		//Link the engine and GUI.
-		this.engine = engine;
-		engine.linkGUI(this);
-	}
-
-	/**
-	 * 
-	 * Draw the background image for this panel.  Do not draw anything else.
-	 *
-	 * @param g The graphics context for drawing on this panel.
-	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
-	 */
-	public void paintComponent(Graphics g)
-	{
-		//Paint the background
-		g.drawImage(backgroundImage, 0, 0, this);
 	}
 
 	/**
@@ -296,15 +294,6 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
-	 *
-	 */
-	public void endTurn()
-	{
-		engine.endTurn();
-	}
-
-	/**
 	 * Finds the PiecePanel located at a specific PiecePosition on the board.
 	 * Since PiecePosition can be either a board location, bucket, edge, or null,
 	 * this will automatically return a null PiecePanel unless the PiecePosition
@@ -365,10 +354,11 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
-	 *
+	 * Modifies the UI to represent the passed in game state.
+	 *  
+	 * @param gameState
 	 */
-	public void updateGameState(GameState gameState)
+	public void displayGameState(GameState gameState)
 	{	
 		//Remove all pieces.
 		clearPieces();
@@ -452,9 +442,10 @@ public class ArimaaUI extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Since this action is actually a little complicated, this method is used
+	 * to add a {@link PiecePanel} object to the UI.
 	 *
-	 * @param piecePanel
+	 * @param piecePanel The PiecePanel to add to the UI.
 	 */
 	private void addPiece(PiecePanel piecePanel)
 	{
@@ -491,5 +482,18 @@ public class ArimaaUI extends JPanel
 			bucketPanel.dropPiece(piecePanel);
 		}
 		
+	}
+
+	/**
+	 * 
+	 * Draw the background image for this panel.  Do not draw anything else.
+	 *
+	 * @param g The graphics context for drawing on this panel.
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 */
+	public void paintComponent(Graphics g)
+	{
+		//Paint the background
+		g.drawImage(backgroundImage, 0, 0, this);
 	}
 }

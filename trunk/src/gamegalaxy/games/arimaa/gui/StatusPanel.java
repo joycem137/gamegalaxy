@@ -1,6 +1,7 @@
 package gamegalaxy.games.arimaa.gui;
 
 import gamegalaxy.games.arimaa.data.GameConstants;
+import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.tools.ResourceLoader;
 import gamegalaxy.tools.ShadowedLabel;
 
@@ -18,6 +19,7 @@ import javax.swing.SwingUtilities;
 /**
  * 
  */
+@SuppressWarnings("serial")
 public class StatusPanel extends JPanel
 {
 	private Image	backgroundImage;
@@ -35,7 +37,7 @@ public class StatusPanel extends JPanel
 	 * @param loader
 	 */
 	@SuppressWarnings("serial")
-	public StatusPanel(final ArimaaUI gui, ResourceLoader loader)
+	public StatusPanel(final ArimaaEngine engine, ResourceLoader loader)
 	{
 		//Set the layout to none.
 		setLayout(null);
@@ -51,7 +53,7 @@ public class StatusPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				gui.endTurn();
+				engine.endTurn();
 			}
 		});
 		endTurnButton.setLocation(148, 17);
