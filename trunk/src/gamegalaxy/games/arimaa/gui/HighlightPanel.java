@@ -1,5 +1,29 @@
+/* 
+ *  LEGAL STUFF
+ * 
+ *  This file is part of gamegalaxy.
+ *  
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
+ *  
+ *  Arimaa and other content here copyright their respective copyright holders.
+ *  
+ *  gamegalaxy is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *   
+ *  gamegalaxy is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.tools.ResourceLoader;
 
@@ -28,7 +52,7 @@ public class HighlightPanel extends JPanel
 	private Image highlightImage;
 
 	//BoardPosition where the highlightPanel is located.
-	private PiecePosition boardPosition;
+	private BoardPosition boardPosition;
 
 	
 	public HighlightPanel(ResourceLoader loader)
@@ -37,7 +61,7 @@ public class HighlightPanel extends JPanel
 		this.loader = loader;
 		
 		//Store the information about this highlighter.
-		this.boardPosition = new PiecePosition(0, 0);
+		this.boardPosition = new BoardPosition(0, 0);
 	}
 	
 	/**
@@ -67,7 +91,7 @@ public class HighlightPanel extends JPanel
 	 *
 	 * @param position	BoardPosition(col,row) we're moving the highlighter to.
 	 */	
-	public void setBoardPosition(PiecePosition position)
+	public void setBoardPosition(BoardPosition position)
 	{
 		this.boardPosition = position;
 	}

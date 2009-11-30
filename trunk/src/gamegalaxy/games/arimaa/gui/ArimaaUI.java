@@ -1,6 +1,30 @@
+/* 
+ *  LEGAL STUFF
+ * 
+ *  This file is part of gamegalaxy.
+ *  
+ *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  
+ *  Arimaa and other content here copyright their respective copyright holders.
+ *  
+ *  gamegalaxy is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *   
+ *  gamegalaxy is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package gamegalaxy.games.arimaa.gui;
 
 import gamegalaxy.games.arimaa.data.BoardData;
+import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.BucketPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
@@ -199,7 +223,7 @@ public class ArimaaUI extends JPanel
 			//Determine what square we're over:
 			int relativeDragX = dragLocation.x - boardPanel.getX();
 			int relativeDragY = dragLocation.y - boardPanel.getY();
-			PiecePosition dragOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
+			BoardPosition dragOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
 			
 			//Determine where we're moving over.
 			PiecePosition originalLocation = getPiecePositionAt(piecePanel.getOriginalLocation());
@@ -286,11 +310,11 @@ public class ArimaaUI extends JPanel
 		}
 		else if(dropPanel == goldBucketPanel)
 		{
-			return PiecePosition.GOLD_BUCKET;
+			return new BucketPosition(GameConstants.GOLD);
 		}
 		else if(dropPanel == silverBucketPanel)
 		{
-			return PiecePosition.SILVER_BUCKET;
+			return new BucketPosition(GameConstants.SILVER);
 		}
 		return null;
 	}
@@ -309,7 +333,7 @@ public class ArimaaUI extends JPanel
 	{
 		PiecePanel targetPiece = null;
 		
-		if (position.isOnBoard())
+		if (position instanceof BoardPosition)
 		{
 			//we'll use an Iterator to scan the piecePanels for the one we want.
 			Iterator<PiecePanel> iterator = piecePanels.iterator();
@@ -426,7 +450,7 @@ public class ArimaaUI extends JPanel
 			for(int col = 0; col < 8; col++)
 			{
 				//Get the current position
-				PiecePosition position = new PiecePosition(col, row);
+				BoardPosition position = new BoardPosition(col, row);
 
 				if(boardData.isOccupied(position))
 				{

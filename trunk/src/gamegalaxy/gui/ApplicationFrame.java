@@ -3,7 +3,7 @@
  * 
  *  This file is part of gamegalaxy.
  *  
- *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
  *  
  *  Arimaa and other content here copyright their respective copyright holders.
  *  
@@ -19,6 +19,7 @@
  *   
  *  You should have received a copy of the GNU General Public License
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ *  
  */
 
 package gamegalaxy.gui;

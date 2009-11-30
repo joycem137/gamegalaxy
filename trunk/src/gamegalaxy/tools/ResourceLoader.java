@@ -3,7 +3,7 @@
  * 
  *  This file is part of gamegalaxy.
  *  
- *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
  *  
  *  Arimaa and other content here copyright their respective copyright holders.
  *  
@@ -19,6 +19,7 @@
  *   
  *  You should have received a copy of the GNU General Public License
  *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ *  
  */
 
 package gamegalaxy.tools;
@@ -36,18 +37,33 @@ import java.util.Properties;
 import javax.imageio.ImageIO;
 
 /**
- * 
+ * The resource loader will look into the .properties file for the appropriate application
+ * and loads all of the graphics related to it.  Those graphics are then stored in
+ * this file for later access.
+ * <P>
+ * This allows us to load all of the graphics at start up and have a single copy of each
+ * game.
  */
 public class ResourceLoader
 {
 	private static final String RESOURCE_DIRECTORY = "resources";
 	private Map<String, Image> map;
 	
+	/**
+	 * Construct the resource loader with a blank image map.
+	 *
+	 */
 	public ResourceLoader()
 	{
 		map = new HashMap<String, Image>();
 	}
 	
+	/**
+	 * 
+	 * Load all of the resources associated with the indicated application name.
+	 *
+	 * @param applicationName
+	 */
 	public void loadResources(String applicationName)
 	{
 		//Load the properties file for this application
@@ -75,18 +91,22 @@ public class ResourceLoader
 			System.exit(-1);
 		}
 		
+		//Now run through the various image files and laod them.
 		Iterator iterator = resources.keySet().iterator();
 		
 		while(iterator.hasNext())
 		{	
+			//Get the image name and filename for each item, then load it and store it.
 			String name = (String)iterator.next();
 			String filename = resources.getProperty(name);
 			
 			String path = RESOURCE_DIRECTORY + File.separator + applicationName + File.separator + filename;
 			File imageFile = new File(path);
 			
+			//Determine if the image file actuall exists.
 			if(imageFile.exists())
 			{
+				//Read the file in.
 				try
 				{
 					Image image = ImageIO.read(imageFile);
@@ -114,6 +134,13 @@ public class ResourceLoader
 		}
 	}
 	
+	/**
+	 * 
+	 * Returns the image object associated with the indicated image name.
+	 *
+	 * @param name
+	 * @return
+	 */
 	public Image getResource(String name)
 	{
 		if(map.containsKey(name))
