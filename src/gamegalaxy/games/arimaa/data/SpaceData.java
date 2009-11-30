@@ -23,7 +23,9 @@
 package gamegalaxy.games.arimaa.data;
 
 /**
- * 
+ * This class is used to store all the information about a particular space.
+ * It currently stores whether a particular space is normal or a trap, and
+ * what piece is at this location, if any.
  */
 public class SpaceData
 {
@@ -34,9 +36,9 @@ public class SpaceData
 	private PieceData piece;
 	
 	/**
-	 * TODO: Describe constructor
+	 * Creates a new space of the indicated type.
 	 *
-	 * @param trap2
+	 * @param spaceType
 	 */
 	public SpaceData(int spaceType)
 	{
@@ -44,7 +46,7 @@ public class SpaceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return true if the space is currently occupied.
 	 *
 	 * @return
 	 */
@@ -54,7 +56,7 @@ public class SpaceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Assign the piece to this space.
 	 *
 	 * @param data
 	 */
@@ -64,7 +66,7 @@ public class SpaceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Remove the current piece from the board.
 	 *
 	 */
 	public void removePiece()
@@ -73,7 +75,7 @@ public class SpaceData
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Returns the PieceData object representing the piece at this location.
 	 *
 	 * @return
 	 */

@@ -1,3 +1,26 @@
+/* 
+ *  LEGAL STUFF
+ * 
+ *  This file is part of gamegalaxy.
+ *  
+ *  gamegalaxy is Copyright 2009 Joyce Murton and Andrea Kilpatrick
+ *  
+ *  Arimaa and other content here copyright their respective copyright holders.
+ *  
+ *  gamegalaxy is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *   
+ *  gamegalaxy is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with gamegalaxy.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package gamegalaxy.games.arimaa.gui;
 
 import gamegalaxy.games.arimaa.data.GameConstants;
@@ -5,7 +28,6 @@ import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -164,7 +186,7 @@ public class PiecePanel extends JPanel
 	}
 	
 	/**
-	 * TODO: Describe method
+	 * Draw the chit image.
 	 *
 	 * @param loader
 	 */
@@ -239,7 +261,7 @@ public class PiecePanel extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return the {@link PieceData} object attached to this piece.
 	 *
 	 * @return
 	 */
@@ -248,14 +270,19 @@ public class PiecePanel extends JPanel
 		return data;
 	}
 	
+	/**
+	 * 
+	 * Reset the position of this piece to its initial dragging location.
+	 *
+	 */
 	public void resetPosition()
 	{
 		setLocation(dragXStart, dragYStart);
 	}
 
 	/**
-	 * TODO: Describe method
-	 *
+	 * Return the original X from which this panel started dragging.
+	 * 
 	 * @return
 	 */
 	public int getOriginalX()
@@ -264,7 +291,7 @@ public class PiecePanel extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return the original Y from which this panel started dragging.
 	 *
 	 * @return
 	 */
@@ -274,7 +301,7 @@ public class PiecePanel extends JPanel
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Get the original location of this panel as a point.
 	 *
 	 * @return
 	 */

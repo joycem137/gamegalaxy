@@ -70,16 +70,9 @@ public class BoardData
 	 * @param space
 	 * @return
 	 */
-	public boolean isOccupied(PiecePosition space)
+	public boolean isOccupied(BoardPosition space)
 	{
-		if(space.isOnBoard()) 
-		{
-			return spaces[space.getCol()][space.getRow()].isOccupied();
-		}
-		else 
-		{
-			return false;
-		}
+		return spaces[space.getCol()][space.getRow()].isOccupied();
 	}
 
 	/**
@@ -88,13 +81,10 @@ public class BoardData
 	 * @param piece
 	 * @param space
 	 */
-	public void placePiece(PieceData piece, PiecePosition space)
+	public void placePiece(PieceData piece, BoardPosition space)
 	{
-		if(space.isOnBoard())
-		{
-			piece.setPosition(space);
-			spaces[space.getCol()][space.getRow()].placePiece(piece);
-		}
+		piece.setPosition(space);
+		spaces[space.getCol()][space.getRow()].placePiece(piece);
 	}
 
 	/**
@@ -103,15 +93,12 @@ public class BoardData
 	 * @param data
 	 * @param space
 	 */
-	public void removePiece(PiecePosition space)
+	public void removePiece(BoardPosition space)
 	{
-		if(space.isOnBoard())
-		{
-			//Get the piece data.
-			SpaceData spaceData = spaces[space.getCol()][space.getRow()];
-			spaceData.getPiece().setPosition(null);
-			spaceData.removePiece();
-		}
+		//Get the piece data.
+		SpaceData spaceData = spaces[space.getCol()][space.getRow()];
+		spaceData.getPiece().setPosition(null);
+		spaceData.removePiece();
 	}
 
 	/**
@@ -121,16 +108,9 @@ public class BoardData
 	 * @param space
 	 * @return
 	 */
-	public PieceData getPieceAt(PiecePosition space)
+	public PieceData getPieceAt(BoardPosition space)
 	{
-		if(space.isOnBoard())
-		{
-			return spaces[space.getCol()][space.getRow()].getPiece();
-		}
-		else
-		{
-			return null;
-		}
+		return spaces[space.getCol()][space.getRow()].getPiece();
 	}
 
 	/**
@@ -138,13 +118,13 @@ public class BoardData
 	 *
 	 * @return
 	 */
-	public static List<PiecePosition> getTrapPosition()
+	public static List<BoardPosition> getTrapPosition()
 	{
-		List<PiecePosition> traps = new Vector<PiecePosition>(4);
-		traps.add(new PiecePosition(2, 5));
-		traps.add(new PiecePosition(2, 2));
-		traps.add(new PiecePosition(5, 2));
-		traps.add(new PiecePosition(5, 5));
+		List<BoardPosition> traps = new Vector<BoardPosition>(4);
+		traps.add(new BoardPosition(2, 5));
+		traps.add(new BoardPosition(2, 2));
+		traps.add(new BoardPosition(5, 2));
+		traps.add(new BoardPosition(5, 5));
 		return traps;
 	}
 
@@ -158,13 +138,19 @@ public class BoardData
 	{
 		List<PieceData> adjacentPieces = new Vector<PieceData>();
 		
+		//Verify that the piece is on the board.
+		assert piece.getPosition() instanceof BoardPosition;
+		
+		//Recast to a board position
+		BoardPosition position = (BoardPosition)piece.getPosition();
+		
 		//Look at all of the adjacent spaces.
-		List<PiecePosition> adjacentPositions = piece.getPosition().getAdjacentSpaces();
-		Iterator<PiecePosition> iterator = adjacentPositions.iterator();
+		List<BoardPosition> adjacentPositions = position.getAdjacentSpaces();
+		Iterator<BoardPosition> iterator = adjacentPositions.iterator();
 		while(iterator.hasNext())
 		{
 			//Check to see if the space is occupied.
-			PiecePosition positionToTest = iterator.next();
+			BoardPosition positionToTest = iterator.next();
 			if(isOccupied(positionToTest))
 			{
 				adjacentPieces.add(getPieceAt(positionToTest));
@@ -219,8 +205,14 @@ public class BoardData
 	 */
 	public boolean pieceHasSpaceToMoveInto(PieceData piece)
 	{
-		List<PiecePosition> adjacentPositions = piece.getPosition().getAdjacentSpaces();
-		Iterator<PiecePosition> iterator = adjacentPositions.iterator();
+		//Assert that the piece is on the board.
+		assert piece.getPosition() instanceof BoardPosition;
+		
+		//Convert the board position.
+		BoardPosition position = (BoardPosition)piece.getPosition();
+		
+		List<BoardPosition> adjacentPositions = position.getAdjacentSpaces();
+		Iterator<BoardPosition> iterator = adjacentPositions.iterator();
 		while(iterator.hasNext())
 		{
 			//If we find an unoccupied space, we're good!
@@ -278,7 +270,7 @@ public class BoardData
 			for(int row = 0; row < 8; row++)
 			{
 				//Construct the piece position
-				PiecePosition position = new PiecePosition(col, row);
+				BoardPosition position = new BoardPosition(col, row);
 				
 				if(isOccupied(position))
 				{
