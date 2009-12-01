@@ -72,9 +72,11 @@ public class ArimaaEngine
 	//Store the position that a piece was recently *pushed* out of.
 	private BoardPosition	pushPosition;
 	
-	//Store information about the most recently moved piece, for use in a pull action, if applicable.
+	//If the last action might support a pull, store the position moved from.
 	private BoardPosition	pullPosition;
-	private PieceData		pullPiece;
+	
+	//Store the last piece moved for use in both push and pull actions.
+	private PieceData		lastPieceMoved;
 
 	/**
 	 * Create the game engine.
@@ -85,7 +87,7 @@ public class ArimaaEngine
 		// Start with no forced push/pull scenario.
 		pushPosition = null;
 		pullPosition = null;
-		pullPiece = null;
+		lastPieceMoved = null;
 
 		// Start in the setup phase.
 		phase = GameConstants.SETUP_PHASE;
@@ -216,7 +218,7 @@ public class ArimaaEngine
 			if (!board.pieceHasSpaceToMoveInto(piece)) return false;
 
 			// Check the color of this piece
-			if (piece.getColor() != playerTurn)
+			if (piece.getColor() != playerTurn) //The piece is the opposite player's
 			{
 				// If we have a forced move, you can't do this.
 				if (pushPosition != null) return false;
@@ -226,7 +228,7 @@ public class ArimaaEngine
 				BoardPosition position = (BoardPosition)piece.getPosition();
 				if (pullPosition != null
 						&& position.distanceFrom(pullPosition) == 1
-						&& piece.getValue() < pullPiece.getValue()) return true;
+						&& piece.getValue() < lastPieceMoved.getValue()) return true;
 
 				// The piece can only be pushed if there are at least two moves
 				// left.
@@ -243,7 +245,10 @@ public class ArimaaEngine
 				// spot.
 				if (pushPosition != null)
 				{
-					// This piece can move into that space.
+					//Pieces can only push pieces of lower value.
+					if(piece.getValue() <= lastPieceMoved.getValue()) return false;
+					
+					//Verify that this piece can actually push this particular piece.
 					BoardPosition position = (BoardPosition)piece.getPosition();
 					return position.distanceFrom(pushPosition) == 1;
 				}
@@ -390,7 +395,7 @@ public class ArimaaEngine
 				// If we're moving the piece into the pull space, and we are a
 				// valid piece for doing so, we're good.
 				if (pullPosition != null
-						&& piece.getValue() < pullPiece.getValue()
+						&& piece.getValue() < lastPieceMoved.getValue()
 						&& newPosition.equals(pullPosition)) return true;
 
 				// If we're pushing more than one space, this is invalid.
@@ -501,7 +506,6 @@ public class ArimaaEngine
 						{
 							// This cannot be a push or a pull.
 							pullPosition = null;
-							pullPiece = null;
 							pushPosition = null;
 						}
 						else
@@ -518,7 +522,6 @@ public class ArimaaEngine
 							// The last move was *not* a push position. You can
 							// record the piece movement.
 							pullPosition = originalPosition;
-							pullPiece = piece;
 						}
 						else
 						{
@@ -527,6 +530,7 @@ public class ArimaaEngine
 						}
 					}
 				}
+				lastPieceMoved = piece;
 			}
 			else
 			{
@@ -662,7 +666,7 @@ public class ArimaaEngine
 
 		// Reset the pulled pieces.
 		pullPosition = null;
-		pullPiece = null;
+		lastPieceMoved = null;
 
 		// Switch the turn.
 		playerTurn = (playerTurn + 1) % 2;
@@ -859,7 +863,7 @@ public class ArimaaEngine
 	private GameState getCurrentGameState()
 	{
 		return new GameState(goldBucket, silverBucket, board, playerTurn,
-				numMoves, phase, winner, pushPosition, pullPosition, pullPiece);
+				numMoves, phase, winner, pushPosition, pullPosition, lastPieceMoved);
 	}
 
 	/**
