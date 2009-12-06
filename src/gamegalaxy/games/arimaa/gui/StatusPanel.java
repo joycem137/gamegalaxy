@@ -79,7 +79,6 @@ public class StatusPanel extends JPanel
 				engine.endTurn();
 			}
 		});
-		endTurnButton.setLocation(148, 17);
 		endTurnButton.setSize(164, 33);
 		add(endTurnButton);
 		
@@ -106,6 +105,10 @@ public class StatusPanel extends JPanel
 	public void setSize(int width, int height)
 	{
 		super.setSize(width, height);
+		
+		int centerX = (getWidth() - endTurnButton.getWidth()) / 2;
+		endTurnButton.setLocation(centerX, 17);
+		
 		turnLabel.setSize(width, height);
 	}
 	
@@ -146,7 +149,7 @@ public class StatusPanel extends JPanel
 		}
 		else
 		{
-			g.drawImage(silverIndicator, 407, 10, this);
+			g.drawImage(silverIndicator, getWidth() - silverIndicator.getWidth(this) - 7, 10, this);
 		}
 	}
 
