@@ -99,7 +99,7 @@ public class ArimaaUI extends JPanel
 		
 		createChildrenPanels();
 		
-		setPreferredSize(new Dimension(1024, 768));
+		setPreferredSize(new Dimension(891, 640));
 		
 		//Link the engine and GUI.
 		engine.linkGUI(this);
@@ -117,16 +117,16 @@ public class ArimaaUI extends JPanel
 		//Create other components
 		boardPanel = new BoardPanel(loader);
 		add(boardPanel);
-		boardPanel.setLocation(248, 120);
+		boardPanel.setLocation(182, 15);
 		
 		//Create buckets
 		goldBucketPanel = new BucketPanel(loader);
 		add(goldBucketPanel);
-		goldBucketPanel.setLocation(48, 132);
+		goldBucketPanel.setLocation(15, 27);
 		
 		silverBucketPanel = new BucketPanel(loader);
 		add(silverBucketPanel);
-		silverBucketPanel.setLocation(822, 132);
+		silverBucketPanel.setLocation(724, 27);
 		
 		//Create the "random setup" buttons.
 		goldRandomSetupButton = new JButton(new AbstractAction("Place randomly")
@@ -158,7 +158,7 @@ public class ArimaaUI extends JPanel
 		//Create the status panel
 		statusPanel = new StatusPanel(engine, loader);
 		add(statusPanel);
-		statusPanel.setLocation(282, 659);
+		statusPanel.setLocation(182, 558);
 	}
 
 	/**
@@ -237,7 +237,7 @@ public class ArimaaUI extends JPanel
 				Point coords = boardPanel.identifyCoordinates(dragOverPosition);
 				
 				//place our highlighter over this square:
-				highlight.setLocation(coords.x + 248, coords.y + 120);
+				highlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
 			}
 			else
 			{
