@@ -198,4 +198,21 @@ public final class GameState
 		return board;
 	}
 
+	/**
+	 * Return the number of moves remaining in this turn.
+	 * 
+	 * @return
+	 */
+	public int getRemainingMoves()
+	{
+		if(phase == GameConstants.GAME_ON)
+		{
+			return 4 - numMoves;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
 }

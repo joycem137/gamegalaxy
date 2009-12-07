@@ -70,11 +70,13 @@ public class ArimaaUI extends JPanel
 	private BucketPanel		goldBucketPanel;
 	private BucketPanel		silverBucketPanel;
 	private StatusPanel		statusPanel;
+	private RemainingMovesPanel	remainingMovesPanel;
 	
 	private HighlightPanel		highlight;
 	
 	//Store the resource loader
 	private ResourceLoader	loader;
+
 	
 	/**
 	 * 
@@ -114,10 +116,19 @@ public class ArimaaUI extends JPanel
 		highlight = new HighlightPanel(loader);
 		add(highlight);
 		
+		//Create the panel for displaying the remaining number of moves.
+		remainingMovesPanel = new RemainingMovesPanel(loader);
+		add(remainingMovesPanel);
+		
 		//Create other components
 		boardPanel = new BoardPanel(loader);
 		add(boardPanel);
 		boardPanel.setLocation(182, 15);
+
+		//Set the location of the "remaining moves" panel
+		remainingMovesPanel.setLocation(boardPanel.getX() + 
+				(boardPanel.getWidth() - remainingMovesPanel.getWidth()) / 2, 
+				boardPanel.getY() + boardPanel.getHeight() - 20);
 		
 		//Create buckets
 		goldBucketPanel = new BucketPanel(loader);
@@ -405,6 +416,9 @@ public class ArimaaUI extends JPanel
 		//Display the turn state.
 		statusPanel.setTurnState(gameState.getCurrentPlayer());
 		statusPanel.showEndTurnButton(gameState.canPlayerEndTurn());
+		
+		//Show the number of turns remaining
+		remainingMovesPanel.setMoves(gameState.getRemainingMoves());
 		
 		//Determine whether to show the setup button or not.
 		goldRandomSetupButton.setVisible(gameState.isSetupPhase() && 
