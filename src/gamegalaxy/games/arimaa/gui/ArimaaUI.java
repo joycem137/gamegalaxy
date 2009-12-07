@@ -39,6 +39,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -46,6 +47,7 @@ import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.event.MouseInputAdapter;
 
 /**
  * The main UI for the Arimaa game implementation within the galaxy of games.
@@ -77,6 +79,10 @@ public class ArimaaUI extends JPanel
 	//Store the resource loader
 	private ResourceLoader	loader;
 
+	//Store information about the piece in hand.
+	protected PiecePanel	pieceInHand;
+	protected Point	pieceInHandOriginalLocation;
+
 	
 	/**
 	 * 
@@ -101,10 +107,238 @@ public class ArimaaUI extends JPanel
 		
 		createChildrenPanels();
 		
+		addMouseListeners();
+		
 		setPreferredSize(new Dimension(891, 640));
 		
 		//Link the engine and GUI.
 		engine.linkGUI(this);
+	}
+
+	/**
+	 * Global level mouse behavior to capture all mouse behaviors for this interface. To ensure correct behavior,
+	 * all children components should not capture any mouse events.
+	 *
+	 */
+	private void addMouseListeners()
+	{
+		//Create the mouse listener to listen for mouse events.
+		MouseInputAdapter ma = new MouseInputAdapter()
+		{	
+			//Used for determining if the mouse moved or not.
+			private boolean mouseDragged;
+
+			public void mousePressed(MouseEvent me)
+			{	
+				//for now, do nothing unless the mouse press was a left-click.
+				if (me.getButton() != MouseEvent.BUTTON1)
+				{
+					return;
+				}
+				
+				if(pieceInHand != null)
+				{
+					//We already have a piece in hand.  Drop it.
+					Point mousePosition = new Point(me.getX(), me.getY());
+					dropPieceInHand(mousePosition);
+				}
+				else
+				{
+					//We don't have a piece in hand.  See if there's one under the mouse to pick up:
+					
+					/*
+					 * NOTE: There is a dependency here.  If the PiecePanel is not the topmost Component object
+					 * at this location, this method will not return the PiecePanel even if the mouse is right
+					 * over it.  Be sure to refactor this later if necessary. 
+					 */
+					Component component = getComponentAt(me.getX(), me.getY());
+					
+					if(component instanceof PiecePanel)
+					{
+						//We have a piece panel!  Recast the variable.
+						PiecePanel piecePanel = (PiecePanel)component;
+					
+						if(engine.canPieceBeMoved(piecePanel.getData()))
+						{
+							//Reset the "mouse moved" variable
+							mouseDragged = false;
+
+							Point mousePosition = new Point(me.getX(), me.getY());
+							pickUpPiece(piecePanel, mousePosition);
+						}
+					}
+				}
+			}
+
+			public void mouseReleased(MouseEvent me)
+			{
+				//for now, do nothing unless the mouse press was a left-click.
+				if (me.getButton() != MouseEvent.BUTTON1)
+				{
+					return;
+				}
+
+				if(pieceInHand != null && mouseDragged)
+				{
+					//Drop the piece, if appropriate.
+					Point mousePosition = new Point(me.getX(), me.getY());
+					dropPieceInHand(mousePosition);
+				}
+				
+			}
+			
+			public void mouseMoved(MouseEvent me)
+			{
+				if(pieceInHand != null)
+				{
+					//Move the piece so that it is centered on the mouse.
+					Point mousePosition = new Point(me.getX(), me.getY());
+					movePieceInHand(mousePosition);
+				}
+			}
+			
+			public void mouseDragged(MouseEvent me)
+			{
+				mouseDragged = true;
+				if(pieceInHand != null)
+				{
+					//Move the piece so that it is centered on the mouse.
+					Point mousePosition = new Point(me.getX(), me.getY());
+					movePieceInHand(mousePosition);
+				}
+			}
+		};
+		
+		//Now add the mouse listeners
+		addMouseListener(ma);
+		addMouseMotionListener(ma);
+	}
+
+	private void pickUpPiece(PiecePanel piecePanel, Point mousePosition)
+	{
+		//Pick up the piece.
+		pieceInHand = piecePanel;
+		
+		//ensure that the dragged piece is topmost and visible.
+		setComponentZOrder(piecePanel, 0);
+		
+		//Identify the original location of the piece.
+		pieceInHandOriginalLocation = piecePanel.getLocation();
+		
+		//Move the piece so that it is centered on the mouse.
+		movePieceInHand(mousePosition);
+	}
+	
+	/**
+	 * 
+	 * Reposition the piece to be in the indicated location.  Also notify the UI about the position of the piece for
+	 * highlighting purposes.
+	 *
+	 * @param mouseInFrame
+	 */
+	private void movePieceInHand(Point mousePosition)
+	{
+		//Move the piece itself to the center of the mouse position.
+		pieceInHand.setLocation(mousePosition.x - pieceInHand.getWidth() / 2, mousePosition.y - pieceInHand.getHeight() / 2);
+
+		//Find out where we're coming from
+		PieceHolder mouseOverPanel = getHolderAt(mousePosition.x, mousePosition.y); 	
+
+		if(mouseOverPanel == boardPanel)
+		{
+			//Determine what square we're over:
+			int relativeDragX = mousePosition.x - boardPanel.getX();
+			int relativeDragY = mousePosition.y - boardPanel.getY();
+			BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
+			
+			//Determine where we're moving from.
+			PiecePosition originalLocation = getPiecePositionAt(pieceInHandOriginalLocation);
+			
+			//Set the highlight, if appropriate
+			if(engine.isValidMove(pieceInHand.getData(), originalLocation, mouseOverPosition) || 
+					engine.isValidSwap(pieceInHand.getData(), originalLocation, mouseOverPosition))
+			{
+				highlightSpace(mouseOverPosition);
+			}
+			else
+			{
+				clearHighlight();
+			}
+		}
+		else
+		{
+			clearHighlight();
+		}
+	}
+
+	/**
+	 * Highlight the indicated board position
+	 *
+	 * @param mouseOverPosition
+	 */
+	private void highlightSpace(BoardPosition mouseOverPosition)
+	{
+		//Set the color of the highlight.
+		highlight.setColor(HighlightPanel.BLUE);
+		
+		//get coords of upper-left corner of this square:
+		Point coords = boardPanel.identifyCoordinates(mouseOverPosition);
+		
+		//place our highlighter over this square:
+		highlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
+	}
+
+	/**
+	 * Clear the highlight by turning it off and moving it off the screen.
+	 *
+	 */
+	private void clearHighlight()
+	{
+		highlight.setLocation(0, 0);
+		highlight.setColor(HighlightPanel.OFF);
+	}
+
+	/**
+	 * 
+	 * Drop the piece whereever it has found itself.
+	 *
+	 */
+	private void dropPieceInHand(Point dropLocation)
+	{
+		//Remove the piece in hand
+		PiecePanel pieceToDrop = pieceInHand;
+		pieceInHand = null;
+		
+		//allow other dragged pieces to display over this one.
+		setComponentZOrder(pieceToDrop, 1);	
+		
+		//Turn off highlighting.
+		clearHighlight();
+		
+		//Determine where we're going to drop the piece.
+		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
+		
+		//Determine where we're coming from.
+		PiecePosition originalPosition = getPiecePositionAt(pieceInHandOriginalLocation);
+		
+		//Now see if it makes sense to move this piece.
+		if(engine.isValidMove(pieceToDrop.getData(), originalPosition, dropPosition))
+		{	
+			//Now update the engine.
+			engine.movePiece(pieceToDrop.getData(), originalPosition, dropPosition);
+		}
+		else if(engine.isValidSwap(pieceToDrop.getData(), originalPosition, dropPosition))
+		{
+			//need to identify and grab the piecePanel at dropPosition.
+			PiecePanel targetPanel = getPieceAt(dropPosition);
+	
+			//Update the engine.
+			engine.swapPieces(pieceToDrop.getData(), targetPanel.getData(), originalPosition, dropPosition);
+		}
+		else
+		{
+			pieceToDrop.setLocation(pieceInHandOriginalLocation);
+		}	
 	}
 
 	/**
@@ -208,98 +442,6 @@ public class ArimaaUI extends JPanel
 	
 		//We couldn't find anything.
 		return null;
-	}
-	
-	public boolean canPickUpPiece(PiecePanel piecePanel)
-	{
-		return engine.canPieceBeMoved(piecePanel.getData());
-	}
-
-	/**
-	 * Notifies the gui as pieces are being dragged, so that it can respond
-	 * with real-time board highlighting.
-	 *
-	 * @param piecePanel 	The piece that is currently being dragged.
-	 * @param holder 		The holder where this piece originated from.
-	 * @param dragLocation  The (x,y) coordinates of the piece center.
-	 */
-	public void draggedPiece(PiecePanel piecePanel, PieceHolder holder,
-			Point dragLocation)
-	{
-		//Find out where we're coming from
-		PieceHolder dragOverPanel = getHolderAt(dragLocation.x, dragLocation.y); 	
-
-		if(dragOverPanel == boardPanel)
-		{
-			//Determine what square we're over:
-			int relativeDragX = dragLocation.x - boardPanel.getX();
-			int relativeDragY = dragLocation.y - boardPanel.getY();
-			BoardPosition dragOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
-			
-			//Determine where we're moving over.
-			PiecePosition originalLocation = getPiecePositionAt(piecePanel.getOriginalLocation());
-			
-			//Set the highlight.
-			if(engine.isValidMove(piecePanel.getData(), originalLocation, dragOverPosition) || engine.isValidSwap(piecePanel.getData(), originalLocation, dragOverPosition))
-			{
-				highlight.setColor(HighlightPanel.BLUE);
-				
-				//get coords of upper-left corner of this square:
-				Point coords = boardPanel.identifyCoordinates(dragOverPosition);
-				
-				//place our highlighter over this square:
-				highlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
-			}
-			else
-			{
-				highlight.setColor(HighlightPanel.OFF);
-			}
-		}
-		else
-		{
-			highlight.setColor(HighlightPanel.OFF);
-		}
-	}
-	
-	/**
-	 * Notifies the gui as a dragged piece is dropped.  The gui will check with
-	 * the game engine to see if this is a valid piece placement, and updates the
-	 * piece location if so.
-	 *
-	 * @param piecePanel 	The piece that is being dropped.
-	 * @param holder		The holder where this piece originated from.
-	 * @param dropLocation	The (x,y) coordinates of the piece center.
-	 */
-	public void droppedPiece(PiecePanel piecePanel, PieceHolder holder,
-			Point dropLocation)
-	{
-		//Turn off highlighting.
-		highlight.setColor(HighlightPanel.OFF);
-		
-		//Determine where we're going to
-		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
-		
-		//Determine where we're coming from.
-		PiecePosition originalPosition = getPiecePositionAt(piecePanel.getOriginalLocation());
-		
-		//Now see if it makes sense to move this piece.
-		if(engine.isValidMove(piecePanel.getData(), originalPosition, dropPosition))
-		{	
-			//Now update the engine.
-			engine.movePiece(piecePanel.getData(), originalPosition, dropPosition);
-		}
-		else if(engine.isValidSwap(piecePanel.getData(), originalPosition, dropPosition))
-		{
-			//need to identify and grab the piecePanel at dropPosition.
-			PiecePanel targetPanel = getPieceAt(dropPosition);
-	
-			//Update the engine.
-			engine.swapPieces(piecePanel.getData(), targetPanel.getData(), originalPosition, dropPosition);
-		}
-		else
-		{
-			piecePanel.resetPosition();
-		}
 	}
 
 	/**
