@@ -29,13 +29,9 @@ import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.MouseInputAdapter;
 
 /**
  * Contains all of the information and code necessary for displaying a single playing piece
@@ -44,6 +40,9 @@ import javax.swing.event.MouseInputAdapter;
 @SuppressWarnings("serial")
 public class PiecePanel extends JPanel
 {
+	//Store a link to the UI.
+	private ArimaaUI	gui;
+	
 	//Store the image affiliated with this particular piece.
 	private Image pieceImage;
 	private Image chitImage;
@@ -53,112 +52,11 @@ public class PiecePanel extends JPanel
 
 	private PieceData	data;
 	
-	//Stores the position that we started dragging from, in case we don't land anywhere.
-	private Point	movementStart;
-	
 	public PiecePanel(final ArimaaUI gui, PieceData data, ResourceLoader loader)
 	{
 		//Store the information about this piece.
 		this.data = data;
-		
-		//Create the mouse listener to listen for mouse events.
-		MouseInputAdapter ma = new MouseInputAdapter()
-		{	
-			//Indicates whether we should respond to dragging events or not.
-			private boolean	pieceIsHeld;
-
-			public void mousePressed(MouseEvent me)
-			{	
-				//check which mouse button was pressed.
-				int buttonPressed = me.getButton();
-
-				//for now, do nothing unless the mouse press was a left-click.
-				if (buttonPressed != MouseEvent.BUTTON1)
-				{
-					return;
-				}
-				
-				//Validate that we can drag this piece.
-				PiecePanel piecePanel = (PiecePanel)me.getSource();
-				if(gui.canPickUpPiece(piecePanel))
-				{
-					pieceIsHeld = true;
-					
-					//ensure that the dragged piece is topmost and visible.
-					gui.setComponentZOrder(piecePanel, 0);
-					
-					//Identify the original location of the piece.
-					movementStart = getLocation();
-					
-					//Move the piece so that it is centered on the mouse.
-					Point mouseInFrame = new Point(me.getX() + getX(), me.getY() + getY());
-					setLocation(mouseInFrame.x - getWidth() / 2, mouseInFrame.y - getHeight() / 2);
-					
-					//notify the gui where the mouse is so that it can respond with highlighting, etc.
-					Point dragLocation = new Point(mouseInFrame.x, mouseInFrame.y);
-					gui.draggedPiece(piecePanel, holder, dragLocation);
-				}
-				else
-				{
-					pieceIsHeld = false;
-				}
-			}
-			
-			public void mouseReleased(MouseEvent me)
-			{
-				//check which mouse button was pressed.
-				int buttonReleased = me.getButton();
-
-				//for now, do nothing unless the mouse press was a left-click.
-				if (buttonReleased != MouseEvent.BUTTON1)
-				{
-					return;
-				}
-
-				if(pieceIsHeld)
-				{
-					PiecePanel piecePanel = (PiecePanel)me.getSource();
-					
-					//allow other dragged pieces to display over this one.
-					gui.setComponentZOrder(piecePanel, 1);		
-					
-					/*
-					 * Determine where we're dragging to, if anywhere.
-					 * Note that we are using the center point to determine this.
-					 * It makes it drag and drop work more nicely.
-					 */
-					Point dropLocation = new Point(getX() + getWidth() / 2, getY() + getHeight() / 2);
-					gui.droppedPiece(piecePanel, holder, dropLocation);
-				}
-				
-				//Reset the dragging flag.
-				pieceIsHeld = false;
-			}
-			
-			public void mouseMoved(MouseEvent me)
-			{
-			}
-			
-			public void mouseDragged(MouseEvent me)
-			{
-				if(pieceIsHeld)
-				{
-					PiecePanel piecePanel = (PiecePanel)me.getSource();
-					
-					//Move the piece so that it is centered on the mouse.
-					Point mouseInFrame = new Point(me.getX() + getX(), me.getY() + getY());
-					setLocation(mouseInFrame.x - getWidth() / 2, mouseInFrame.y - getHeight() / 2);
-					
-					//notify the gui where the mouse is so that it can respond with highlighting, etc.
-					Point dragLocation = new Point(mouseInFrame.x, mouseInFrame.y);
-					gui.draggedPiece(piecePanel, holder, dragLocation);
-				}
-			}
-		};
-		
-		//Actually add the mouse listener to the panel.
-		addMouseListener(ma);
-		addMouseMotionListener(ma);
+		this.gui = gui;
 		
 		//Load the image related to this piece.
 		String pieceName = data.getColorString() + data.getNameString();
@@ -253,45 +151,5 @@ public class PiecePanel extends JPanel
 	public PieceData getData()
 	{
 		return data;
-	}
-	
-	/**
-	 * 
-	 * Reset the position of this piece to its initial dragging location.
-	 *
-	 */
-	public void resetPosition()
-	{
-		setLocation(movementStart);
-	}
-
-	/**
-	 * Return the original X from which this panel started dragging.
-	 * 
-	 * @return
-	 */
-	public int getOriginalX()
-	{
-		return movementStart.x;
-	}
-
-	/**
-	 * Return the original Y from which this panel started dragging.
-	 *
-	 * @return
-	 */
-	public int getOriginalY()
-	{
-		return movementStart.y;
-	}
-
-	/**
-	 * Get the original location of this panel as a point.
-	 *
-	 * @return
-	 */
-	public Point getOriginalLocation()
-	{
-		return movementStart;
 	}
 }
