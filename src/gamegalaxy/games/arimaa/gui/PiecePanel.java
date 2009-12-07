@@ -54,8 +54,7 @@ public class PiecePanel extends JPanel
 	private PieceData	data;
 	
 	//Stores the position that we started dragging from, in case we don't land anywhere.
-	private int	dragXStart;
-	private int	dragYStart;
+	private Point	movementStart;
 	
 	public PiecePanel(final ArimaaUI gui, PieceData data, ResourceLoader loader)
 	{
@@ -64,14 +63,9 @@ public class PiecePanel extends JPanel
 		
 		//Create the mouse listener to listen for mouse events.
 		MouseInputAdapter ma = new MouseInputAdapter()
-		{
-			
-			//Stores the last known position to update delta values against.
-			private int	lastDragX;
-			private int	lastDragY;
-			
+		{	
 			//Indicates whether we should respond to dragging events or not.
-			private boolean	dragging;
+			private boolean	pieceIsHeld;
 
 			public void mousePressed(MouseEvent me)
 			{	
@@ -86,27 +80,27 @@ public class PiecePanel extends JPanel
 				
 				//Validate that we can drag this piece.
 				PiecePanel piecePanel = (PiecePanel)me.getSource();
-				if(gui.canDragPiece(piecePanel))
+				if(gui.canPickUpPiece(piecePanel))
 				{
-					dragging = true;
+					pieceIsHeld = true;
 					
 					//ensure that the dragged piece is topmost and visible.
 					gui.setComponentZOrder(piecePanel, 0);
 					
-					//Identify where we're starting to drag.
-					dragXStart = ((PiecePanel)me.getSource()).getX();
-					dragYStart = ((PiecePanel)me.getSource()).getY();
-						
-					//Store the last known position.
-					Point relativePoint = new Point(me.getX(), me.getY());
-					SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
+					//Identify the original location of the piece.
+					movementStart = getLocation();
 					
-					lastDragX = relativePoint.x;
-					lastDragY = relativePoint.y;
+					//Move the piece so that it is centered on the mouse.
+					Point mouseInFrame = new Point(me.getX() + getX(), me.getY() + getY());
+					setLocation(mouseInFrame.x - getWidth() / 2, mouseInFrame.y - getHeight() / 2);
+					
+					//notify the gui where the mouse is so that it can respond with highlighting, etc.
+					Point dragLocation = new Point(mouseInFrame.x, mouseInFrame.y);
+					gui.draggedPiece(piecePanel, holder, dragLocation);
 				}
 				else
 				{
-					dragging = false;
+					pieceIsHeld = false;
 				}
 			}
 			
@@ -121,7 +115,7 @@ public class PiecePanel extends JPanel
 					return;
 				}
 
-				if(dragging)
+				if(pieceIsHeld)
 				{
 					PiecePanel piecePanel = (PiecePanel)me.getSource();
 					
@@ -138,34 +132,25 @@ public class PiecePanel extends JPanel
 				}
 				
 				//Reset the dragging flag.
-				dragging = false;
+				pieceIsHeld = false;
+			}
+			
+			public void mouseMoved(MouseEvent me)
+			{
 			}
 			
 			public void mouseDragged(MouseEvent me)
 			{
-				if(dragging)
+				if(pieceIsHeld)
 				{
 					PiecePanel piecePanel = (PiecePanel)me.getSource();
-
-					//Determine the updated position from the deltas.
-					Point relativePoint = new Point(me.getX(), me.getY());
-					SwingUtilities.convertPointToScreen(relativePoint, (PiecePanel)me.getSource());
 					
-					int myX = relativePoint.x;
-					int myY = relativePoint.y;
+					//Move the piece so that it is centered on the mouse.
+					Point mouseInFrame = new Point(me.getX() + getX(), me.getY() + getY());
+					setLocation(mouseInFrame.x - getWidth() / 2, mouseInFrame.y - getHeight() / 2);
 					
-					int newX = getX() + (myX - lastDragX);
-					int newY = getY() + (myY - lastDragY);
-					
-					//Reset the position to update against in the future.
-					lastDragX = myX;
-					lastDragY = myY;
-	
-					//Set the new location
-					setLocation(newX, newY);
-					
-					//notify the gui where the piece center is so that it can respond with highlighting, etc.
-					Point dragLocation = new Point(getX() + getWidth() / 2, getY() + getHeight() / 2);
+					//notify the gui where the mouse is so that it can respond with highlighting, etc.
+					Point dragLocation = new Point(mouseInFrame.x, mouseInFrame.y);
 					gui.draggedPiece(piecePanel, holder, dragLocation);
 				}
 			}
@@ -277,7 +262,7 @@ public class PiecePanel extends JPanel
 	 */
 	public void resetPosition()
 	{
-		setLocation(dragXStart, dragYStart);
+		setLocation(movementStart);
 	}
 
 	/**
@@ -287,7 +272,7 @@ public class PiecePanel extends JPanel
 	 */
 	public int getOriginalX()
 	{
-		return dragXStart;
+		return movementStart.x;
 	}
 
 	/**
@@ -297,7 +282,7 @@ public class PiecePanel extends JPanel
 	 */
 	public int getOriginalY()
 	{
-		return dragYStart;
+		return movementStart.y;
 	}
 
 	/**
@@ -307,6 +292,6 @@ public class PiecePanel extends JPanel
 	 */
 	public Point getOriginalLocation()
 	{
-		return new Point(dragXStart, dragYStart);
+		return movementStart;
 	}
 }
