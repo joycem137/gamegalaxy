@@ -210,7 +210,7 @@ public class ArimaaUI extends JPanel
 		return null;
 	}
 	
-	public boolean canDragPiece(PiecePanel piecePanel)
+	public boolean canPickUpPiece(PiecePanel piecePanel)
 	{
 		return engine.canPieceBeMoved(piecePanel.getData());
 	}
