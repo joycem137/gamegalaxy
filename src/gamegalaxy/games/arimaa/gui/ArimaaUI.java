@@ -29,6 +29,7 @@ import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.PiecePosition;
+import gamegalaxy.games.arimaa.data.StepData;
 import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.tools.ResourceLoader;
 
@@ -251,12 +252,9 @@ public class ArimaaUI extends JPanel
 			int relativeDragY = mousePosition.y - boardPanel.getY();
 			BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
 			
-			//Determine where we're moving from.
-			PiecePosition originalLocation = getPiecePositionAt(pieceInHandOriginalLocation);
-			
 			//Set the highlight, if appropriate
-			if(engine.isValidMove(pieceInHand.getData(), originalLocation, mouseOverPosition) || 
-					engine.isValidSwap(pieceInHand.getData(), originalLocation, mouseOverPosition))
+			if(engine.isValidStep(new StepData(pieceInHand.getData(), mouseOverPosition)) || 
+					engine.isValidSwap(pieceInHand.getData(), pieceInHand.getData().getPosition(), mouseOverPosition))
 			{
 				highlightSpace(mouseOverPosition);
 			}
@@ -318,22 +316,19 @@ public class ArimaaUI extends JPanel
 		//Determine where we're going to drop the piece.
 		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
 		
-		//Determine where we're coming from.
-		PiecePosition originalPosition = getPiecePositionAt(pieceInHandOriginalLocation);
-		
 		//Now see if it makes sense to move this piece.
-		if(engine.isValidMove(pieceToDrop.getData(), originalPosition, dropPosition))
+		if(engine.isValidStep(new StepData(pieceToDrop.getData(), dropPosition)))
 		{	
 			//Now update the engine.
-			engine.movePiece(pieceToDrop.getData(), originalPosition, dropPosition);
+			engine.takeStep(new StepData(pieceToDrop.getData(), dropPosition));
 		}
-		else if(engine.isValidSwap(pieceToDrop.getData(), originalPosition, dropPosition))
+		else if(engine.isValidSwap(pieceToDrop.getData(), pieceToDrop.getData().getPosition(), dropPosition))
 		{
 			//need to identify and grab the piecePanel at dropPosition.
 			PiecePanel targetPanel = getPieceAt(dropPosition);
 	
 			//Update the engine.
-			engine.swapPieces(pieceToDrop.getData(), targetPanel.getData(), originalPosition, dropPosition);
+			engine.swapPieces(pieceToDrop.getData(), targetPanel.getData(), pieceToDrop.getData().getPosition(), dropPosition);
 		}
 		else
 		{

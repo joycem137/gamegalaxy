@@ -30,6 +30,7 @@ import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.PiecePosition;
+import gamegalaxy.games.arimaa.data.StepData;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 
 import java.util.Iterator;
@@ -159,12 +160,14 @@ public class ArimaaEngine
 	 *            target PiecePosition we want to move to.
 	 * @return true if a valid move can be made, otherwise false.
 	 */
-	public boolean isValidMove(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
+	public boolean isValidStep(StepData step)
 	{
 		BoardData board = currentGameState.getBoardData();
+		PiecePosition destination = step.getDestination();
+		PieceData piece = step.getPiece();
 		
 		// Abort stupid cases.
-		if (newSpace == null) return false;
+		if (destination == null) return false;
 
 		// And cases where the piece isn't allowed to move
 		if (!canPieceBeMoved(piece)) return false;
@@ -173,27 +176,27 @@ public class ArimaaEngine
 		if (currentGameState.isSetupPhase())
 		{
 			// Handle the bucket case:
-			if (newSpace instanceof BucketPosition)
+			if (destination instanceof BucketPosition)
 			{
 				// Verify that the piece's color matches the color of the
 				// bucket.
-				if (originalSpace instanceof BoardPosition)
+				if (piece.getPosition() instanceof BoardPosition)
 				{
-					BucketPosition position = (BucketPosition) newSpace;
+					BucketPosition position = (BucketPosition) destination;
 					return piece.getColor() == position.getColor();
 				}
 				else
 				{
 					// We should be returning the piece to the original bucket.
-					return originalSpace.equals(newSpace);
+					return piece.getPosition().equals(destination);
 				}
 			}
 
 			// We know that this is a board position
-			BoardPosition newPosition = (BoardPosition) newSpace;
+			BoardPosition newPosition = (BoardPosition) destination;
 
 			// Return true if this is the same space we are starting from.
-			if (originalSpace.equals(newSpace))
+			if (piece.getPosition().equals(destination))
 			{
 				return true;
 			}
@@ -206,7 +209,7 @@ public class ArimaaEngine
 			}
 
 			// Otherwise, verify that the pair of rows is okay.
-			if (piece.getColor() == GameConstants.GOLD)
+			if (step.getPiece().getColor() == GameConstants.GOLD)
 			{
 				return newPosition.getRow() >= 6;
 			}
@@ -218,14 +221,14 @@ public class ArimaaEngine
 		else if (currentGameState.isGameOn())
 		{
 			// You can't move things to buckets here.
-			if (newSpace instanceof BucketPosition) return false;
+			if (destination instanceof BucketPosition) return false;
 
 			// We know this is a BoardPosition now
-			BoardPosition newPosition = (BoardPosition) newSpace;
+			BoardPosition newPosition = (BoardPosition) destination;
 
 			// We also know the original position is a board position because
 			// the piece can be moved.
-			BoardPosition originalPosition = (BoardPosition) originalSpace;
+			BoardPosition originalPosition = (BoardPosition) piece.getPosition();
 
 			// Return true if this is the same space we are starting from.
 			if (originalPosition.equals(newPosition)) return true;
@@ -348,27 +351,29 @@ public class ArimaaEngine
 	 * @param originalSpace
 	 * @param newSpace
 	 */
-	public void movePiece(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
+	public void takeStep(StepData step)
 	{
 		BoardData board = currentGameState.getBoardData();
+		PieceData piece = step.getPiece();
+		PiecePosition destination = step.getDestination();
 		
 		// Validate the move and don't move onto the same space.
-		if (isValidMove(piece, originalSpace, newSpace) && !originalSpace.equals(newSpace))
+		if (isValidStep(step) && !piece.getPosition().equals(destination))
 		{
-			if (originalSpace instanceof BucketPosition && newSpace instanceof BoardPosition)
+			if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
 			{
 				// Moving from bucket to board.
 				// First remove the piece from the bucket.
-				removePieceFromBucket((BucketPosition) originalSpace, piece);
+				removePieceFromBucket((BucketPosition) piece.getPosition(), piece);
 
 				// Now place the piece on the board in the correct space.
-				board.placePiece(piece, (BoardPosition) newSpace);
+				board.placePiece(piece, (BoardPosition) destination);
 			}
-			else if (newSpace instanceof BoardPosition)
+			else if (destination instanceof BoardPosition)
 			{
 				// Moving from board to board.
-				BoardPosition originalPosition = (BoardPosition) originalSpace;
-				BoardPosition newPosition = (BoardPosition) newSpace;
+				BoardPosition originalPosition = (BoardPosition) piece.getPosition();
+				BoardPosition newPosition = (BoardPosition) destination;
 
 				board.removePiece(originalPosition);
 
@@ -414,8 +419,8 @@ public class ArimaaEngine
 			else
 			{
 				// Moving from board to bucket.
-				BoardPosition originalPosition = (BoardPosition) originalSpace;
-				BucketPosition newPosition = (BucketPosition) newSpace;
+				BoardPosition originalPosition = (BoardPosition) piece.getPosition();
+				BucketPosition newPosition = (BucketPosition) destination;
 
 				// Remove the piece from the board.
 				board.removePiece(originalPosition);
