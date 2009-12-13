@@ -355,7 +355,7 @@ public class ArimaaEngine
 	 * 
 	 * @return
 	 */
-	private GameState getCurrentGameState()
+	GameState getCurrentGameState()
 	{
 		return currentGameState;
 	}
