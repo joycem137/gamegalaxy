@@ -38,7 +38,7 @@ public final class GameState
 	private List<PieceData>	silverBucket;
 	
 	private int	playerTurn;
-	private int	numMoves;
+	private int	numSteps;
 	private int	phase;
 	
 	private BoardPosition	pushPosition;
@@ -71,7 +71,7 @@ public final class GameState
 		createBuckets();
 
 		//Reset the number of moves to 0
-		numMoves = 0;
+		numSteps = 0;
 	}
 	
 	/**
@@ -229,7 +229,7 @@ public final class GameState
 
 	public int getNumMoves() 
 	{
-		return numMoves;
+		return numSteps;
 	}
 
 	public boolean isGameOn() 
@@ -270,7 +270,7 @@ public final class GameState
 			phase = GameConstants.GAME_ON;
 		}
 
-		numMoves = 0;
+		numSteps = 0;
 	}
 
 	/**
@@ -286,7 +286,6 @@ public final class GameState
 
 	public void doRandomSetup()
 	{
-		
 		// Abort if this isn't the setup phase.
 		if (phase != GameConstants.SETUP_PHASE) return;
 
@@ -365,7 +364,7 @@ public final class GameState
 			// First remove the piece from the bucket.
 			removePieceFromBucket(piece, bucketSource);
 
-			//Determine if there is a piece already on the board.
+			//Swap pieces if there's already one on the board.
 			if(board.isOccupied(boardDestination))
 			{
 				PieceData swapPiece = board.getPieceAt(boardDestination);
@@ -408,7 +407,7 @@ public final class GameState
 			if (phase == GameConstants.GAME_ON)
 			{
 				// Increment the number of moves
-				numMoves++;
+				numSteps++;
 
 				if (piece.getColor() != playerTurn)
 				{
@@ -589,7 +588,7 @@ public final class GameState
 		}
 		else if(phase == GameConstants.GAME_ON)
 		{
-			return numMoves >= 1 && pushPosition == null;
+			return numSteps >= 1 && pushPosition == null;
 		}
 		else
 		{
@@ -606,7 +605,7 @@ public final class GameState
 	{
 		if(phase == GameConstants.GAME_ON)
 		{
-			return 4 - numMoves;
+			return 4 - numSteps;
 		}
 		else
 		{
