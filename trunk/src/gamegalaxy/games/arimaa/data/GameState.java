@@ -85,6 +85,10 @@ public final class GameState
 		goldBucket = new Vector<PieceData>(16);
 		silverBucket = new Vector<PieceData>(16);
 
+		//Create positions for both buckets.
+		BucketPosition goldBucketPosition = new BucketPosition(GameConstants.GOLD);
+		BucketPosition silverBucketPosition = new BucketPosition(GameConstants.SILVER);
+		
 		// Populate our lists.
 		Iterator<PieceData> iterator = pieces.iterator();
 		while (iterator.hasNext())
@@ -93,10 +97,12 @@ public final class GameState
 			if (pieceData.getColor() == GameConstants.GOLD)
 			{
 				goldBucket.add(pieceData);
+				pieceData.setPosition(goldBucketPosition);
 			}
 			else
 			{
 				silverBucket.add(pieceData);
+				pieceData.setPosition(silverBucketPosition);
 			}
 		}
 	}
@@ -245,38 +251,7 @@ public final class GameState
 	{
 		return lastPieceMoved;
 	}
-
-	public void addToBucket(PieceData piece, BucketPosition space1Position)
-	{
-		List<PieceData> bucket;
-		if (space1Position.getColor() == GameConstants.GOLD)
-		{
-			bucket = goldBucket;
-		}
-		else
-		{
-			bucket = silverBucket;
-		}
-
-		bucket.add(piece);
-	}
-
-	public void removePieceFromBucket(PieceData piece, BucketPosition bucketPosition)
-	{
-		List<PieceData> bucket;
-		if (bucketPosition.getColor() == GameConstants.GOLD)
-		{
-			bucket = goldBucket;
-		}
-		else
-		{
-			bucket = silverBucket;
-		}
-
-		int pieceIndex = bucket.indexOf(piece);
-		bucket.remove(pieceIndex);
-	}
-
+	
 	public void endMove()
 	{	
 		// You can't end the turn in the middle of a push
@@ -381,25 +356,52 @@ public final class GameState
 		PieceData piece = step.getPiece();
 		PiecePosition destination = step.getDestination();
 		
-		//Don't move onto the same space.
-		if(piece.getPosition().equals(destination)) return;
-		
 		if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
 		{
 			// Moving from bucket to board.
+			BoardPosition boardDestination = (BoardPosition) destination;
+			BucketPosition bucketSource = (BucketPosition) piece.getPosition();
+			
 			// First remove the piece from the bucket.
-			removePieceFromBucket(piece, (BucketPosition) piece.getPosition());
+			removePieceFromBucket(piece, bucketSource);
 
+			//Determine if there is a piece already on the board.
+			if(board.isOccupied(boardDestination))
+			{
+				PieceData swapPiece = board.getPieceAt(boardDestination);
+				
+				//Remove the piece from the board.
+				board.removePiece(boardDestination);
+				
+				//Place it in the bucket
+
+				addToBucket(swapPiece, bucketSource);
+			}
+			
 			// Now place the piece on the board in the correct space.
 			board.placePiece(piece, (BoardPosition) destination);
 		}
 		else if (destination instanceof BoardPosition)
 		{
-			// Moving from board to board.
+			// Moving from board to board
 			BoardPosition originalPosition = (BoardPosition) piece.getPosition();
 			BoardPosition newPosition = (BoardPosition) destination;
-
+			
+			//Remove the piece from the original location
 			board.removePiece(originalPosition);
+			
+			//Do a swap (Must be changed when handling pushes and pulls by dropping pices onto others)
+			if(board.isOccupied(newPosition))
+			{
+				//Get the piece
+				PieceData swapPiece = board.getPieceAt(newPosition);
+				
+				//Remove it from the board
+				board.removePiece(newPosition);
+				
+				//Place it on the original location
+				board.placePiece(swapPiece, originalPosition);
+			}
 
 			board.placePiece(piece, newPosition);
 
@@ -452,7 +454,7 @@ public final class GameState
 			// Add the piece to the bucket.
 			addToBucket(piece, newPosition);
 		}
-
+		
 		if (phase == GameConstants.GAME_ON)
 		{
 			// Check the traps to see if there are pieces in them and if
@@ -463,6 +465,7 @@ public final class GameState
 			checkForWinner();
 		}
 	}
+
 	/**
 	 * Evaluate the current game situation to determine if there has been a winner.
 	 * 
@@ -610,4 +613,38 @@ public final class GameState
 			return 0;
 		}
 	}
+	
+	private void addToBucket(PieceData piece, BucketPosition position)
+	{
+		List<PieceData> bucket;
+		if (position.getColor() == GameConstants.GOLD)
+		{
+			bucket = goldBucket;
+		}
+		else
+		{
+			bucket = silverBucket;
+		}
+
+		bucket.add(piece);
+		piece.setPosition(position);
+	}
+
+	private void removePieceFromBucket(PieceData piece, BucketPosition bucketPosition)
+	{
+		List<PieceData> bucket;
+		if (bucketPosition.getColor() == GameConstants.GOLD)
+		{
+			bucket = goldBucket;
+		}
+		else
+		{
+			bucket = silverBucket;
+		}
+
+		int pieceIndex = bucket.indexOf(piece);
+		bucket.remove(pieceIndex);
+		piece.setPosition(null);
+	}
+
 }

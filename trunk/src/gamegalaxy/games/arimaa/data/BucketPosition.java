@@ -25,7 +25,7 @@ package gamegalaxy.games.arimaa.data;
 /**
  * Stores a representation of a bucket position.
  */
-public class BucketPosition implements PiecePosition
+public final class BucketPosition implements PiecePosition
 {
 	private int	color;
 
