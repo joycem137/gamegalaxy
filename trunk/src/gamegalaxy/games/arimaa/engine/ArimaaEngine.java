@@ -303,7 +303,7 @@ public class ArimaaEngine
 	public void takeStep(StepData step)
 	{
 		// Validate the move and don't move onto the same space.
-		if (isValidStep(step))
+		if (isValidStep(step) && !step.getPiece().getPosition().equals(step.getDestination()))
 		{
 			currentGameState.takeStep(step);
 		}
