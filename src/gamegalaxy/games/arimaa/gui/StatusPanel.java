@@ -51,6 +51,7 @@ public class StatusPanel extends JPanel
 	private Image	silverIndicator;
 	
 	private JButton endTurnButton;
+	private JButton undoTurnButton;
 	
 	private int turnState;
 	private ShadowedLabel	turnLabel;
@@ -79,8 +80,19 @@ public class StatusPanel extends JPanel
 				engine.endMove();
 			}
 		});
-		endTurnButton.setSize(164, 33);
+		endTurnButton.setSize(140, 33);
 		add(endTurnButton);
+		
+		//Create the Undo turn button, but do not add it to the screen just yet.
+		undoTurnButton = new JButton(new AbstractAction("Undo Turn")
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				engine.undoMove();
+			}
+		});
+		undoTurnButton.setSize(140, 33);
+		add(undoTurnButton);
 		
 		//Get our images.
 		backgroundImage = loader.getResource("TurnBackground");
@@ -98,6 +110,7 @@ public class StatusPanel extends JPanel
 			public void run()
 			{
 				endTurnButton.setVisible(false);
+				undoTurnButton.setVisible(false);
 			}
 		});
 	}
@@ -107,7 +120,8 @@ public class StatusPanel extends JPanel
 		super.setSize(width, height);
 		
 		int centerX = (getWidth() - endTurnButton.getWidth()) / 2;
-		endTurnButton.setLocation(centerX, 17);
+		endTurnButton.setLocation(centerX - 85, 17);
+		undoTurnButton.setLocation(centerX + 85, 17);
 		
 		turnLabel.setSize(width, height);
 	}
@@ -159,12 +173,13 @@ public class StatusPanel extends JPanel
 	 *
 	 * @param b
 	 */
-	public void showEndTurnButton(boolean b)
+	public void showEndTurnButton(boolean b, boolean c)
 	{
 		endTurnButton.setVisible(b);
-		turnLabel.setVisible(!b);
+		undoTurnButton.setVisible(c);
+		turnLabel.setVisible(!b && !c);
 	}
-
+	
 	/**
 	 * Sets the status panel into the winning state for the indicated player.
 	 *
@@ -186,6 +201,7 @@ public class StatusPanel extends JPanel
 		
 		//Hide the end turn button.
 		endTurnButton.setVisible(false);
+		undoTurnButton.setVisible(false);
 		turnState = player;
 		turnLabel.setVisible(true);
 		repaint();
