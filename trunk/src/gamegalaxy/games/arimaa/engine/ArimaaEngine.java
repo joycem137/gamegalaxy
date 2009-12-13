@@ -41,6 +41,9 @@ public class ArimaaEngine
 {
 	// The current game state.
 	private GameState	currentGameState;
+	
+	// The game state at the beginning of the current turn, for undo purposes.
+	private GameState	lastGameState;
 
 	// Store a link to the UI
 	private ArimaaUI	gui;
@@ -52,6 +55,8 @@ public class ArimaaEngine
 	public ArimaaEngine()
 	{
 		currentGameState = new GameState();
+		currentGameState.initializeGameState();
+		lastGameState = currentGameState.copy();
 	}
 
 	/**
@@ -95,6 +100,7 @@ public class ArimaaEngine
 			if (!board.pieceHasSpaceToMoveInto(piece)) return false;
 
 			// Check the color of this piece
+
 			if (piece.getColor() != currentGameState.getCurrentPlayer()) // The piece is the opposite player 's
 			{
 				// If we have a forced move, you can't do this.
@@ -319,8 +325,16 @@ public class ArimaaEngine
 	public void endMove()
 	{
 		currentGameState.endMove();
+		lastGameState = currentGameState.copy();
 
 		gui.displayGameState(getCurrentGameState());
+	}
+	
+	public void undoMove()
+	{
+		currentGameState = lastGameState.copy();
+		
+		gui.displayGameState(getCurrentGameState());		
 	}
 
 	/**

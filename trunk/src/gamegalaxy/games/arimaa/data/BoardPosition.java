@@ -30,8 +30,8 @@ import java.util.Vector;
  */
 public final class BoardPosition implements PiecePosition
 {	
-	private int	row;
-	private int	col;
+	private final int	row;
+	private final int	col;
 
 	/**
 	 * Creates a BoardPosition with the specified row and column.  Using "col, row" notation

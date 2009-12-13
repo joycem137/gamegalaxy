@@ -50,6 +50,57 @@ public final class GameState
 
 	public GameState() 
 	{
+		pushPosition = null;
+		pullPosition = null;
+		lastPieceMoved = null;
+		
+		board = null;
+		pieces = null;
+		goldBucket = null;
+		silverBucket = null;
+
+		phase = 0;
+		playerTurn = 0;
+		numSteps = 0;
+	}
+	
+	/**
+	 * Creates and returns a copy of this GameState.
+	 * @return
+	 */
+	public GameState copy()
+	{
+		GameState newState = new GameState();
+		
+		newState.board = board.copy();
+
+		newState.pieces = copyList(pieces);
+		newState.goldBucket = copyList(goldBucket);
+		newState.silverBucket = copyList(silverBucket);
+		
+		newState.playerTurn = playerTurn;
+		newState.numSteps = numSteps;
+		newState.phase = phase;
+		
+		newState.pushPosition = pushPosition;
+		newState.pullPosition = pullPosition;
+		
+		if (lastPieceMoved != null)
+		{
+			newState.lastPieceMoved = lastPieceMoved.copy();
+		}
+			
+		newState.winner = winner;
+				
+		return newState;
+	}
+	
+	/**
+	 * Initializes a GameState to beginning-of-new-game settings; clears the board, resets
+	 *  the buckets, and sets the GameState to the Setup phase.
+	 */
+	public void initializeGameState()
+	{
 		// Start with no forced push/pull scenario.
 		pushPosition = null;
 		pullPosition = null;
