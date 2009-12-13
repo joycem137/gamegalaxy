@@ -47,6 +47,7 @@ public final class GameState
 	private int	winner;
 	
 	private List<PieceData>	pieces;
+	private boolean	lastStepWasCapture;
 
 	public GameState() 
 	{
@@ -62,6 +63,8 @@ public final class GameState
 		phase = 0;
 		playerTurn = 0;
 		numSteps = 0;
+		
+		lastStepWasCapture = false;
 	}
 	
 	/**
@@ -91,6 +94,8 @@ public final class GameState
 		}
 			
 		newState.winner = winner;
+		
+		newState.lastStepWasCapture = lastStepWasCapture;
 				
 		return newState;
 	}
@@ -111,6 +116,9 @@ public final class GameState
 
 		//The first player is gold.
 		playerTurn = GameConstants.GOLD;
+		
+		//Nobody was recently captured:
+		lastStepWasCapture = false;
 
 		//Create the board.
 		board = new BoardData();
@@ -403,6 +411,8 @@ public final class GameState
 	 */
 	public void takeStep(StepData step)
 	{
+		lastStepWasCapture = false;
+		
 		PieceData piece = step.getPiece();
 		PiecePosition destination = step.getDestination();
 		
@@ -612,6 +622,9 @@ public final class GameState
 
 					// Move the piece to the appropriate bucket.
 					addToBucket(trappedPiece, new BucketPosition(trappedPiece.getColor()));
+					
+					//Set the flag
+					lastStepWasCapture = true;
 				}
 			}
 		}
@@ -695,6 +708,16 @@ public final class GameState
 		int pieceIndex = bucket.indexOf(piece);
 		bucket.remove(pieceIndex);
 		piece.setPosition(null);
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public boolean lastStepWasCapture()
+	{
+		return lastStepWasCapture;
 	}
 
 }

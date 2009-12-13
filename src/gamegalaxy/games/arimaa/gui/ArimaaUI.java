@@ -84,6 +84,7 @@ public class ArimaaUI extends JPanel
 	protected PiecePanel	pieceInHand;
 	protected Point	pieceInHandOriginalLocation;
 
+	private SoundEffectPlayer audioPlayer;
 	
 	/**
 	 * 
@@ -98,6 +99,8 @@ public class ArimaaUI extends JPanel
 		
 		//Store the resource loader
 		this.loader = loader;
+		
+		audioPlayer = new SoundEffectPlayer();
 		
 		//Configure this panel
 		setLayout(null);
@@ -217,6 +220,9 @@ public class ArimaaUI extends JPanel
 
 	private void pickUpPiece(PiecePanel piecePanel, Point mousePosition)
 	{
+		//Play the pickup audio
+		audioPlayer.playPickupSound();
+		
 		//Pick up the piece.
 		pieceInHand = piecePanel;
 		
@@ -322,6 +328,16 @@ public class ArimaaUI extends JPanel
 		{	
 			//Now update the engine.
 			engine.takeStep(step);
+
+			//Play a effect
+			if(engine.lastStepWasCapture())
+			{
+				audioPlayer.playTrapSound();
+			}
+			else
+			{
+				audioPlayer.playDropSound();
+			}
 		}
 		else
 		{
@@ -366,6 +382,7 @@ public class ArimaaUI extends JPanel
 		{
 			public void actionPerformed(ActionEvent e)
 			{
+				audioPlayer.playDropSound();
 				engine.doRandomSetup();
 			}
 			
@@ -379,6 +396,7 @@ public class ArimaaUI extends JPanel
 		{
 			public void actionPerformed(ActionEvent e)
 			{
+				audioPlayer.playDropSound();
 				engine.doRandomSetup();
 			}
 			

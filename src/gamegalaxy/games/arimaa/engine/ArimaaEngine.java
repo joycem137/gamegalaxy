@@ -360,4 +360,14 @@ public class ArimaaEngine
 		return currentGameState;
 	}
 
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public boolean lastStepWasCapture()
+	{
+		return currentGameState.lastStepWasCapture();
+	}
+
 }
