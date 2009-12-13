@@ -41,44 +41,97 @@ public final class GameState
 	private int	numMoves;
 	private int	phase;
 	
-	private PiecePosition	pushPosition;
-	private PieceData	pullPiece;
-	private PiecePosition	pullPosition;
+	private BoardPosition	pushPosition;
+	private BoardPosition	pullPosition;
+	private PieceData	lastPieceMoved;
 	private int	winner;
+	
+	private List<PieceData>	pieces;
+
+	public GameState() 
+	{
+		// Start with no forced push/pull scenario.
+		pushPosition = null;
+		pullPosition = null;
+		lastPieceMoved = null;
+
+		// Start in the setup phase.
+		phase = GameConstants.SETUP_PHASE;
+
+		//The first player is gold.
+		playerTurn = GameConstants.GOLD;
+
+		//Create the board.
+		board = new BoardData();
+
+		//Create all of the pieces for the board.
+		createPieces();
+
+		// Initialize our buckets.
+		createBuckets();
+
+		//Reset the number of moves to 0
+		numMoves = 0;
+	}
+	
+	/**
+	 * Creates the buckets for the game and adds all pieces to the buckets for
+	 * initialization
+	 * 
+	 */
+	private void createBuckets()
+	{
+		// Initialize our lists.
+		goldBucket = new Vector<PieceData>(16);
+		silverBucket = new Vector<PieceData>(16);
+
+		// Populate our lists.
+		Iterator<PieceData> iterator = pieces.iterator();
+		while (iterator.hasNext())
+		{
+			PieceData pieceData = iterator.next();
+			if (pieceData.getColor() == GameConstants.GOLD)
+			{
+				goldBucket.add(pieceData);
+			}
+			else
+			{
+				silverBucket.add(pieceData);
+			}
+		}
+	}
 
 	/**
-	 * Constructs the game state from the provided information
-	 *
-	 * @param goldBucket
-	 * @param silverBucket
-	 * @param board
-	 * @param playerTurn
-	 * @param numMoves
-	 * @param phase
-	 * @param pushPosition
-	 * @param pullPosition
-	 * @param pullPiece
+	 * Create all of the pieces for the game.
+	 * 
 	 */
-	public GameState(List<PieceData> goldBucket, List<PieceData> silverBucket,
-			BoardData board, int playerTurn, int numMoves, int phase, int winner,
-			PiecePosition pushPosition, PiecePosition pullPosition,
-			PieceData pullPiece)
+	private void createPieces()
 	{
-		this.goldBucket = copyList(goldBucket);
-		this.silverBucket = copyList(silverBucket);
-		this.board = board.copy();
-		
-		//Store the easy data.
-		this.playerTurn = playerTurn;
-		this.numMoves = numMoves;
-		this.phase = phase;
-		this.winner = winner;
-		
-		//And now the rest of the hard stuff.
-		this.pushPosition = pushPosition;
-		this.pullPosition = pullPosition;
-		if(pullPiece != null)
-			this.pullPiece = pullPiece.copy();
+		pieces = new Vector<PieceData>(32);
+
+		// Create 8 rabbits of each color
+		for (int i = 0; i < 8; i++)
+		{
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.RABBIT));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.RABBIT));
+		}
+
+		// Create 2 each of horses, cats, and dogs.
+		for (int i = 0; i < 2; i++)
+		{
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.CAT));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.CAT));
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.DOG));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.DOG));
+			pieces.add(new PieceData(GameConstants.GOLD, PieceData.HORSE));
+			pieces.add(new PieceData(GameConstants.SILVER, PieceData.HORSE));
+		}
+
+		// Create 1 camel and elephant of each color
+		pieces.add(new PieceData(GameConstants.GOLD, PieceData.CAMEL));
+		pieces.add(new PieceData(GameConstants.SILVER, PieceData.CAMEL));
+		pieces.add(new PieceData(GameConstants.GOLD, PieceData.ELEPHANT));
+		pieces.add(new PieceData(GameConstants.SILVER, PieceData.ELEPHANT));
 	}
 
 	/**
@@ -215,4 +268,175 @@ public final class GameState
 		}
 	}
 
+	public int getNumMoves() 
+	{
+		return numMoves;
+	}
+
+	public boolean isGameOn() 
+	{
+		return phase == GameConstants.GAME_ON;
+	}
+
+	public BoardPosition getPushPosition()
+	{
+		return pushPosition;
+	}
+	
+	public BoardPosition getPullPosition()
+	{
+		return pullPosition;
+	}
+
+	public PieceData getLastPieceMoved()
+	{
+		return lastPieceMoved;
+	}
+
+	public void incrementNumMoves()
+	{
+		numMoves++;		
+	}
+
+	public void setPullPosition(BoardPosition position)
+	{
+		pullPosition = position;
+	}
+
+	public void setPushPosition(BoardPosition position)
+	{
+		pushPosition = position;
+	}
+
+	public void setLastPieceMoved(PieceData piece)
+	{
+		lastPieceMoved = piece;		
+	}
+
+	public void addToBucket(PieceData piece, BucketPosition space1Position)
+	{
+		List<PieceData> bucket;
+		if (space1Position.getColor() == GameConstants.GOLD)
+		{
+			bucket = goldBucket;
+		}
+		else
+		{
+			bucket = silverBucket;
+		}
+
+		bucket.add(piece);
+	}
+
+	public void removePieceFromBucket(PieceData piece, BucketPosition bucketPosition)
+	{
+		List<PieceData> bucket;
+		if (bucketPosition.getColor() == GameConstants.GOLD)
+		{
+			bucket = goldBucket;
+		}
+		else
+		{
+			bucket = silverBucket;
+		}
+
+		int pieceIndex = bucket.indexOf(piece);
+		bucket.remove(pieceIndex);
+	}
+
+	public void endTurn()
+	{	
+		// You can't end the turn in the middle of a push
+		assert pushPosition != null;
+
+		// Reset the pulled pieces.
+		pullPosition = null;
+		lastPieceMoved = null;
+
+		// Switch the turn.
+		playerTurn = (playerTurn + 1) % 2;
+
+		// If we're back to gold, the game phase has changed.
+		if (playerTurn == GameConstants.GOLD)
+		{
+			phase = GameConstants.GAME_ON;
+		}
+
+		numMoves = 0;
+	}
+
+	public List<PieceData> getPieces()
+	{
+		return pieces;
+	}
+
+	/**
+	 * Set the game phase to GAME_WON and set the winner to the indicated player.
+	 * 
+	 * @param player
+	 */
+	public void setGameWinner(int player)
+	{
+		phase = GameConstants.GAME_WON;
+		winner = player;
+	}
+
+	public void doRandomSetup()
+	{
+		
+		// Abort if this isn't the setup phase.
+		if (phase != GameConstants.SETUP_PHASE) return;
+
+		// Grab the appropriate bucket.
+		List<PieceData> bucket;
+		int firstValidRow;
+		if (playerTurn == GameConstants.GOLD)
+		{
+			bucket = goldBucket;
+			firstValidRow = 6;
+		}
+		else
+		{
+			bucket = silverBucket;
+			firstValidRow = 0;
+		}
+
+		// Randomly distribute the pieces using the most straight forward
+		// algorithm.
+		Iterator<PieceData> iterator = bucket.iterator();
+		while (iterator.hasNext())
+		{
+			PieceData piece = iterator.next();
+
+			// Find a valid position.
+			BoardPosition position;
+			do
+			{
+				int randomRow = firstValidRow + getRandomInt(0, 1);
+				int randomCol = getRandomInt(0, 7);
+				position = new BoardPosition(randomCol, randomRow);
+			} while (board.isOccupied(position));
+
+			// Now place the piece.
+			board.placePiece(piece, position);
+		}
+
+		// Remove all the pieces from the bucket.
+		bucket.clear();
+
+	}
+
+	/**
+	 * Return a random integer from min to max, inclusive.
+	 * 
+	 * @param min
+	 *            The lowest possible integer this method can return.
+	 * @param max
+	 *            The highest possible integer this method can return.
+	 * @return
+	 */
+	private int getRandomInt(int min, int max)
+	{
+		return (int) (Math.random() * (max - min + 1)) + min;
+	}
 }
