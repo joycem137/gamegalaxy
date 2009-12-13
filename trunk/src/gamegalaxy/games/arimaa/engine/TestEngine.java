@@ -211,23 +211,76 @@ public class TestEngine
 	}
 	
 	/**
-	 * Test that the traps actually capture pieces when moved into them.
+	 * Test that pieces become captured when a piece moved away from them.
 	 */
 	@Test
 	public void testTrapAbandon()
+	{
+		//Do a random setup
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Move the piece diagonal from the trap up one
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		PieceData piece = board.getPieceAt(new BoardPosition(1, 6));
+		StepData step = new StepData(piece, ((BoardPosition)piece.getPosition()).moveUp());
+		engine.takeStep(step);
+		assertTrue(board.isOccupied(new BoardPosition(1, 5)));
+		
+		//Move the piece into the trap
+		board = engine.getCurrentGameState().getBoardData();
+		piece = board.getPieceAt(new BoardPosition(2, 6));
+		StepData trapStep = new StepData(piece, ((BoardPosition)piece.getPosition()).moveUp());
+		engine.takeStep(trapStep);
+		
+		//Assert that the piece has not been captured.
+		board = engine.getCurrentGameState().getBoardData();
+		assertTrue(board.isOccupied(new BoardPosition(2, 5)));
+		
+		//Now move the piece next to it away
+		board = engine.getCurrentGameState().getBoardData();
+		piece = board.getPieceAt(new BoardPosition(1, 5));
+		step = new StepData(piece, ((BoardPosition)piece.getPosition()).moveUp());
+		engine.takeStep(step);
+		
+		//Assert that the piece has been captured.
+		assertFalse(board.isOccupied(new BoardPosition(2, 5)));
+		
+		//Verify that the piece is in the bucket.
+		List<PieceData> bucket = engine.getCurrentGameState().getSilverBucket();
+		assertNotNull(bucket);
+		assertEquals(1, bucket.size());
+		piece = bucket.get(0);
+		assertEquals(trapStep.getPiece(), piece);
+	}
+	
+	/**
+	 * Test pieces for freezing.
+	 *
+	 */
+	@Test
+	public void testBasicFreezing()
 	{
 		//Test walking straight into one.
 		PieceData rabbit = getPieceFromBucket(GameConstants.GOLD, PieceData.RABBIT);
 		
 		//Place it in the front row
-		engine.getCurrentGameState().getBoardData().placePiece(rabbit, new BoardPosition(3, 6));
+		StepData step = new StepData(rabbit, new BoardPosition(3, 6));
+		engine.takeStep(step);
 		
 		//Do the rest of the setup randomly
 		engine.doRandomSetup();
 		engine.endMove();
 		
 		//Grab the elephant and move it to the front row.
-		PieceData elephant = getPieceFromBucket(GameConstants.GOLD, PieceData.ELEPHANT);
+		PieceData elephant = getPieceFromBucket(GameConstants.SILVER, PieceData.ELEPHANT);
+		
+		//Place it in the front row
+		step = new StepData(elephant, new BoardPosition(3, 1));
+		engine.takeStep(step);
 		
 		//Do the rest of the setup randomly
 		engine.doRandomSetup();
@@ -235,7 +288,7 @@ public class TestEngine
 		
 		BoardData board = engine.getCurrentGameState().getBoardData();
 		
-		//Gold the rabbit up 4 spaces.
+		//Move the rabbit up 3 spaces.
 		BoardPosition source = new BoardPosition(3, 6);
 		BoardPosition destination = source.moveUp();
 		rabbit = board.getPieceAt(source);
@@ -243,47 +296,21 @@ public class TestEngine
 		engine.takeStep(new StepData(rabbit, destination));
 		engine.takeStep(new StepData(rabbit, destination.moveUp()));
 		engine.takeStep(new StepData(rabbit, destination.moveUp().moveUp()));
-		engine.takeStep(new StepData(rabbit, destination.moveUp().moveUp().moveUp()));
 		
+		//End the move
+		engine.endMove();
+		
+		//Move the piece down.
+		elephant = board.getPieceAt((BoardPosition)elephant.getPosition());
+		destination = ((BoardPosition)elephant.getPosition()).moveDown();
+		engine.takeStep(new StepData(elephant, destination));
+		
+		engine.endMove();
+		
+		//Check that the rabbit can't move.
 		board = engine.getCurrentGameState().getBoardData();
-		assertFalse(board.isOccupied(source));
-		assertFalse(board.isOccupied(destination));
-		assertEquals(engine.getCurrentGameState().getNumMoves(), 1);
 		
-		//Verify that the piece is in the bucket.
-		List<PieceData> bucket = engine.getCurrentGameState().getSilverBucket();
-		assertNotNull(bucket);
-		assertEquals(1, bucket.size());
-		PieceData piece = bucket.get(0);
-	}
-	
-	/**
-	 * TODO: Describe method
-	 * @param i 
-	 *
-	 * @param rabbit
-	 * @return
-	 */
-	private PieceData getPieceFromBucket(int color, int value)
-	{
-		List<PieceData> bucket;
-		if(color == GameConstants.GOLD)
-		{
-			bucket = engine.getCurrentGameState().getGoldBucket();
-		}
-		else
-		{
-			bucket = engine.getCurrentGameState().getSilverBucket();
-		}
-		
-		Iterator<PieceData> iterator = bucket.iterator();
-		while(iterator.hasNext())
-		{
-			PieceData piece = iterator.next();
-			if(piece.getValue() == value) 
-				return piece;
-		}
-		return null;
+		assertFalse(engine.canPieceBeMoved(rabbit));
 	}
 
 	/**
@@ -300,15 +327,6 @@ public class TestEngine
 	 */
 	@Test
 	public void testPulling()
-	{
-		fail("Not yet implemented");
-	}
-	
-	/**
-	 * Test that freezing works in a variety fo situations.
-	 */
-	@Test
-	public void testFreezing()
 	{
 		fail("Not yet implemented");
 	}
@@ -348,5 +366,34 @@ public class TestEngine
 		
 		//Test that num moves does not increment when staying stationary
 		fail("Not yet implemented");
+	}
+	
+	/**
+	 * TODO: Describe method
+	 * @param i 
+	 *
+	 * @param rabbit
+	 * @return
+	 */
+	private PieceData getPieceFromBucket(int color, int value)
+	{
+		List<PieceData> bucket;
+		if(color == GameConstants.GOLD)
+		{
+			bucket = engine.getCurrentGameState().getGoldBucket();
+		}
+		else
+		{
+			bucket = engine.getCurrentGameState().getSilverBucket();
+		}
+		
+		Iterator<PieceData> iterator = bucket.iterator();
+		while(iterator.hasNext())
+		{
+			PieceData piece = iterator.next();
+			if(piece.getValue() == value) 
+				return piece;
+		}
+		return null;
 	}
 }

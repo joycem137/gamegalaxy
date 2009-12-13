@@ -621,7 +621,14 @@ public final class GameState
 					board.removePiece(trapPosition);
 
 					// Move the piece to the appropriate bucket.
-					addToBucket(trappedPiece, new BucketPosition(trappedPiece.getColor()));
+					if(trappedPiece.getColor() == GameConstants.GOLD)
+					{
+						addToBucket(trappedPiece, new BucketPosition(GameConstants.SILVER));
+					}
+					else
+					{
+						addToBucket(trappedPiece, new BucketPosition(GameConstants.GOLD));
+					}
 					
 					//Set the flag
 					lastStepWasCapture = true;
