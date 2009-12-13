@@ -43,6 +43,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -57,7 +59,7 @@ import javax.swing.event.MouseInputAdapter;
  * it's a class unto itself.
  */
 @SuppressWarnings("serial")
-public class ArimaaUI extends JPanel
+public class ArimaaUI extends JPanel implements Observer
 {
 	//Store the background image that we want to draw.
 	private Image 				backgroundImage;
@@ -116,7 +118,7 @@ public class ArimaaUI extends JPanel
 		setPreferredSize(new Dimension(891, 640));
 		
 		//Link the engine and GUI.
-		engine.linkGUI(this);
+		engine.addObserver(this);
 	}
 
 	/**
@@ -487,7 +489,7 @@ public class ArimaaUI extends JPanel
 	 *  
 	 * @param gameState
 	 */
-	public void displayGameState(GameState gameState)
+	private void displayGameState(GameState gameState)
 	{	
 		//Remove all pieces.
 		clearPieces();
@@ -627,5 +629,17 @@ public class ArimaaUI extends JPanel
 	{
 		//Paint the background
 		g.drawImage(backgroundImage, 0, 0, this);
+	}
+
+	/**
+	 * TODO: Describe overridden method
+	 *
+	 * @param o
+	 * @param arg
+	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+	 */
+	public void update(Observable o, Object arg)
+	{
+		displayGameState(engine.getCurrentGameState());
 	}
 }
