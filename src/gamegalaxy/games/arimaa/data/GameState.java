@@ -212,36 +212,6 @@ public final class GameState
 	}
 
 	/**
-	 * Returns true if the current player is able to end their turn.
-	 *
-	 * @return
-	 */
-	public boolean canPlayerEndTurn()
-	{
-		if(phase == GameConstants.SETUP_PHASE)
-		{
-			List<PieceData> bucket;
-			if(playerTurn == GameConstants.GOLD)
-			{
-				bucket = goldBucket;
-			}
-			else
-			{
-				bucket = silverBucket;
-			}
-			return bucket.isEmpty();
-		}
-		else if(phase == GameConstants.GAME_ON)
-		{
-			return numMoves >= 1 && pushPosition == null;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	/**
 	 * Returns the representation of the board in the current state.
 	 *
 	 * @return
@@ -249,23 +219,6 @@ public final class GameState
 	public BoardData getBoardData()
 	{
 		return board;
-	}
-
-	/**
-	 * Return the number of moves remaining in this turn.
-	 * 
-	 * @return
-	 */
-	public int getRemainingMoves()
-	{
-		if(phase == GameConstants.GAME_ON)
-		{
-			return 4 - numMoves;
-		}
-		else
-		{
-			return 0;
-		}
 	}
 
 	public int getNumMoves() 
@@ -291,26 +244,6 @@ public final class GameState
 	public PieceData getLastPieceMoved()
 	{
 		return lastPieceMoved;
-	}
-
-	public void incrementNumMoves()
-	{
-		numMoves++;		
-	}
-
-	public void setPullPosition(BoardPosition position)
-	{
-		pullPosition = position;
-	}
-
-	public void setPushPosition(BoardPosition position)
-	{
-		pushPosition = position;
-	}
-
-	public void setLastPieceMoved(PieceData piece)
-	{
-		lastPieceMoved = piece;		
 	}
 
 	public void addToBucket(PieceData piece, BucketPosition space1Position)
@@ -344,7 +277,7 @@ public final class GameState
 		bucket.remove(pieceIndex);
 	}
 
-	public void endTurn()
+	public void endMove()
 	{	
 		// You can't end the turn in the middle of a push
 		assert pushPosition != null;
@@ -365,17 +298,12 @@ public final class GameState
 		numMoves = 0;
 	}
 
-	public List<PieceData> getPieces()
-	{
-		return pieces;
-	}
-
 	/**
 	 * Set the game phase to GAME_WON and set the winner to the indicated player.
 	 * 
 	 * @param player
 	 */
-	public void setGameWinner(int player)
+	private void setGameWinner(int player)
 	{
 		phase = GameConstants.GAME_WON;
 		winner = player;
@@ -438,5 +366,248 @@ public final class GameState
 	private int getRandomInt(int min, int max)
 	{
 		return (int) (Math.random() * (max - min + 1)) + min;
+	}
+	
+	/**
+	 * Submit the indicated move to the game engine for implementation. Upon completion of the move, the engine will ask the GUI to update to the latest game
+	 * state.
+	 * 
+	 * @param piece
+	 * @param originalSpace
+	 * @param newSpace
+	 */
+	public void takeStep(StepData step)
+	{
+		PieceData piece = step.getPiece();
+		PiecePosition destination = step.getDestination();
+		
+		//Don't move onto the same space.
+		if(piece.getPosition().equals(destination)) return;
+		
+		if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
+		{
+			// Moving from bucket to board.
+			// First remove the piece from the bucket.
+			removePieceFromBucket(piece, (BucketPosition) piece.getPosition());
+
+			// Now place the piece on the board in the correct space.
+			board.placePiece(piece, (BoardPosition) destination);
+		}
+		else if (destination instanceof BoardPosition)
+		{
+			// Moving from board to board.
+			BoardPosition originalPosition = (BoardPosition) piece.getPosition();
+			BoardPosition newPosition = (BoardPosition) destination;
+
+			board.removePiece(originalPosition);
+
+			board.placePiece(piece, newPosition);
+
+			if (phase == GameConstants.GAME_ON)
+			{
+				// Increment the number of moves
+				numMoves++;
+
+				if (piece.getColor() != playerTurn)
+				{
+					if (pullPosition != null && pullPosition.equals(newPosition))
+					{
+						// This cannot be a push or a pull.
+						pullPosition = null;
+						pushPosition = null;
+					}
+					else
+					{
+						// This is a push.
+						pushPosition = originalPosition;
+					}
+				}
+				else
+				{
+					// This is a move of this player's color.
+					if (pushPosition == null)
+					{
+						// The last move was *not* a push position. You can
+						// record the piece movement.
+						pullPosition = originalPosition;
+					}
+					else
+					{
+						// The last move was a push. Reset it.
+						pushPosition = null;
+					}
+				}
+			}
+			lastPieceMoved = piece;
+		}
+		else
+		{
+			// Moving from board to bucket.
+			BoardPosition originalPosition = (BoardPosition) piece.getPosition();
+			BucketPosition newPosition = (BucketPosition) destination;
+
+			// Remove the piece from the board.
+			board.removePiece(originalPosition);
+
+			// Add the piece to the bucket.
+			addToBucket(piece, newPosition);
+		}
+
+		if (phase == GameConstants.GAME_ON)
+		{
+			// Check the traps to see if there are pieces in them and if
+			// they are dead.
+			checkTheTraps();
+
+			// Check to see if anyone has won the game.
+			checkForWinner();
+		}
+	}
+	/**
+	 * Evaluate the current game situation to determine if there has been a winner.
+	 * 
+	 */
+	private void checkForWinner()
+	{
+		boolean foundGoldRabbit = false;
+		boolean foundSilverRabbit = false;
+		Iterator<PieceData> iterator = pieces.iterator();
+		while (iterator.hasNext())
+		{
+			PieceData piece = iterator.next();
+
+			// If we find a rabbit piece, check to see if it is in the back row.
+			if (piece.getValue() == PieceData.RABBIT)
+			{
+				// Check if the rabbit is in the back row.
+				if (piece.getPosition() != null)
+				{
+					if (piece.getPosition() instanceof BoardPosition)
+					{
+						BoardPosition position = (BoardPosition) piece.getPosition();
+						if (piece.getColor() == GameConstants.GOLD)
+						{
+							foundGoldRabbit = true;
+							if (position.getRow() == 0)
+							{
+								// Gold won!!!
+								setGameWinner(GameConstants.GOLD);
+							}
+						}
+						else
+						{
+							foundSilverRabbit = true;
+							if (position.getRow() == 7)
+							{
+								// Silver won!
+								setGameWinner(GameConstants.SILVER);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// If we made it here, make sure we found rabbits of each color.
+		if (!foundGoldRabbit)
+		{
+			setGameWinner(GameConstants.SILVER);
+		}
+		else if (!foundSilverRabbit)
+		{
+			setGameWinner(GameConstants.GOLD);
+		}
+	}
+
+	/**
+	 * Check all of the traps to see if there are any pieces that need to be captured.
+	 * 
+	 */
+	private void checkTheTraps()
+	{
+		Iterator<BoardPosition> iterator = BoardData.getTrapPosition().iterator();
+		while (iterator.hasNext())
+		{
+			BoardPosition trapPosition = iterator.next();
+			if (board.isOccupied(trapPosition))
+			{
+				PieceData trappedPiece = board.getPieceAt(trapPosition);
+				boolean pieceIsDead = true;
+
+				// Check for allies in each direction:
+				List<BoardPosition> adjacentSpaces = trapPosition.getAdjacentSpaces();
+				Iterator<BoardPosition> adjacentIterator = adjacentSpaces.iterator();
+				while (adjacentIterator.hasNext())
+				{
+					BoardPosition space = adjacentIterator.next();
+					if (board.isOccupied(space))
+					{
+						PieceData adjacentPiece = board.getPieceAt(space);
+						if (adjacentPiece.getColor() == trappedPiece.getColor())
+						{
+							// We found an ally! We're safe!
+							pieceIsDead = false;
+						}
+					}
+				}
+
+				// Now kill the piece.
+				if (pieceIsDead)
+				{
+					// Remove the piece from the board.
+					board.removePiece(trapPosition);
+
+					// Move the piece to the appropriate bucket.
+					addToBucket(trappedPiece, new BucketPosition(trappedPiece.getColor()));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Returns true if the current player is able to end their turn.
+	 *
+	 * @return
+	 */
+	public boolean canPlayerEndTurn()
+	{
+		if(phase == GameConstants.SETUP_PHASE)
+		{
+			List<PieceData> bucket;
+			if(playerTurn == GameConstants.GOLD)
+			{
+				bucket = goldBucket;
+			}
+			else
+			{
+				bucket = silverBucket;
+			}
+			return bucket.isEmpty();
+		}
+		else if(phase == GameConstants.GAME_ON)
+		{
+			return numMoves >= 1 && pushPosition == null;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Return the number of moves remaining in this turn.
+	 * 
+	 * @return
+	 */
+	public int getRemainingMoves()
+	{
+		if(phase == GameConstants.GAME_ON)
+		{
+			return 4 - numMoves;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }

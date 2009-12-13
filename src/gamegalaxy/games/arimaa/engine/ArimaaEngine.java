@@ -33,9 +33,6 @@ import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.StepData;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 
-import java.util.Iterator;
-import java.util.List;
-
 /**
  * This class manages all of the data associated with an Arimaa game. It accepts and validates incoming moves as well as storing all of the data for
  * representing the board.
@@ -353,91 +350,10 @@ public class ArimaaEngine
 	 */
 	public void takeStep(StepData step)
 	{
-		BoardData board = currentGameState.getBoardData();
-		PieceData piece = step.getPiece();
-		PiecePosition destination = step.getDestination();
-		
 		// Validate the move and don't move onto the same space.
-		if (isValidStep(step) && !piece.getPosition().equals(destination))
+		if (isValidStep(step))
 		{
-			if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
-			{
-				// Moving from bucket to board.
-				// First remove the piece from the bucket.
-				removePieceFromBucket((BucketPosition) piece.getPosition(), piece);
-
-				// Now place the piece on the board in the correct space.
-				board.placePiece(piece, (BoardPosition) destination);
-			}
-			else if (destination instanceof BoardPosition)
-			{
-				// Moving from board to board.
-				BoardPosition originalPosition = (BoardPosition) piece.getPosition();
-				BoardPosition newPosition = (BoardPosition) destination;
-
-				board.removePiece(originalPosition);
-
-				board.placePiece(piece, newPosition);
-
-				if (currentGameState.isGameOn())
-				{
-					// Increment the number of moves
-					currentGameState.incrementNumMoves();
-
-					if (piece.getColor() != currentGameState.getCurrentPlayer())
-					{
-						if (currentGameState.getPullPosition() != null && currentGameState.getPullPosition().equals(newPosition))
-						{
-							// This cannot be a push or a pull.
-							currentGameState.setPullPosition(null);
-							currentGameState.setPushPosition(null);
-						}
-						else
-						{
-							// This is a push.
-							currentGameState.setPushPosition(originalPosition);
-						}
-					}
-					else
-					{
-						// This is a move of this player's color.
-						if (currentGameState.getPushPosition() == null)
-						{
-							// The last move was *not* a push position. You can
-							// record the piece movement.
-							currentGameState.setPullPosition(originalPosition);
-						}
-						else
-						{
-							// The last move was a push. Reset it.
-							currentGameState.setPushPosition(null);
-						}
-					}
-				}
-				currentGameState.setLastPieceMoved(piece);
-			}
-			else
-			{
-				// Moving from board to bucket.
-				BoardPosition originalPosition = (BoardPosition) piece.getPosition();
-				BucketPosition newPosition = (BucketPosition) destination;
-
-				// Remove the piece from the board.
-				board.removePiece(originalPosition);
-
-				// Add the piece to the bucket.
-				currentGameState.addToBucket(piece, newPosition);
-			}
-
-			if (currentGameState.isGameOn())
-			{
-				// Check the traps to see if there are pieces in them and if
-				// they are dead.
-				checkTheTraps();
-
-				// Check to see if anyone has won the game.
-				checkForWinner();
-			}
+			currentGameState.takeStep(step);
 		}
 
 		// Update the UI with the results.
@@ -508,114 +424,11 @@ public class ArimaaEngine
 	 * End the current player's turn.
 	 * 
 	 */
-	public void endTurn()
+	public void endMove()
 	{
-		currentGameState.endTurn();
+		currentGameState.endMove();
 
 		gui.displayGameState(getCurrentGameState());
-	}
-
-	/**
-	 * Evaluate the current game situation to determine if there has been a winner.
-	 * 
-	 */
-	private void checkForWinner()
-	{
-		boolean foundGoldRabbit = false;
-		boolean foundSilverRabbit = false;
-		Iterator<PieceData> iterator = currentGameState.getPieces().iterator();
-		while (iterator.hasNext())
-		{
-			PieceData piece = iterator.next();
-
-			// If we find a rabbit piece, check to see if it is in the back row.
-			if (piece.getValue() == PieceData.RABBIT)
-			{
-				// Check if the rabbit is in the back row.
-				if (piece.getPosition() != null)
-				{
-					if (piece.getPosition() instanceof BoardPosition)
-					{
-						BoardPosition position = (BoardPosition) piece.getPosition();
-						if (piece.getColor() == GameConstants.GOLD)
-						{
-							foundGoldRabbit = true;
-							if (position.getRow() == 0)
-							{
-								// Gold won!!!
-								currentGameState.setGameWinner(GameConstants.GOLD);
-							}
-						}
-						else
-						{
-							foundSilverRabbit = true;
-							if (position.getRow() == 7)
-							{
-								// Silver won!
-								currentGameState.setGameWinner(GameConstants.SILVER);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		// If we made it here, make sure we found rabbits of each color.
-		if (!foundGoldRabbit)
-		{
-			currentGameState.setGameWinner(GameConstants.SILVER);
-		}
-		else if (!foundSilverRabbit)
-		{
-			currentGameState.setGameWinner(GameConstants.GOLD);
-		}
-	}
-
-	/**
-	 * Check all of the traps to see if there are any pieces that need to be captured.
-	 * 
-	 */
-	private void checkTheTraps()
-	{
-		BoardData board = currentGameState.getBoardData();
-		
-		Iterator<BoardPosition> iterator = BoardData.getTrapPosition().iterator();
-		while (iterator.hasNext())
-		{
-			BoardPosition trapPosition = iterator.next();
-			if (board.isOccupied(trapPosition))
-			{
-				PieceData trappedPiece = board.getPieceAt(trapPosition);
-				boolean pieceIsDead = true;
-
-				// Check for allies in each direction:
-				List<BoardPosition> adjacentSpaces = trapPosition.getAdjacentSpaces();
-				Iterator<BoardPosition> adjacentIterator = adjacentSpaces.iterator();
-				while (adjacentIterator.hasNext())
-				{
-					BoardPosition space = adjacentIterator.next();
-					if (board.isOccupied(space))
-					{
-						PieceData adjacentPiece = board.getPieceAt(space);
-						if (adjacentPiece.getColor() == trappedPiece.getColor())
-						{
-							// We found an ally! We're safe!
-							pieceIsDead = false;
-						}
-					}
-				}
-
-				// Now kill the piece.
-				if (pieceIsDead)
-				{
-					// Remove the piece from the board.
-					board.removePiece(trapPosition);
-
-					// Move the piece to the appropriate bucket.
-					currentGameState.addToBucket(trappedPiece, new BucketPosition(trappedPiece.getColor()));
-				}
-			}
-		}
 	}
 
 	/**
@@ -625,6 +438,7 @@ public class ArimaaEngine
 	public void doRandomSetup()
 	{
 		currentGameState.doRandomSetup();
+		
 		// Update the UI
 		gui.displayGameState(getCurrentGameState());
 	}
