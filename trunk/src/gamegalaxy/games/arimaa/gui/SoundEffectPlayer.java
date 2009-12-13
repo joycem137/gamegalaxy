@@ -41,12 +41,14 @@ public class SoundEffectPlayer
 	private Clip	pickupSound;
 	private Clip	dropSound;
 	private Clip	trapSound;
+	private Clip	bzztSound;
 
 	public SoundEffectPlayer()
 	{
 		pickupSound = loadSoundFile("resources/arimaa/pickup.wav");
 		dropSound = loadSoundFile("resources/arimaa/dropsound.wav");
 		trapSound = loadSoundFile("resources/arimaa/trap.wav");
+		bzztSound = loadSoundFile("resources/arimaa/bzzt.wav");
 	}
 
 	/**
@@ -106,5 +108,10 @@ public class SoundEffectPlayer
 	public void playTrapSound()
 	{
 		playSound(trapSound);
+	}
+	
+	public void playBzztSound()
+	{
+		playSound(bzztSound);
 	}
 }

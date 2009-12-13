@@ -170,6 +170,10 @@ public class ArimaaUI extends JPanel
 							Point mousePosition = new Point(me.getX(), me.getY());
 							pickUpPiece(piecePanel, mousePosition);
 						}
+						else
+						{
+							audioPlayer.playBzztSound();
+						}
 					}
 				}
 			}
