@@ -76,7 +76,7 @@ public class StatusPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				engine.endTurn();
+				engine.endMove();
 			}
 		});
 		endTurnButton.setSize(164, 33);
