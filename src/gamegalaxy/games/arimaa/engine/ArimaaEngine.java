@@ -95,13 +95,7 @@ public class ArimaaEngine
 			if (!board.pieceHasSpaceToMoveInto(piece)) return false;
 
 			// Check the color of this piece
-			if (piece.getColor() != currentGameState.getCurrentPlayer()) // The
-			// piece
-			// is
-			// the
-			// opposite
-			// player
-			// 's
+			if (piece.getColor() != currentGameState.getCurrentPlayer()) // The piece is the opposite player 's
 			{
 				// If we have a forced move, you can't do this.
 				if (currentGameState.getPushPosition() != null) return false;
@@ -171,7 +165,7 @@ public class ArimaaEngine
 
 		// Let's actually see if the move is valid.
 		if (currentGameState.isSetupPhase())
-		{
+		{	
 			// Handle the bucket case:
 			if (destination instanceof BucketPosition)
 			{
@@ -198,11 +192,15 @@ public class ArimaaEngine
 				return true;
 			}
 
-			// If the space is occupied, a move is invalid. (swaps may be okay
-			// though.)
+			// If the space is occupied, swaps are okay.
 			if (board.isOccupied(newPosition))
 			{
-				return false;
+				// Check if the target piece is the same color.
+				if (currentGameState.getBoardData().isOccupied(newPosition))
+				{
+					PieceData targetPiece = currentGameState.getBoardData().getPieceAt(newPosition);
+					return piece.getColor() == targetPiece.getColor();
+				}
 			}
 
 			// Otherwise, verify that the pair of rows is okay.
@@ -295,52 +293,6 @@ public class ArimaaEngine
 	}
 
 	/**
-	 * Checks to see if the pieces in the original and target squares can be swapped. Swaps are only legal during the Setup phase.
-	 * 
-	 * @param piece
-	 *            PieceData of the piece in the original space.
-	 * @param originalSpace
-	 *            PiecePosition where the selected piece started from.
-	 * @param newSpace
-	 *            target PiecePosition we want to swap with.
-	 * @return true if a valid swap can be made, otherwise false.
-	 */
-	public boolean isValidSwap(PieceData piece, PiecePosition originalSpace, PiecePosition newSpace)
-	{
-		if (newSpace == null) return false;
-
-		// We can only swap during the Setup phase, with pieces of the same
-		// color.
-		if (currentGameState.isSetupPhase())
-		{
-			// Return false if trying to put the piece back in the bucket.
-			if (newSpace instanceof BucketPosition)
-			{
-				return false;
-			}
-
-			// We now know this is a board position
-			BoardPosition newPosition = (BoardPosition) newSpace;
-
-			// Return false if this is the same space we are starting from.
-			if (originalSpace.equals(newSpace))
-			{
-				return false;
-			}
-
-			// Check if the target piece is the same color.
-			if (currentGameState.getBoardData().isOccupied(newPosition))
-			{
-				PieceData targetPiece = currentGameState.getBoardData().getPieceAt(newPosition);
-				return piece.getColor() == targetPiece.getColor();
-			}
-		}
-
-		// Return false under all other circumstances.
-		return false;
-	}
-
-	/**
 	 * Submit the indicated move to the game engine for implementation. Upon completion of the move, the engine will ask the GUI to update to the latest game
 	 * state.
 	 * 
@@ -357,66 +309,6 @@ public class ArimaaEngine
 		}
 
 		// Update the UI with the results.
-		gui.displayGameState(getCurrentGameState());
-	}
-
-	/**
-	 * Remove the indicated piece from the bucket.
-	 * 
-	 * @param bucketPosition
-	 *            The {@link BucketPosition} object that represents the bucket to remove the piece from.
-	 * @param piece
-	 *            The {@link PieceData} object that represents the piece to remove.
-	 */
-	private void removePieceFromBucket(BucketPosition bucketPosition, PieceData piece)
-	{
-		currentGameState.removePieceFromBucket(piece, bucketPosition);
-	}
-
-	/**
-	 * Swaps the location of two pieces. This is used only during the Setup phase of the game.
-	 * 
-	 * @param piece1
-	 *            PieceData of the first piece.
-	 * @param piece2
-	 *            PieceData of the second piece.
-	 * @param space1
-	 *            PiecePosition of the first piece (either a bucket or board location)
-	 * @param space2
-	 *            PiecePosition of the second piece (board location only)
-	 */
-	public void swapPieces(PieceData piece1, PieceData piece2, PiecePosition space1, PiecePosition space2)
-	{
-		if (!isValidSwap(piece1, space1, space2)) return;
-
-		// Assert that the second space is a board position
-		assert space2 instanceof BoardPosition;
-		BoardPosition space2Position = (BoardPosition) space2;
-
-		// Remove the second piece from the board.
-		currentGameState.getBoardData().removePiece(space2Position);
-
-		// Check if the first piece came from a bucket.
-		if (space1 instanceof BucketPosition)
-		{
-			BucketPosition space1Position = (BucketPosition) space1;
-
-			currentGameState.removePieceFromBucket(piece1, space1Position);
-			currentGameState.addToBucket(piece2, space1Position);
-		}
-		// Otherwise both pieces came from the board.
-		else
-		{
-			BoardPosition space1Position = (BoardPosition) space1;
-			// remove the first piece and put the second piece in its place.
-			currentGameState.getBoardData().removePiece(space1Position);
-			currentGameState.getBoardData().placePiece(piece2, space1Position);
-		}
-
-		// finally, put the first piece where the second one was.
-		currentGameState.getBoardData().placePiece(piece1, space2Position);
-
-		// Update the UI with the latest game state.
 		gui.displayGameState(getCurrentGameState());
 	}
 

@@ -253,8 +253,8 @@ public class ArimaaUI extends JPanel
 			BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
 			
 			//Set the highlight, if appropriate
-			if(engine.isValidStep(new StepData(pieceInHand.getData(), mouseOverPosition)) || 
-					engine.isValidSwap(pieceInHand.getData(), pieceInHand.getData().getPosition(), mouseOverPosition))
+			StepData step = new StepData(pieceInHand.getData(), mouseOverPosition);
+			if(engine.isValidStep(step))
 			{
 				highlightSpace(mouseOverPosition);
 			}
@@ -317,18 +317,11 @@ public class ArimaaUI extends JPanel
 		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
 		
 		//Now see if it makes sense to move this piece.
-		if(engine.isValidStep(new StepData(pieceToDrop.getData(), dropPosition)))
+		StepData step = new StepData(pieceToDrop.getData(), dropPosition);
+		if(engine.isValidStep(step))
 		{	
 			//Now update the engine.
-			engine.takeStep(new StepData(pieceToDrop.getData(), dropPosition));
-		}
-		else if(engine.isValidSwap(pieceToDrop.getData(), pieceToDrop.getData().getPosition(), dropPosition))
-		{
-			//need to identify and grab the piecePanel at dropPosition.
-			PiecePanel targetPanel = getPieceAt(dropPosition);
-	
-			//Update the engine.
-			engine.swapPieces(pieceToDrop.getData(), targetPanel.getData(), pieceToDrop.getData().getPosition(), dropPosition);
+			engine.takeStep(step);
 		}
 		else
 		{
@@ -465,66 +458,6 @@ public class ArimaaUI extends JPanel
 			return new BucketPosition(GameConstants.SILVER);
 		}
 		return null;
-	}
-
-	/**
-	 * Finds the PiecePanel located at a specific PiecePosition on the board.
-	 * Since PiecePosition can be either a board location, bucket, edge, or null,
-	 * this will automatically return a null PiecePanel unless the PiecePosition
-	 * specified is on the board.
-	 *
-	 * @param position	the PiecePosition we are wanting to check for pieces.
-	 * @return	the PiecePanel at this position if it exists and is unique; null if
-	 * 			there is no piece here or it is not a board location.
-	 */
-	public PiecePanel getPieceAt(PiecePosition position)
-	{
-		PiecePanel targetPiece = null;
-		
-		if (position instanceof BoardPosition)
-		{
-			//we'll use an Iterator to scan the piecePanels for the one we want.
-			Iterator<PiecePanel> iterator = piecePanels.iterator();
-			while(iterator.hasNext())
-			{
-				PiecePanel piecePanel = iterator.next();
-				PiecePosition piecePosition = piecePanel.getData().getPosition();
-				
-				//And compare.
-				if(piecePosition != null)
-				{
-					if(piecePosition.equals(position))
-					{
-						//This is the piece we want.
-						targetPiece = piecePanel;
-					}
-				}
-			}
-			//A piece that has already been removed by the engine will be missed by the first scan.
-			//In this case, scan graphically as well.
-			if(targetPiece == null)
-			{
-				Iterator<PiecePanel> iterator2 = piecePanels.iterator();
-				while(iterator2.hasNext())
-				{
-                    //Get the x,y coords of this piece panel
-                	PiecePanel piecePanel = iterator2.next();
-                	Point location = piecePanel.getLocation();
-                    
-                    //Get the corresponding piece position
-                	PiecePosition piecePosition = getPiecePositionAt(location);
-                    
-                    //And compare.
-                    if(piecePosition.equals(position))
-                	{
-                    	//This is the piece we want.
-                    	targetPiece = piecePanel;
-                    }
-				}
-			}
-		}
-		
-		return targetPiece;
 	}
 
 	/**

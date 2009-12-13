@@ -28,7 +28,7 @@ import java.util.Vector;
 /**
  * 
  */
-public class BoardPosition implements PiecePosition
+public final class BoardPosition implements PiecePosition
 {	
 	private int	row;
 	private int	col;
