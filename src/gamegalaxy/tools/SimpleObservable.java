@@ -38,4 +38,10 @@ public class SimpleObservable extends Observable
 		super.setChanged();
 		super.notifyObservers();
 	}
+	
+	public void notifyObservers(Object o)
+	{
+		super.setChanged();
+		super.notifyObservers(o);
+	}
 }

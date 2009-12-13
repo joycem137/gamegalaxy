@@ -31,7 +31,9 @@ import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.StepData;
-import gamegalaxy.games.arimaa.gui.ArimaaUI;
+import gamegalaxy.tools.SimpleObservable;
+
+import java.util.Observer;
 
 /**
  * This class manages all of the data associated with an Arimaa game. It accepts and validates incoming moves as well as storing all of the data for
@@ -46,7 +48,7 @@ public class ArimaaEngine
 	private GameState	lastGameState;
 
 	// Store a link to the UI
-	private ArimaaUI	gui;
+	private SimpleObservable observable;
 
 	/**
 	 * Create the game engine.
@@ -57,6 +59,7 @@ public class ArimaaEngine
 		currentGameState = new GameState();
 		currentGameState.initializeGameState();
 		lastGameState = currentGameState.copy();
+		observable = new SimpleObservable();
 	}
 
 	/**
@@ -64,11 +67,10 @@ public class ArimaaEngine
 	 * 
 	 * @param gui
 	 */
-	public void linkGUI(ArimaaUI gui)
+	public void addObserver(Observer observer)
 	{
-		this.gui = gui;
-
-		gui.displayGameState(getCurrentGameState());
+		observable.addObserver(observer);
+		observable.notifyObservers();
 	}
 
 	/**
@@ -315,7 +317,7 @@ public class ArimaaEngine
 		}
 
 		// Update the UI with the results.
-		gui.displayGameState(getCurrentGameState());
+		observable.notifyObservers();
 	}
 
 	/**
@@ -327,14 +329,14 @@ public class ArimaaEngine
 		currentGameState.endMove();
 		lastGameState = currentGameState.copy();
 
-		gui.displayGameState(getCurrentGameState());
+		observable.notifyObservers();
 	}
 	
 	public void undoMove()
 	{
 		currentGameState = lastGameState.copy();
-		
-		gui.displayGameState(getCurrentGameState());		
+
+		observable.notifyObservers();		
 	}
 
 	/**
@@ -346,7 +348,7 @@ public class ArimaaEngine
 		currentGameState.doRandomSetup();
 		
 		// Update the UI
-		gui.displayGameState(getCurrentGameState());
+		observable.notifyObservers();
 	}
 
 	/**
@@ -355,7 +357,7 @@ public class ArimaaEngine
 	 * 
 	 * @return
 	 */
-	GameState getCurrentGameState()
+	public GameState getCurrentGameState()
 	{
 		return currentGameState;
 	}

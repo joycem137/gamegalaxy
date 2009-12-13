@@ -51,10 +51,7 @@ import org.junit.Test;
  */
 public class TestEngine
 {
-
 	private ArimaaEngine	engine;
-	private ArimaaUI	gui;
-	private JFrame frame;
 
 	/**
 	 * TODO: Describe method
@@ -63,19 +60,9 @@ public class TestEngine
 	 */
 	@Before
 	public void setUp() throws Exception
-	{
-		//Load all graphical resources.
-		ResourceLoader loader = new ResourceLoader();
-		loader.loadResources("arimaa");
-		
+	{	
 		//Load the game engine
 		engine = new ArimaaEngine();
-		
-		//Load the GUI
-		gui = new ArimaaUI(engine, loader);
-		
-		//Add the GUI to the application frame.
-		frame = new ApplicationFrame(gui);
 	}
 
 	/**
@@ -86,7 +73,6 @@ public class TestEngine
 	@After
 	public void tearDown() throws Exception
 	{
-		frame.dispose();
 	}
 
 	/**
