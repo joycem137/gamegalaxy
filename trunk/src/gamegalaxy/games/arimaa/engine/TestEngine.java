@@ -80,17 +80,14 @@ public class TestEngine
 	 */
 	@Test
 	public void testRandomPlacementWorks()
-	{
-		GameState gameState = new GameState();
-		gameState.initializeGameState();
+	{	
+		engine.doRandomSetup();
+		engine.endMove();
 		
-		gameState.doRandomSetup();
-		gameState.endMove();
+		engine.doRandomSetup();
+		engine.endMove();
 		
-		gameState.doRandomSetup();
-		gameState.endMove();
-		
-		BoardData board = gameState.getBoardData();
+		BoardData board = engine.getCurrentGameState().getBoardData();
 		for(int col = 0; col < 8; col++)
 		{
 			assertTrue(board.isOccupied(new BoardPosition(col, 0)));
@@ -157,7 +154,7 @@ public class TestEngine
 		board = engine.getCurrentGameState().getBoardData();
 		assertEquals(step.getPiece(), board.getPieceAt(destination));
 		assertFalse(board.isOccupied(source));
-		assertEquals(1, engine.getCurrentGameState().getNumMoves());
+		assertEquals(1, engine.getCurrentGameState().getNumSteps());
 	}
 	
 	/**
@@ -186,7 +183,7 @@ public class TestEngine
 		board = engine.getCurrentGameState().getBoardData();
 		assertFalse(board.isOccupied(source));
 		assertFalse(board.isOccupied(destination));
-		assertEquals(engine.getCurrentGameState().getNumMoves(), 1);
+		assertEquals(engine.getCurrentGameState().getNumSteps(), 1);
 		
 		//Verify that the piece is in the bucket.
 		List<PieceData> bucket = engine.getCurrentGameState().getSilverBucket();
@@ -248,9 +245,91 @@ public class TestEngine
 	 *
 	 */
 	@Test
-	public void testBasicFreezing()
+	public void testBasicPushingAndPulling()
 	{
 		//Test walking straight into one.
+		PieceData rabbit = getPieceFromBucket(GameConstants.GOLD, PieceData.RABBIT);
+		
+		//Place it in the front row
+		StepData step = new StepData(rabbit, new BoardPosition(3, 6));
+		engine.takeStep(step);
+		
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Grab the elephant and move it to the front row.
+		PieceData elephant = getPieceFromBucket(GameConstants.SILVER, PieceData.ELEPHANT);
+		
+		//Place it in the front row
+		step = new StepData(elephant, new BoardPosition(3, 1));
+		engine.takeStep(step);
+		
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//Move the rabbit up 4 spaces.
+		BoardPosition source = new BoardPosition(3, 6);
+		BoardPosition destination = source.moveUp();
+		rabbit = board.getPieceAt(source);
+		
+		engine.takeStep(new StepData(rabbit, destination));
+		engine.takeStep(new StepData(rabbit, destination.moveUp()));
+		engine.takeStep(new StepData(rabbit, destination.moveUp().moveUp()));
+		engine.takeStep(new StepData(rabbit, destination.moveUp().moveUp().moveUp()));
+		
+		//End the move
+		engine.endMove();
+		
+		//Move the rabbit down
+		assertTrue(engine.canPieceBeMoved(rabbit));
+		BoardPosition rabbitPosition = (BoardPosition)rabbit.getPosition();
+		step = new StepData(rabbit, rabbitPosition.moveDown());
+		assertTrue(engine.isValidStep(step));
+		engine.takeStep(step);
+		
+		//Assert that we cannot end the move here, since we have a forced push.
+		assertFalse(engine.getCurrentGameState().canPlayerEndTurn());
+		
+		//Move the elephant down.
+		step = new StepData(elephant, rabbitPosition);
+		assertTrue(engine.isValidStep(step));
+		engine.takeStep(step);
+		
+		//Check our state
+		GameState gameState = engine.getCurrentGameState();
+		assertTrue(gameState.canPlayerEndTurn());
+		assertEquals(elephant, gameState.getBoardData().getPieceAt(rabbitPosition));
+		assertEquals(rabbit, gameState.getBoardData().getPieceAt(rabbitPosition.moveDown()));
+		
+		//Now move the elephant back up
+		step = new StepData(elephant, rabbitPosition.moveUp());
+		assertTrue(engine.isValidStep(step));
+		engine.takeStep(step);
+		
+		//And make the rabbit follow
+		assertTrue(engine.canPieceBeMoved(rabbit));
+		step = new StepData(rabbit, rabbitPosition);
+		assertTrue(engine.isValidStep(step));
+		engine.takeStep(step);
+		
+		//And check our state.
+		gameState = engine.getCurrentGameState();
+		assertTrue(gameState.canPlayerEndTurn());
+		assertEquals(elephant, gameState.getBoardData().getPieceAt(rabbitPosition.moveUp()));
+		assertEquals(rabbit, gameState.getBoardData().getPieceAt(rabbitPosition));
+	}
+
+	/**
+	 * Test that pushing works.
+	 */
+	@Test
+	public void testBasicFreezing()
+	{
+		//Grab a rabbit
 		PieceData rabbit = getPieceFromBucket(GameConstants.GOLD, PieceData.RABBIT);
 		
 		//Place it in the front row
@@ -292,29 +371,6 @@ public class TestEngine
 		engine.takeStep(new StepData(elephant, destination));
 		
 		engine.endMove();
-		
-		//Check that the rabbit can't move.
-		board = engine.getCurrentGameState().getBoardData();
-		
-		assertFalse(engine.canPieceBeMoved(rabbit));
-	}
-
-	/**
-	 * Test that pushing works.
-	 */
-	@Test
-	public void testPushing()
-	{
-		fail("Not yet implemented");
-	}
-
-	/**
-	 * Test pulling
-	 */
-	@Test
-	public void testPulling()
-	{
-		fail("Not yet implemented");
 	}
 	
 	/**
@@ -349,9 +405,27 @@ public class TestEngine
 	public void testNumSteps()
 	{
 		//Test that num moves increments when making a normal move
+		//Do a random setup
+		engine.doRandomSetup();
+		engine.endMove();
 		
-		//Test that num moves does not increment when staying stationary
-		fail("Not yet implemented");
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		BoardPosition startPosition = new BoardPosition(3, 6);
+		PieceData piece = engine.getCurrentGameState().getBoardData().getPieceAt(startPosition);
+		StepData normalStep = new StepData(piece, startPosition.moveUp());
+		
+		//Check the numSteps before the move
+		assertEquals(0, engine.getCurrentGameState().getNumSteps());
+		
+		//Check after
+		engine.takeStep(normalStep);
+		assertEquals(1, engine.getCurrentGameState().getNumSteps());
+		
+		//And then a stationary move.
+		engine.takeStep(new StepData(piece, startPosition.moveUp()));
+		assertEquals(1, engine.getCurrentGameState().getNumSteps());
 	}
 	
 	/**
