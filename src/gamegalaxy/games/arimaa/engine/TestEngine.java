@@ -377,25 +377,75 @@ public class TestEngine
 	 * Test game winning conditions
 	 */
 	@Test
-	public void testWinning()
+	public void testNormalWin()
 	{
-		fail("Not yet implemented");
-	}
-	
-	/**
-	 * Test undo move
-	 */
-	@Test
-	public void testUndoMove()
-	{
-		//Test undoing a basic move
+		//Grab a rabbit
+		PieceData rabbit = getPieceFromBucket(GameConstants.GOLD, PieceData.RABBIT);
 		
-		//Test undoing a capture
+		//Place it in the front row
+		StepData step = new StepData(rabbit, new BoardPosition(3, 6));
+		engine.takeStep(step);
 		
-		//Test undoing a push
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
 		
-		//Test undoing a pull.
-		fail("Not yet implemented");
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Move the rabbit as far as it can go.
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//Move the rabbit up 4 spaces.
+		BoardPosition source = new BoardPosition(3, 6);
+		BoardPosition destination = source.moveUp();
+		rabbit = board.getPieceAt(source);
+		
+		engine.takeStep(new StepData(rabbit, destination));
+		engine.takeStep(new StepData(rabbit, destination.moveUp()));
+		engine.takeStep(new StepData(rabbit, destination.moveUp().moveUp()));
+		engine.takeStep(new StepData(rabbit, destination.moveUp().moveUp().moveUp()));
+		
+		engine.endMove();
+		
+		//Move some silver pieces out of the way.
+		BoardPosition trapPosition = new BoardPosition(2, 2);
+		PieceData piece = board.getPieceAt(trapPosition.moveUp());
+		engine.takeStep(new StepData(piece, trapPosition));
+		
+		piece = board.getPieceAt(trapPosition.moveUp().moveRight());
+		engine.takeStep(new StepData(piece, trapPosition.moveUp()));
+		engine.takeStep(new StepData(piece, trapPosition));
+		
+		piece = board.getPieceAt(new BoardPosition(3, 0));
+		engine.takeStep(new StepData(piece, new BoardPosition(3, 1)));
+		
+		engine.endMove();
+		
+		//Move a random gold piece and then move back to getting silver pieces out of the way.
+		piece = board.getPieceAt(new BoardPosition(2, 6));
+		engine.takeStep(new StepData(piece, new BoardPosition(2, 5)));
+		engine.endMove();
+		
+		//Move a few more silver pieces around.
+		
+		piece = board.getPieceAt(new BoardPosition(3, 1));
+		engine.takeStep(new StepData(piece, new BoardPosition(2, 1)));
+		engine.takeStep(new StepData(piece, trapPosition));
+		
+		piece = board.getPieceAt(new BoardPosition(4, 1));
+		engine.takeStep(new StepData(piece, new BoardPosition(4, 2)));
+		engine.takeStep(new StepData(piece, new BoardPosition(5, 2)));
+		engine.endMove();
+		
+		//Now we should be clear.  Send in the rabbit!
+		engine.takeStep(new StepData(rabbit, new BoardPosition(3, 1)));
+		engine.takeStep(new StepData(rabbit, new BoardPosition(3, 0)));
+		
+		//Assert that the game has been won.
+		assertTrue(engine.getCurrentGameState().isGameOver());
+		assertEquals(GameConstants.GOLD, engine.getCurrentGameState().getGameWinner());
 	}
 	
 	/**
