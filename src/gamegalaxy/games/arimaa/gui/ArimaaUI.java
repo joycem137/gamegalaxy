@@ -509,7 +509,7 @@ public class ArimaaUI extends JPanel implements Observer
 		
 		//Display the turn state.
 		statusPanel.setTurnState(gameState.getCurrentPlayer());
-		statusPanel.showEndTurnButton(gameState.canPlayerEndTurn(), gameState.isGameOn() && gameState.getNumMoves() > 0);
+		statusPanel.showEndTurnButton(gameState.canPlayerEndTurn(), gameState.isGameOn() && gameState.getNumSteps() > 0);
 		
 		//Show the number of turns remaining
 		remainingMovesPanel.setMoves(gameState.getRemainingMoves());

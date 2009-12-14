@@ -286,7 +286,7 @@ public final class GameState
 		return board;
 	}
 
-	public int getNumMoves() 
+	public int getNumSteps() 
 	{
 		return numSteps;
 	}

@@ -82,7 +82,7 @@ public class ArimaaEngine
 	public boolean canPieceBeMoved(PieceData piece)
 	{
 		// If we've exceeded our moves, we can't do this.
-		if (currentGameState.getNumMoves() >= 4) return false;
+		if (currentGameState.getNumSteps() >= 4) return false;
 
 		if (currentGameState.isSetupPhase())
 		{
@@ -116,7 +116,7 @@ public class ArimaaEngine
 
 				// The piece can only be pushed if there are at least two moves
 				// left.
-				if (currentGameState.getNumMoves() > 2) return false;
+				if (currentGameState.getNumSteps() > 2) return false;
 
 				return board.pieceCanBePushed(piece);
 			}
