@@ -26,21 +26,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import gamegalaxy.games.arimaa.data.BoardData;
 import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.StepData;
-import gamegalaxy.games.arimaa.gui.ArimaaUI;
-import gamegalaxy.gui.ApplicationFrame;
-import gamegalaxy.tools.ResourceLoader;
 
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JFrame;
 
 import org.junit.After;
 import org.junit.Before;
@@ -478,6 +472,115 @@ public class TestEngine
 		assertEquals(1, engine.getCurrentGameState().getNumSteps());
 	}
 	
+	/**
+	 * Test that pieces do not swap unless they are placed over another piece
+	 */
+	@Test
+	public void testBasicSetupPhase()
+	{
+		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
+		int numPieces = 16;
+		for(int col = 0; col < 7; col++)
+		{
+			//Drop a piece in the top row.
+			StepData step = new StepData(bucket.get(0), new BoardPosition(col, 6));
+			assertTrue(engine.isValidStep(step));
+			engine.takeStep(step);
+			bucket = engine.getCurrentGameState().getGoldBucket();
+			numPieces--;
+			assertEquals(numPieces, bucket.size());
+			
+			//Drop a piece in the bottom row.
+			step = new StepData(bucket.get(0), new BoardPosition(col, 7));
+			assertTrue(engine.isValidStep(step));
+			engine.takeStep(step);
+			bucket = engine.getCurrentGameState().getGoldBucket();
+			numPieces--;
+			assertEquals(numPieces, bucket.size());
+		}
+	}
+	
+	/**
+	 * Test that pieces do not swap unless they are placed over another piece
+	 */
+	@Test
+	public void testForAccidentalSwaps()
+	{
+		int col = 0;
+		int numPieces = 16;
+		
+		PieceData horse1 = getPieceFromBucket(GameConstants.GOLD, PieceData.HORSE);
+		confirmPlacement1(horse1, col, numPieces);
+		numPieces--;
+		col++;
+		
+		PieceData horse2 = getPieceFromBucket(GameConstants.GOLD, PieceData.HORSE);
+		confirmPlacement2(horse2, col, numPieces, horse1);
+		numPieces--;
+		col++;
+		
+		PieceData dog1 = getPieceFromBucket(GameConstants.GOLD, PieceData.DOG);
+		confirmPlacement1(dog1, col, numPieces);
+		numPieces--;
+		col++;
+		
+		PieceData dog2 = getPieceFromBucket(GameConstants.GOLD, PieceData.DOG);
+		confirmPlacement2(dog2, col, numPieces, dog1);
+		numPieces--;
+		col++;
+		
+		PieceData cat1 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
+		confirmPlacement1(horse1, col, numPieces);
+		numPieces--;
+		col++;
+		
+		PieceData cat2 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
+		confirmPlacement2(cat2, col, numPieces, cat1);
+		numPieces--;
+		col++;
+	}
+	
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param horse2
+	 * @param col
+	 * @param numPieces
+	 * @param horse1
+	 */
+	private void confirmPlacement2(PieceData horse2, int col, int numPieces, PieceData horse1)
+	{	
+		StepData step = new StepData(horse2, new BoardPosition(col, 6));
+		assertTrue(engine.isValidStep(step));
+		engine.takeStep(step);
+		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
+		assertEquals(numPieces - 1, bucket.size());
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		assertEquals(horse2, board.getPieceAt(new BoardPosition(col, 6)));
+		assertEquals(horse1, board.getPieceAt(new BoardPosition(col - 1, 6)));
+		assertEquals(new BoardPosition(col, 6), horse2.getPosition());
+		assertEquals(new BoardPosition(col - 1, 6), horse1.getPosition());
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @param piece
+	 * @param col
+	 */
+	private void confirmPlacement1(PieceData piece, int col, int numPieces)
+	{	
+		//Drop a piece in the top row.
+		StepData step = new StepData(piece, new BoardPosition(col, 6));
+		assertTrue(engine.isValidStep(step));
+		engine.takeStep(step);
+		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
+		assertEquals(numPieces - 1, bucket.size());
+		assertEquals(new BoardPosition(col, 6), piece.getPosition());
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		assertEquals(piece, board.getPieceAt(new BoardPosition(col, 6)));
+	}
+
 	/**
 	 * TODO: Describe method
 	 * @param i 
