@@ -329,26 +329,35 @@ public class ArimaaUI extends JPanel implements Observer
 		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
 		
 		//Now see if it makes sense to move this piece.
-		StepData step = new StepData(pieceToDrop.getData(), dropPosition);
-		if(engine.isValidStep(step))
-		{	
-			//Now update the engine.
-			engine.takeStep(step);
-
-			//Play a effect
-			if(engine.lastStepWasCapture())
-			{
-				audioPlayer.playTrapSound();
-			}
-			else
-			{
-				audioPlayer.playDropSound();
-			}
+		if(pieceToDrop.getData().getPosition().equals(dropPosition))
+		{
+			//Set the piece in its original location.
+			pieceToDrop.setLocation(pieceInHandOriginalLocation);
+			audioPlayer.playDropSound();
 		}
 		else
 		{
-			pieceToDrop.setLocation(pieceInHandOriginalLocation);
-		}	
+			StepData step = new StepData(pieceToDrop.getData(), dropPosition);
+			if(engine.isValidStep(step))
+			{	
+				//Now update the engine.
+				engine.takeStep(step);
+	
+				//Play an effect
+				if(engine.lastStepWasCapture())
+				{
+					audioPlayer.playTrapSound();
+				}
+				else
+				{
+					audioPlayer.playDropSound();
+				}
+			}
+			else
+			{
+				pieceToDrop.setLocation(pieceInHandOriginalLocation);
+			}
+		}
 	}
 
 	/**

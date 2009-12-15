@@ -314,10 +314,11 @@ public class ArimaaEngine
 		if (isValidStep(step) && !step.getPiece().getPosition().equals(step.getDestination()))
 		{
 			currentGameState.takeStep(step);
+			
+			// Update the UI with the results.
+			observable.notifyObservers();
 		}
 
-		// Update the UI with the results.
-		observable.notifyObservers();
 	}
 
 	/**
