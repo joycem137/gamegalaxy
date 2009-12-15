@@ -471,6 +471,42 @@ public class TestEngine
 	}
 	
 	/**
+	 * Test that suicide killing all of the rabbits gives the game to the other player.
+	 */
+	@Test
+	public void testSuicideVictory()
+	{
+		killAlmostAllOfTheRabbits();
+		PieceData rabbit = engine.getCurrentGameState().getBoardData().getPieceAt(new BoardPosition(6, 5));
+		movePieceLeft(rabbit); //And that should win the game for silver.
+		
+		GameState gameState = engine.getCurrentGameState();
+		assertTrue(gameState.isGameOver());
+		assertEquals(GameConstants.SILVER, gameState.getGameWinner());
+	}
+	
+	/**
+	 * Test that killing all of the rabbits gives the game to the current player.
+	 */
+	@Test
+	public void testKillingVictory()
+	{	
+		killAlmostAllOfTheRabbits();
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		PieceData rabbit = board.getPieceAt(new BoardPosition(6, 5));
+		PieceData elephant = board.getPieceAt(new BoardPosition(6, 3));
+		
+		//Make it silver's turn again
+		engine.endMove();
+		movePieceDown(elephant);
+		movePieceLeft(rabbit);
+		
+		GameState gameState = engine.getCurrentGameState();
+		assertTrue(gameState.isGameOver());
+		assertEquals(GameConstants.SILVER, gameState.getGameWinner());
+	}
+	
+	/**
 	 * Test incrementing of numSteps
 	 */
 	@Test
@@ -566,10 +602,97 @@ public class TestEngine
 	/**
 	 * TODO: Describe method
 	 *
+	 */
+	private void killAlmostAllOfTheRabbits()
+	{	
+		//Line the front row with rabbits.
+		for(int col = 0; col < 8; col++)
+		{
+			placePieceTypeOnBoard(PieceData.RABBIT, col, 6);
+		}
+		
+		//Do the rest randomly.
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Place an elephant on the board across from where the last rabbit will be
+		placePieceTypeOnBoard(PieceData.ELEPHANT, 6, 1);
+		
+		//Do the rest randomly.
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Go kill some rabbits.
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//Kill the rabbit next to the trap
+		PieceData rabbit = board.getPieceAt(new BoardPosition(2, 6));
+		movePieceUp(rabbit);
+		
+		//Kill the one down on the right.
+		rabbit = board.getPieceAt(new BoardPosition(0, 6));
+		movePieceUp(rabbit);
+		movePieceRight(rabbit);
+		movePieceRight(rabbit); //Scratch one rabbit 
+		
+		//Do a dummy move.
+		engine.endMove();
+		PieceData elephant = board.getPieceAt(new BoardPosition(6, 1));
+		movePieceDown(elephant);
+		engine.endMove();
+		
+		//And back to rabbit killin!
+		rabbit = board.getPieceAt(new BoardPosition(1, 6));
+		movePieceUp(rabbit);
+		movePieceRight(rabbit); //Another kill
+		
+		rabbit = board.getPieceAt(new BoardPosition(3, 6));
+		movePieceUp(rabbit);
+		movePieceLeft(rabbit);
+		
+		//Cycle back to gold again
+		engine.endMove();
+		movePieceDown(elephant);
+		engine.endMove();
+		
+		//And kill rabbits!
+		
+		rabbit = board.getPieceAt(new BoardPosition(5, 6));
+		movePieceUp(rabbit); //Right into the trap!
+		
+		rabbit = board.getPieceAt(new BoardPosition(4, 6));
+		movePieceUp(rabbit);
+		movePieceRight(rabbit); //Dead!
+		
+		rabbit = board.getPieceAt(new BoardPosition(6, 6));
+		movePieceUp(rabbit);
+		
+		//Cycle
+		engine.endMove();
+		movePieceRight(elephant);
+		engine.endMove();
+		
+		//Rabbits!
+		movePieceLeft(rabbit);
+		
+		//And the last one
+		rabbit = board.getPieceAt(new BoardPosition(7, 6));
+		movePieceUp(rabbit);
+		movePieceLeft(rabbit);
+		
+		engine.endMove();
+		movePieceLeft(elephant);
+		engine.endMove();
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
 	 * @param piece
 	 */
 	private void movePieceDown(PieceData piece)
 	{
+		assertNotNull(piece);
 		assertTrue(engine.canPieceBeMoved(piece));
 		BoardPosition rabbitPosition = (BoardPosition)piece.getPosition();
 		StepData step = new StepData(piece, rabbitPosition.moveDown());
@@ -584,6 +707,7 @@ public class TestEngine
 	 */
 	private void movePieceUp(PieceData piece)
 	{
+		assertNotNull(piece);
 		assertTrue(engine.canPieceBeMoved(piece));
 		BoardPosition rabbitPosition = (BoardPosition)piece.getPosition();
 		StepData step = new StepData(piece, rabbitPosition.moveUp());
@@ -598,6 +722,7 @@ public class TestEngine
 	 */
 	private void movePieceLeft(PieceData piece)
 	{
+		assertNotNull(piece);
 		assertTrue(engine.canPieceBeMoved(piece));
 		BoardPosition rabbitPosition = (BoardPosition)piece.getPosition();
 		StepData step = new StepData(piece, rabbitPosition.moveLeft());
@@ -612,6 +737,7 @@ public class TestEngine
 	 */
 	private void movePieceRight(PieceData piece)
 	{
+		assertNotNull(piece);
 		assertTrue(engine.canPieceBeMoved(piece));
 		BoardPosition rabbitPosition = (BoardPosition)piece.getPosition();
 		StepData step = new StepData(piece, rabbitPosition.moveRight());
