@@ -66,31 +66,6 @@ public final class BoardPosition implements PiecePosition
 	{
 		return row;
 	}
-	
-	/**
-	 * 
-	 * Compares this BoardPosition object with another object.  Returns true if the two
-	 * objects are both PiecePosition objects and both have the same row and column.
-	 *
-	 * @param o The object to compare this object to.
-	 * @return <code>true</code> if the two objects are equivalent
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	public boolean equals(Object o)
-	{
-		//Verify that this is actually a PiecePosition object.
-		if(o instanceof BoardPosition)
-		{
-			BoardPosition other = (BoardPosition)o;
-			return other.row == row && other.col == col;
-		}
-		else
-		{
-			//This isn't a BoardPosition object.  The two objects cannot be the same.
-			return false;
-		}
-	}
 
 	/**
 	 * Return the Euclidean distance to another BoardPosition
@@ -204,6 +179,51 @@ public final class BoardPosition implements PiecePosition
 		else
 		{
 			return null;
+		}
+	}
+
+	/**
+	 * TODO: Describe overridden method
+	 *
+	 * @param otherPosition
+	 * @return
+	 * @see gamegalaxy.games.arimaa.data.PiecePosition#equals(gamegalaxy.games.arimaa.data.PiecePosition)
+	 */
+	public boolean equals(PiecePosition otherPosition)
+	{
+		//Verify that this is actually a PiecePosition object.
+		if(otherPosition instanceof BoardPosition)
+		{
+			return ((BoardPosition)otherPosition).row == row && ((BoardPosition)otherPosition).col == col;
+		}
+		else
+		{
+			//This isn't a BoardPosition object.  The two objects cannot be the same.
+			return false;
+		}
+	}
+	
+	/**
+	 * 
+	 * Compares this BoardPosition object with another object.  Returns true if the two
+	 * objects are both PiecePosition objects and both have the same row and column.
+	 *
+	 * @param o The object to compare this object to.
+	 * @return <code>true</code> if the two objects are equivalent
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	public boolean equals(Object o)
+	{
+		//Verify that this is actually a PiecePosition object.
+		if(o instanceof BoardPosition)
+		{
+			return ((BoardPosition)o).row == row && ((BoardPosition)o).col == col;
+		}
+		else
+		{
+			//This isn't a BoardPosition object.  The two objects cannot be the same.
+			return false;
 		}
 	}
 }

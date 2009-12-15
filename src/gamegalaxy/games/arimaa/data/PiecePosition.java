@@ -33,4 +33,5 @@ package gamegalaxy.games.arimaa.data;
  */
 public interface PiecePosition
 {
+	public boolean equals(PiecePosition otherPosition);
 }
