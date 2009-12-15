@@ -51,6 +51,39 @@ public final class BucketPosition implements PiecePosition
 	}
 	
 	/**
+	 * returns a string representation of this bucket
+	 *
+	 * @return
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString()
+	{
+		return "Bucket " + color;
+	}
+
+	/**
+	 * TODO: Describe overridden method
+	 *
+	 * @param otherPosition
+	 * @return
+	 * @see gamegalaxy.games.arimaa.data.PiecePosition#equals(gamegalaxy.games.arimaa.data.PiecePosition)
+	 */
+	public boolean equals(PiecePosition otherPosition)
+	{
+		//Verify that this is actually a PiecePosition object.
+		if(otherPosition instanceof BucketPosition)
+		{
+			BucketPosition other = (BucketPosition)otherPosition;
+			return other.color == color;
+		}
+		else
+		{
+			//This isn't a BucketPosition object.  The two objects cannot be the same.
+			return false;
+		}
+	}
+	
+	/**
 	 * 
 	 * Compares this BoardPosition object with another object.  Returns true if the two
 	 * objects are both PiecePosition objects and both have the same row and column.
@@ -73,17 +106,6 @@ public final class BucketPosition implements PiecePosition
 			//This isn't a BucketPosition object.  The two objects cannot be the same.
 			return false;
 		}
-	}
-	
-	/**
-	 * returns a string representation of this bucket
-	 *
-	 * @return
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString()
-	{
-		return "Bucket " + color;
 	}
 
 }

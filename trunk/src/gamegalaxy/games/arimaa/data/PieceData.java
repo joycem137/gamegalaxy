@@ -148,33 +148,4 @@ public class PieceData
 		newPiece.position = position;
 		return newPiece;
 	}
-	
-	/**
-	 * 
-	 * Compares this piece against the passed in piece.
-	 *
-	 * @param piece
-	 * @return
-	 */
-	public boolean equals(PieceData otherPiece)
-	{
-		return color == otherPiece.color && value == otherPiece.value;
-	}
-	
-	/*
-	 * Overrides Object.equals to provide comparison abilities when in lists.
-	 */
-	public boolean equals(Object o)
-	{
-		//Our abort case.
-		if(o instanceof PieceData)
-		{
-			return equals((PieceData)o);
-		}
-		else
-		{
-			return false;
-		}
-		
-	}
 }

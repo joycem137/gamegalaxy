@@ -530,7 +530,7 @@ public class TestEngine
 		col++;
 		
 		PieceData cat1 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
-		confirmPlacement1(horse1, col, numPieces);
+		confirmPlacement1(cat1, col, numPieces);
 		numPieces--;
 		col++;
 		
@@ -555,6 +555,7 @@ public class TestEngine
 		engine.takeStep(step);
 		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
 		assertEquals(numPieces - 1, bucket.size());
+		
 		BoardData board = engine.getCurrentGameState().getBoardData();
 		assertEquals(horse2, board.getPieceAt(new BoardPosition(col, 6)));
 		assertEquals(horse1, board.getPieceAt(new BoardPosition(col - 1, 6)));
@@ -574,6 +575,7 @@ public class TestEngine
 		StepData step = new StepData(piece, new BoardPosition(col, 6));
 		assertTrue(engine.isValidStep(step));
 		engine.takeStep(step);
+		
 		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
 		assertEquals(numPieces - 1, bucket.size());
 		assertEquals(new BoardPosition(col, 6), piece.getPosition());
