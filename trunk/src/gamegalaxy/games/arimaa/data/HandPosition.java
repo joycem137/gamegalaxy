@@ -26,7 +26,7 @@ package gamegalaxy.games.arimaa.data;
  * This class represents the position of a piece being in the player's "hand"
  * which means that it has a forced move to make.
  */
-public class HandPosition implements PiecePosition
+public final class HandPosition implements PiecePosition
 {
 	private BoardPosition	oldPosition;
 
