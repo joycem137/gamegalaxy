@@ -529,15 +529,17 @@ public class ArimaaUI extends JPanel implements Observer
 			forcePieceInHand(gameState.getPieceInHand());
 		}
 		
-		//Now check if the game is over.
 		if(gameState.isGameOver())
 		{
+			//Display the Game winner results.
 			statusPanel.setWinner(gameState.getGameWinner());
 		}
-		
-		//Display the turn state.
-		statusPanel.setTurnState(gameState.getCurrentPlayer());
-		statusPanel.showEndTurnButton(gameState.canPlayerEndTurn(), gameState.isGameOn() && gameState.getNumSteps() > 0);
+		else
+		{
+			//Display the turn state.
+			statusPanel.setTurnState(gameState.getCurrentPlayer());
+			statusPanel.showEndTurnButton(gameState.canPlayerEndTurn(), gameState.isGameOn() && gameState.getNumSteps() > 0);
+		}
 		
 		//Show the number of turns remaining
 		remainingMovesPanel.setMoves(gameState.getRemainingMoves());
