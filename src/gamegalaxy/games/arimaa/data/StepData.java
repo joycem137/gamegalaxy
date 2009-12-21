@@ -30,6 +30,7 @@ public final class StepData
 
 	private PieceData	piece;
 	private PiecePosition	destination;
+	private PiecePosition	sourcePosition;
 
 	/**
 	 * TODO: Describe constructor
@@ -41,6 +42,7 @@ public final class StepData
 	{
 		this.piece = piece;
 		this.destination = destination;
+		sourcePosition = piece.getPosition();
 	}
 
 	/**
@@ -82,6 +84,26 @@ public final class StepData
 	public PiecePosition getDestination()
 	{
 		return destination;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public PiecePosition getSource()
+	{
+		return sourcePosition;
+	}
+
+	/**
+	 * TODO: Describe method
+	 *
+	 * @return
+	 */
+	public StepData copy()
+	{
+		return new StepData(piece.copy(), destination);
 	}
 
 }

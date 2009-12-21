@@ -45,7 +45,7 @@ public final class GameState
 	
 	private BoardPosition	pushPosition;
 	private BoardPosition	pullPosition;
-	private PieceData	lastPieceMoved;
+	private StepData	lastStep;
 	private int	winner;
 	
 	private List<PieceData>	pieces;
@@ -57,7 +57,7 @@ public final class GameState
 	{
 		pushPosition = null;
 		pullPosition = null;
-		lastPieceMoved = null;
+		lastStep = null;
 		
 		board = null;
 		pieces = null;
@@ -94,9 +94,9 @@ public final class GameState
 		newState.pushPosition = pushPosition;
 		newState.pullPosition = pullPosition;
 		
-		if (lastPieceMoved != null)
+		if (lastStep != null)
 		{
-			newState.lastPieceMoved = lastPieceMoved.copy();
+			newState.lastStep = lastStep.copy();
 		}
 			
 		newState.winner = winner;
@@ -115,7 +115,7 @@ public final class GameState
 		// Start with no forced push/pull scenario.
 		pushPosition = null;
 		pullPosition = null;
-		lastPieceMoved = null;
+		lastStep = null;
 
 		// Start in the setup phase.
 		phase = GameConstants.SETUP_PHASE;
@@ -310,11 +310,6 @@ public final class GameState
 	public BoardPosition getPullPosition()
 	{
 		return pullPosition;
-	}
-
-	public PieceData getLastPieceMoved()
-	{
-		return lastPieceMoved;
 	}
 	
 	/**
@@ -590,7 +585,7 @@ public final class GameState
 				board.placePiece(swapPiece, originalPosition);
 			}
 			
-			lastPieceMoved = piece;
+			lastStep = step;
 		}
 		else
 		{
@@ -623,7 +618,7 @@ public final class GameState
 	
 		// Reset the pulled pieces.
 		pullPosition = null;
-		lastPieceMoved = null;
+		lastStep = null;
 	
 		// Switch the turn.
 		playerTurn = (playerTurn + 1) % 2;
@@ -804,6 +799,16 @@ public final class GameState
 	{
 		phase = GameConstants.GAME_WON;
 		winner = player;
+	}
+
+	/**
+	 * Return the last step made.
+	 *
+	 * @return
+	 */
+	public StepData getLastStep()
+	{
+		return lastStep;
 	}
 
 }

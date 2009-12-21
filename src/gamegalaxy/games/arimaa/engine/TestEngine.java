@@ -462,6 +462,9 @@ public class TestEngine
 		//Assert that no other pieces can move.
 		assertFalse(engine.canPieceBeMoved(board.getPieceAt(new BoardPosition(6, 1))));
 		
+		//Assert that the rabbit cannot move up to avoid invalid pushes.
+		assertFalse(engine.isValidStep(new StepData(rabbit, new BoardPosition(3, 1))));
+		
 		//Move the rabbit down.
 		StepData pushStep = new StepData(rabbit, new BoardPosition(3, 3));
 		assertTrue(engine.canPieceBeMoved(rabbit));
@@ -476,6 +479,9 @@ public class TestEngine
 		
 		//Now move the rabbit back up to test pulling.
 		movePieceUp(rabbit);
+		
+		//Assert that the elephant cannot move back into the rabbit's location
+		assertFalse(engine.isValidStep(new StepData(elephant, new BoardPosition(3, 3))));
 		
 		//And make the elephant follow
 		StepData pullStep = new StepData(elephant, new BoardPosition(3, 1));

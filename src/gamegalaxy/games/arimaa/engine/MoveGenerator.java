@@ -43,7 +43,7 @@ public class MoveGenerator
 	private GameState	gameState;
 
 	/**
-	 * TODO: Describe constructor
+	 * Construct a move generator for the indicated game state.
 	 *
 	 * @param gameState
 	 */
@@ -53,7 +53,7 @@ public class MoveGenerator
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return all possible steps that this piece can take.
 	 *
 	 * @param piece
 	 * @return
@@ -76,44 +76,39 @@ public class MoveGenerator
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return all moves that can be made during the active game phase.
 	 *
 	 * @param piece
 	 * @return
 	 */
 	private List<StepData> generateGameSteps(PieceData piece)
 	{
-		List<StepData> steps = null;
+		List<StepData> steps = new Vector<StepData>();
 		
 		if(gameState.getRemainingMoves() > 0)
 		{
 			//Check to see about forced moves, first.
 			if(gameState.getPieceInHand() != null)
 			{
-				steps = getForcedSteps(piece);
+				steps.addAll(getForcedSteps(piece));
 			}
 			else if(piece.getPosition() instanceof BoardPosition)
 			{ 
 				if(piece.getColor() != gameState.getCurrentPlayer())
 				{
-					steps = getOpponentPieceSteps(piece);
+					steps.addAll(getOpponentPieceSteps(piece));
 				}
 				else if(!gameState.getBoardData().isPieceFrozen(piece))
 				{
 					if(gameState.getPushPosition() != null)
 					{
-						steps = getForcedPush(piece);
+						steps.addAll(getForcedPush(piece));
 					}
 					else
 					{
-						steps = getNormalSteps(piece);
+						steps.addAll(getNormalSteps(piece));
 					}
 				}
-			}
-			else
-			{
-				//Handle the empty case.
-				steps = new Vector<StepData>();
 			}
 		}
 		
@@ -121,7 +116,7 @@ public class MoveGenerator
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Return a list of normal moves that this piece can make.
 	 *
 	 * @param piece
 	 * @return
@@ -213,8 +208,8 @@ public class MoveGenerator
 		//We can either finish a pull, start a pull, or start a push.
 		
 		//Check to see if we can finish a pull.
-		if(gameState.getLastPieceMoved() != null &&
-			piece.getValue() < gameState.getLastPieceMoved().getValue())
+		if(gameState.getLastStep() != null &&
+			piece.getValue() < gameState.getLastStep().getPiece().getValue())
 		{
 			if(gameState.getPullPosition() != null && position.distanceFrom(gameState.getPullPosition()) == 1)
 			{
@@ -245,9 +240,6 @@ public class MoveGenerator
 						if(adjacentPiece.getValue() > piece.getValue())
 						{
 							foundPusher = true;
-						}
-						else if(adjacentPiece.getValue() < piece.getValue())
-						{
 							possiblePullers.add(adjacentPiece);
 						}
 					}
@@ -292,7 +284,7 @@ public class MoveGenerator
 		List<StepData> steps = new Vector<StepData>();
 		
 		//Verify a few facts about this piece and its relationship to the push piece
-		if(piece.getValue() > gameState.getLastPieceMoved().getValue() &&
+		if(piece.getValue() > gameState.getLastStep().getPiece().getValue() &&
 			piece.getColor() == gameState.getCurrentPlayer())
 		{
 			BoardPosition position = (BoardPosition)piece.getPosition();
@@ -323,6 +315,7 @@ public class MoveGenerator
 			 * we can move anywhere we like, so long as the space is unoccupied,
 			 * and we're not moving back to our original location
 			 */
+			StepData lastStep = gameState.getLastStep();
 			BoardData board = gameState.getBoardData();
 			HandPosition position = (HandPosition)piece.getPosition();
 			BoardPosition oldPosition = (BoardPosition)position.getOldPosition();
@@ -331,7 +324,8 @@ public class MoveGenerator
 			while(iterator.hasNext())
 			{
 				BoardPosition destination = iterator.next();
-				if(!board.isOccupied(destination))
+				if(!board.isOccupied(destination) && 
+					!destination.equals(lastStep.getSource()))
 				{
 					steps.add(new StepData(piece, destination));
 				}
