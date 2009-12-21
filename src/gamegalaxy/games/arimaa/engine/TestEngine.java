@@ -26,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import gamegalaxy.games.arimaa.data.BoardData;
 import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
@@ -88,6 +87,74 @@ public class TestEngine
 		}
 	}
 	
+	/**
+	 * Test that pieces do not swap unless they are placed over another piece
+	 */
+	@Test
+	public void testBasicSetupPhase()
+	{
+		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
+		int numPieces = 16;
+		for(int col = 0; col < 7; col++)
+		{
+			//Drop a piece in the top row.
+			StepData step = new StepData(bucket.get(0), new BoardPosition(col, 6));
+			assertTrue(engine.isValidStep(step));
+			engine.takeStep(step);
+			bucket = engine.getCurrentGameState().getGoldBucket();
+			numPieces--;
+			assertEquals(numPieces, bucket.size());
+			
+			//Drop a piece in the bottom row.
+			step = new StepData(bucket.get(0), new BoardPosition(col, 7));
+			assertTrue(engine.isValidStep(step));
+			engine.takeStep(step);
+			bucket = engine.getCurrentGameState().getGoldBucket();
+			numPieces--;
+			assertEquals(numPieces, bucket.size());
+		}
+	}
+
+	/**
+	 * Test that pieces do not swap unless they are placed over another piece
+	 */
+	@Test
+	public void testForAccidentalSwaps()
+	{
+		int col = 0;
+		int numPieces = 16;
+		
+		PieceData horse1 = getPieceFromBucket(GameConstants.GOLD, PieceData.HORSE);
+		confirmPlacement1(horse1, col, numPieces);
+		numPieces--;
+		col++;
+		
+		PieceData horse2 = getPieceFromBucket(GameConstants.GOLD, PieceData.HORSE);
+		confirmPlacement2(horse2, col, numPieces, horse1);
+		numPieces--;
+		col++;
+		
+		PieceData dog1 = getPieceFromBucket(GameConstants.GOLD, PieceData.DOG);
+		confirmPlacement1(dog1, col, numPieces);
+		numPieces--;
+		col++;
+		
+		PieceData dog2 = getPieceFromBucket(GameConstants.GOLD, PieceData.DOG);
+		confirmPlacement2(dog2, col, numPieces, dog1);
+		numPieces--;
+		col++;
+		
+		PieceData cat1 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
+		confirmPlacement1(cat1, col, numPieces);
+		numPieces--;
+		col++;
+		
+		PieceData cat2 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
+		confirmPlacement2(cat2, col, numPieces, cat1);
+		numPieces--;
+		col++;
+	}
+
 	/**
 	 * Test that pieces in the front row can move, and that the pieces in the back
 	 * row cannot.
@@ -158,6 +225,66 @@ public class TestEngine
 		assertEquals(1, engine.getCurrentGameState().getNumSteps());
 	}
 	
+	/**
+	 * Test that rabbits cannot move backwards.
+	 */
+	@Test
+	public void testRabbitMovement()
+	{
+		placePieceTypeOnBoard(PieceData.RABBIT, 3, 6);
+		
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		placePieceTypeOnBoard(PieceData.RABBIT, 3, 1);
+		
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//Move the rabbit up one space.
+		PieceData rabbit1 = board.getPieceAt(new BoardPosition(3, 6));
+		movePieceUp(rabbit1);
+		
+		//Confirm that the rabbit can't move backwards.
+		assertFalse(engine.isValidStep(new StepData(rabbit1, new BoardPosition(3, 6))));
+		
+		engine.endMove();
+		
+		//Now move the silver rabbit down one space.
+		PieceData rabbit2 = board.getPieceAt(new BoardPosition(3, 1));
+		movePieceDown(rabbit2);
+		
+		//Confirm that it can't move back up
+		assertFalse(engine.isValidStep(new StepData(rabbit2, new BoardPosition(3, 1))));
+	}
+	
+	/**
+	 * Test incrementing of numSteps
+	 */
+	@Test
+	public void testNumSteps()
+	{
+		//Test that num moves increments when making a normal move
+		randomlySetupBoard();
+		
+		BoardPosition startPosition = new BoardPosition(3, 6);
+		PieceData piece = engine.getCurrentGameState().getBoardData().getPieceAt(startPosition);
+		StepData normalStep = new StepData(piece, startPosition.moveUp());
+		
+		//Check the numSteps before the move
+		assertEquals(0, engine.getCurrentGameState().getNumSteps());
+		
+		//Check after
+		engine.takeStep(normalStep);
+		assertEquals(1, engine.getCurrentGameState().getNumSteps());
+		
+		//And then a stationary move.
+		engine.takeStep(new StepData(piece, startPosition.moveUp()));
+		assertEquals(1, engine.getCurrentGameState().getNumSteps());
+	}
+
 	/**
 	 * Test that the traps actually capture pieces when moved into them.
 	 */
@@ -280,6 +407,81 @@ public class TestEngine
 		
 		//And make the rabbit follow
 		movePieceUp(rabbit);
+		
+		//And check our state.
+		gameState = engine.getCurrentGameState();
+		assertTrue(gameState.canPlayerEndTurn());
+		assertEquals(elephant, gameState.getBoardData().getPieceAt(new BoardPosition(3, 1)));
+		assertEquals(rabbit, gameState.getBoardData().getPieceAt(new BoardPosition(3, 2)));
+	}
+	
+	/**
+	 * Verify that basic pushing and pulling works correctly.  
+	 * This just pushes a single piece back and forth.
+	 *
+	 */
+	@Test
+	public void testPushingAndPullingOverAnother()
+	{
+		//Place a rabbit in the front row.
+		placePieceTypeOnBoard(PieceData.RABBIT, 3, 6);
+		
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Grab the elephant and move it to the front row.
+		placePieceTypeOnBoard(PieceData.ELEPHANT, 3, 1);
+		
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//Move the rabbit up 4 spaces.
+		PieceData rabbit = board.getPieceAt(new BoardPosition(3, 6));
+		movePieceUp(rabbit);
+		movePieceUp(rabbit);
+		movePieceUp(rabbit);
+		movePieceUp(rabbit);
+		
+		//End the move
+		engine.endMove();
+		
+		//Move the elephant down, to do the first half of the move.
+		PieceData elephant = board.getPieceAt(new BoardPosition(3, 1));
+		movePieceDown(elephant);
+		
+		//Assert that we cannot end the move here, since we have a forced push.
+		assertFalse(engine.getCurrentGameState().canPlayerEndTurn());
+		
+		//Assert that the rabbit is in hand.
+		assertEquals(rabbit, engine.getCurrentGameState().getPieceInHand());
+		
+		//Assert that no other pieces can move.
+		assertFalse(engine.canPieceBeMoved(board.getPieceAt(new BoardPosition(6, 1))));
+		
+		//Move the rabbit down.
+		StepData pushStep = new StepData(rabbit, new BoardPosition(3, 3));
+		assertTrue(engine.canPieceBeMoved(rabbit));
+		assertTrue(engine.isValidStep(pushStep));
+		engine.takeStep(pushStep);
+		
+		//Check our state
+		GameState gameState = engine.getCurrentGameState();
+		assertTrue(gameState.canPlayerEndTurn());
+		assertEquals(elephant, gameState.getBoardData().getPieceAt(new BoardPosition(3, 2)));
+		assertEquals(rabbit, gameState.getBoardData().getPieceAt(new BoardPosition(3, 3)));
+		
+		//Now move the rabbit back up to test pulling.
+		movePieceUp(rabbit);
+		
+		//And make the elephant follow
+		StepData pullStep = new StepData(elephant, new BoardPosition(3, 1));
+		assertTrue(engine.canPieceBeMoved(elephant));
+		assertTrue(engine.isValidStep(pullStep));
+		engine.takeStep(pullStep);
 		
 		//And check our state.
 		gameState = engine.getCurrentGameState();
@@ -504,99 +706,6 @@ public class TestEngine
 		GameState gameState = engine.getCurrentGameState();
 		assertTrue(gameState.isGameOver());
 		assertEquals(GameConstants.SILVER, gameState.getGameWinner());
-	}
-	
-	/**
-	 * Test incrementing of numSteps
-	 */
-	@Test
-	public void testNumSteps()
-	{
-		//Test that num moves increments when making a normal move
-		randomlySetupBoard();
-		
-		BoardPosition startPosition = new BoardPosition(3, 6);
-		PieceData piece = engine.getCurrentGameState().getBoardData().getPieceAt(startPosition);
-		StepData normalStep = new StepData(piece, startPosition.moveUp());
-		
-		//Check the numSteps before the move
-		assertEquals(0, engine.getCurrentGameState().getNumSteps());
-		
-		//Check after
-		engine.takeStep(normalStep);
-		assertEquals(1, engine.getCurrentGameState().getNumSteps());
-		
-		//And then a stationary move.
-		engine.takeStep(new StepData(piece, startPosition.moveUp()));
-		assertEquals(1, engine.getCurrentGameState().getNumSteps());
-	}
-	
-	/**
-	 * Test that pieces do not swap unless they are placed over another piece
-	 */
-	@Test
-	public void testBasicSetupPhase()
-	{
-		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
-		int numPieces = 16;
-		for(int col = 0; col < 7; col++)
-		{
-			//Drop a piece in the top row.
-			StepData step = new StepData(bucket.get(0), new BoardPosition(col, 6));
-			assertTrue(engine.isValidStep(step));
-			engine.takeStep(step);
-			bucket = engine.getCurrentGameState().getGoldBucket();
-			numPieces--;
-			assertEquals(numPieces, bucket.size());
-			
-			//Drop a piece in the bottom row.
-			step = new StepData(bucket.get(0), new BoardPosition(col, 7));
-			assertTrue(engine.isValidStep(step));
-			engine.takeStep(step);
-			bucket = engine.getCurrentGameState().getGoldBucket();
-			numPieces--;
-			assertEquals(numPieces, bucket.size());
-		}
-	}
-	
-	/**
-	 * Test that pieces do not swap unless they are placed over another piece
-	 */
-	@Test
-	public void testForAccidentalSwaps()
-	{
-		int col = 0;
-		int numPieces = 16;
-		
-		PieceData horse1 = getPieceFromBucket(GameConstants.GOLD, PieceData.HORSE);
-		confirmPlacement1(horse1, col, numPieces);
-		numPieces--;
-		col++;
-		
-		PieceData horse2 = getPieceFromBucket(GameConstants.GOLD, PieceData.HORSE);
-		confirmPlacement2(horse2, col, numPieces, horse1);
-		numPieces--;
-		col++;
-		
-		PieceData dog1 = getPieceFromBucket(GameConstants.GOLD, PieceData.DOG);
-		confirmPlacement1(dog1, col, numPieces);
-		numPieces--;
-		col++;
-		
-		PieceData dog2 = getPieceFromBucket(GameConstants.GOLD, PieceData.DOG);
-		confirmPlacement2(dog2, col, numPieces, dog1);
-		numPieces--;
-		col++;
-		
-		PieceData cat1 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
-		confirmPlacement1(cat1, col, numPieces);
-		numPieces--;
-		col++;
-		
-		PieceData cat2 = getPieceFromBucket(GameConstants.GOLD, PieceData.CAT);
-		confirmPlacement2(cat2, col, numPieces, cat1);
-		numPieces--;
-		col++;
 	}
 	
 	/**

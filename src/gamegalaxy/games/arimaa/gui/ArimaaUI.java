@@ -27,6 +27,7 @@ import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.BucketPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
+import gamegalaxy.games.arimaa.data.HandPosition;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.StepData;
@@ -355,7 +356,19 @@ public class ArimaaUI extends JPanel implements Observer
 			}
 			else
 			{
-				pieceToDrop.setLocation(pieceInHandOriginalLocation);
+				audioPlayer.playBzztSound();
+				if(pieceToDrop.getData().getPosition() instanceof HandPosition)
+				{
+					//Do a bit of a hack to allow the piece to not drop incorrectly.
+					pieceInHand = pieceToDrop;
+					
+					//allow other dragged pieces to display over this one.
+					setComponentZOrder(pieceInHand, 0);	
+				}
+				else
+				{
+					pieceToDrop.setLocation(pieceInHandOriginalLocation);
+				}
 			}
 		}
 	}
@@ -510,6 +523,12 @@ public class ArimaaUI extends JPanel implements Observer
 		//Populate the board
 		populateBoard(gameState.getBoardData());
 		
+		//Place the piece in the hand.
+		if(gameState.getPieceInHand() != null)
+		{
+			forcePieceInHand(gameState.getPieceInHand());
+		}
+		
 		//Now check if the game is over.
 		if(gameState.isGameOver())
 		{
@@ -531,6 +550,32 @@ public class ArimaaUI extends JPanel implements Observer
 		silverRandomSetupButton.setVisible(gameState.isSetupPhase() && 
 				gameState.getCurrentPlayer() == GameConstants.SILVER &&
 				gameState.getSilverBucket().size() > 0);
+	}
+
+	/**
+	 * Used when the game engine dictates that there is currently a piece in hand.
+	 *
+	 * @param pieceInHand2
+	 */
+	private void forcePieceInHand(PieceData piece)
+	{
+		//Create the piece.
+		PiecePanel piecePanel = new PiecePanel(this, piece, loader);
+		
+		//Add it to the screen.
+		addPiece(piecePanel);
+		
+		//Pick up the piece.
+		pieceInHand = piecePanel;
+		
+		//ensure that the dragged piece is topmost and visible.
+		setComponentZOrder(piecePanel, 0);
+		
+		//Set the original location to the hand.
+		pieceInHandOriginalLocation = null;
+		
+		//Move the piece so that it is centered on the mouse.
+		movePieceInHand(getMousePosition());
 	}
 
 	/**
