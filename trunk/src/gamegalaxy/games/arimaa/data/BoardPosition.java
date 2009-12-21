@@ -40,7 +40,7 @@ public final class BoardPosition implements PiecePosition
 	 * @param col An integer representing the column for this piece position
 	 * @param row An integer representing the row for this piece position.
 	 */
-	public BoardPosition(int col, int row)
+	public BoardPosition(int row, int col)
 	{
 		this.row = row;
 		this.col = col;
@@ -82,7 +82,7 @@ public final class BoardPosition implements PiecePosition
 	
 	public String toString()
 	{
-		return "" + col + ", " + row;
+		return "" + row + ", " + col;
 	}
 
 	/**
@@ -118,7 +118,7 @@ public final class BoardPosition implements PiecePosition
 	{
 		if(col - 1 >= 0)
 		{
-			return new BoardPosition(col - 1, row);
+			return new BoardPosition(row, col - 1);
 		}
 		else
 		{
@@ -137,7 +137,7 @@ public final class BoardPosition implements PiecePosition
 	{
 		if(row - 1 >= 0)
 		{
-			return new BoardPosition(col, row - 1);
+			return new BoardPosition(row - 1, col);
 		}
 		else
 		{
@@ -155,7 +155,7 @@ public final class BoardPosition implements PiecePosition
 	{
 		if(col + 1 <= 7)
 		{
-			return new BoardPosition(col + 1, row);
+			return new BoardPosition(row, col + 1);
 		}
 		else
 		{
@@ -174,7 +174,7 @@ public final class BoardPosition implements PiecePosition
 	{
 		if(row + 1 <= 7)
 		{
-			return new BoardPosition(col, row + 1);
+			return new BoardPosition(row + 1, col);
 		}
 		else
 		{
@@ -183,7 +183,7 @@ public final class BoardPosition implements PiecePosition
 	}
 
 	/**
-	 * TODO: Describe overridden method
+	 * Returns true if this piece position is the same as the parameter.
 	 *
 	 * @param otherPosition
 	 * @return

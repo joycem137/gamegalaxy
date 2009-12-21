@@ -129,7 +129,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 		col = Math.max(0, Math.min(7, col));
 		row = Math.max(0, Math.min(7, row));
 		
-		return new BoardPosition(col, row);
+		return new BoardPosition(row, col);
 	}
 
 	/**

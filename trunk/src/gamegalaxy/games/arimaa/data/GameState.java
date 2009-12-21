@@ -412,7 +412,7 @@ public final class GameState
 			{
 				int randomRow = firstValidRow + getRandomInt(0, 1);
 				int randomCol = getRandomInt(0, 7);
-				position = new BoardPosition(randomCol, randomRow);
+				position = new BoardPosition(randomRow, randomCol);
 			} while (board.isOccupied(position));
 
 			// Now place the piece.
