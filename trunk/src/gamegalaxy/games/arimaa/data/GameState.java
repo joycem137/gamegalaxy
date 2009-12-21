@@ -23,6 +23,8 @@
  */
 package gamegalaxy.games.arimaa.data;
 
+import gamegalaxy.games.arimaa.engine.MoveGenerator;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -48,6 +50,8 @@ public final class GameState
 	
 	private List<PieceData>	pieces;
 	private boolean	lastStepWasCapture;
+	private MoveGenerator	moveGenerator;
+	private PieceData	pieceInHand;
 
 	public GameState() 
 	{
@@ -65,6 +69,8 @@ public final class GameState
 		numSteps = 0;
 		
 		lastStepWasCapture = false;
+		
+		moveGenerator = new MoveGenerator(this);
 	}
 	
 	/**
@@ -311,36 +317,72 @@ public final class GameState
 		return lastPieceMoved;
 	}
 	
-	public void endMove()
-	{	
-		// You can't end the turn in the middle of a push
-		assert pushPosition != null;
-
-		// Reset the pulled pieces.
-		pullPosition = null;
-		lastPieceMoved = null;
-
-		// Switch the turn.
-		playerTurn = (playerTurn + 1) % 2;
-
-		// If we're back to gold, the game phase has changed.
-		if (playerTurn == GameConstants.GOLD)
+	/**
+	 * Returns true if the current player is able to end their turn.
+	 *
+	 * @return
+	 */
+	public boolean canPlayerEndTurn()
+	{
+		if(phase == GameConstants.SETUP_PHASE)
 		{
-			phase = GameConstants.GAME_ON;
+			List<PieceData> bucket;
+			if(playerTurn == GameConstants.GOLD)
+			{
+				bucket = goldBucket;
+			}
+			else
+			{
+				bucket = silverBucket;
+			}
+			return bucket.isEmpty();
 		}
-
-		numSteps = 0;
+		else if(phase == GameConstants.GAME_ON)
+		{
+			return numSteps >= 1 && pushPosition == null && pieceInHand == null;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
-	 * Set the game phase to GAME_WON and set the winner to the indicated player.
-	 * 
-	 * @param player
+	 * Returns true if the last step was a capture step.
+	 * Used for handling playing the correct audio.
+	 *
+	 * @return
 	 */
-	private void setGameWinner(int player)
+	public boolean lastStepWasCapture()
 	{
-		phase = GameConstants.GAME_WON;
-		winner = player;
+		return lastStepWasCapture;
+	}
+
+	/**
+	 * Return the piece that should be placed in the hand.
+	 *
+	 * @return
+	 */
+	public PieceData getPieceInHand()
+	{
+		return pieceInHand;
+	}
+
+	/**
+	 * Return the number of moves remaining in this turn.
+	 * 
+	 * @return
+	 */
+	public int getRemainingMoves()
+	{
+		if(phase == GameConstants.GAME_ON)
+		{
+			return 4 - numSteps;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 
 	public void doRandomSetup()
@@ -388,19 +430,29 @@ public final class GameState
 	}
 
 	/**
-	 * Return a random integer from min to max, inclusive.
-	 * 
-	 * @param min
-	 *            The lowest possible integer this method can return.
-	 * @param max
-	 *            The highest possible integer this method can return.
+	 * Returns true if the indicated piece is capable of moving.
+	 *
+	 * @param piece
 	 * @return
 	 */
-	private int getRandomInt(int min, int max)
+	public boolean canPieceBeMoved(PieceData piece)
 	{
-		return (int) (Math.random() * (max - min + 1)) + min;
+		List<StepData> steps = moveGenerator.generateSteps(piece);
+		return steps.size() > 0;
 	}
-	
+
+	/**
+	 * Returns true if this is a possible step to take
+	 *
+	 * @param step
+	 * @return
+	 */
+	public boolean isValidStep(StepData step)
+	{
+		List<StepData> steps = moveGenerator.generateSteps(step.getPiece());
+		return steps.contains(step);
+	}
+
 	/**
 	 * Submit the indicated move to the game engine for implementation. Upon completion of the move, the engine will ask the GUI to update to the latest game
 	 * state.
@@ -411,12 +463,26 @@ public final class GameState
 	 */
 	public void takeStep(StepData step)
 	{
+		//Abort if this is not a valid step to take.
+		if(!isValidStep(step)) return;
+		
 		lastStepWasCapture = false;
 		
 		PieceData piece = step.getPiece();
 		PiecePosition destination = step.getDestination();
 		
-		if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
+		if(piece.equals(pieceInHand))
+		{
+			//Moving the piece in hand to a new location.
+			board.placePiece(piece, (BoardPosition) destination);
+			
+			//Clear the piece in hand
+			pieceInHand = null;
+			
+			//Increment the number of moves
+			numSteps++;
+		}
+		else if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
 		{
 			// Moving from bucket to board.
 			BoardPosition boardDestination = (BoardPosition) destination;
@@ -450,56 +516,80 @@ public final class GameState
 			//Remove the piece from the original location
 			board.removePiece(originalPosition);
 			
-			//Do a swap (Must be changed when handling pushes and pulls by dropping pices onto others)
+			//Handle occupied spaces
+			PieceData swapPiece = null;
 			if(board.isOccupied(newPosition))
 			{
 				//Get the piece
-				PieceData swapPiece = board.getPieceAt(newPosition);
+				swapPiece = board.getPieceAt(newPosition);
 				
 				//Remove it from the board
 				board.removePiece(newPosition);
-				
-				//Place it on the original location
-				board.placePiece(swapPiece, originalPosition);
 			}
 
+			//Move the piece to its new location.
 			board.placePiece(piece, newPosition);
-
-			if (phase == GameConstants.GAME_ON)
+			
+			//Process the effects of the move.
+			if(phase == GameConstants.GAME_ON)
 			{
 				// Increment the number of moves
 				numSteps++;
-
-				if (piece.getColor() != playerTurn)
+				
+				//Handle the piece that already was in this spot, if appropriate
+				if(swapPiece != null)
 				{
-					if (pullPosition != null && pullPosition.equals(newPosition))
-					{
-						// This cannot be a push or a pull.
-						pullPosition = null;
-						pushPosition = null;
-					}
-					else
-					{
-						// This is a push.
-						pushPosition = originalPosition;
-					}
+					//Put the piece in hand.
+					pieceInHand = swapPiece;
+					
+					//Reset the piece's old position
+					swapPiece.setPosition(new HandPosition(newPosition));
+					
+					//Clear the push/pull values for normal moves
+					pushPosition = null;
+					pullPosition = null;
 				}
 				else
 				{
-					// This is a move of this player's color.
-					if (pushPosition == null)
+					//Handle "normal" push/pull moves.
+					if (piece.getColor() != playerTurn)
 					{
-						// The last move was *not* a push position. You can
-						// record the piece movement.
-						pullPosition = originalPosition;
+						if (pullPosition != null && pullPosition.equals(newPosition))
+						{
+							// This cannot be a push or a pull.
+							pullPosition = null;
+							pushPosition = null;
+						}
+						else
+						{
+							// This is a push.
+							pushPosition = originalPosition;
+						}
 					}
 					else
 					{
-						// The last move was a push. Reset it.
-						pushPosition = null;
+						// This is a move of this player's color.
+						if (pushPosition == null)
+						{
+							// The last move was *not* a push position. You can
+							// record the piece movement.
+							pullPosition = originalPosition;
+						}
+						else
+						{
+							// The last move was a push. Reset it.
+							pushPosition = null;
+						}
 					}
 				}
+				
 			}
+			else if(phase == GameConstants.SETUP_PHASE && swapPiece != null)
+			{
+				//Handle the piece to swap.
+				board.placePiece(swapPiece, originalPosition);
+			}
+			
 			lastPieceMoved = piece;
 		}
 		else
@@ -526,6 +616,27 @@ public final class GameState
 		}
 	}
 
+	public void endMove()
+	{	
+		// You can't end the turn in the middle of a push
+		assert pushPosition != null;
+	
+		// Reset the pulled pieces.
+		pullPosition = null;
+		lastPieceMoved = null;
+	
+		// Switch the turn.
+		playerTurn = (playerTurn + 1) % 2;
+	
+		// If we're back to gold, the game phase has changed.
+		if (playerTurn == GameConstants.GOLD)
+		{
+			phase = GameConstants.GAME_ON;
+		}
+	
+		numSteps = 0;
+	}
+
 	/**
 	 * Evaluate the current game situation to determine if there has been a winner.
 	 * 
@@ -538,7 +649,7 @@ public final class GameState
 		while (iterator.hasNext())
 		{
 			PieceData piece = iterator.next();
-
+	
 			// If we find a rabbit piece, check to see if it is in the back row.
 			if (piece.getValue() == PieceData.RABBIT)
 			{
@@ -570,7 +681,7 @@ public final class GameState
 				}
 			}
 		}
-
+	
 		// If we made it here, make sure we found rabbits of each color.
 		if (!foundGoldRabbit)
 		{
@@ -596,7 +707,7 @@ public final class GameState
 			{
 				PieceData trappedPiece = board.getPieceAt(trapPosition);
 				boolean pieceIsDead = true;
-
+	
 				// Check for allies in each direction:
 				List<BoardPosition> adjacentSpaces = trapPosition.getAdjacentSpaces();
 				Iterator<BoardPosition> adjacentIterator = adjacentSpaces.iterator();
@@ -613,13 +724,13 @@ public final class GameState
 						}
 					}
 				}
-
+	
 				// Now kill the piece.
 				if (pieceIsDead)
 				{
 					// Remove the piece from the board.
 					board.removePiece(trapPosition);
-
+	
 					// Move the piece to the appropriate bucket.
 					if(trappedPiece.getColor() == GameConstants.GOLD)
 					{
@@ -637,53 +748,6 @@ public final class GameState
 		}
 	}
 
-	/**
-	 * Returns true if the current player is able to end their turn.
-	 *
-	 * @return
-	 */
-	public boolean canPlayerEndTurn()
-	{
-		if(phase == GameConstants.SETUP_PHASE)
-		{
-			List<PieceData> bucket;
-			if(playerTurn == GameConstants.GOLD)
-			{
-				bucket = goldBucket;
-			}
-			else
-			{
-				bucket = silverBucket;
-			}
-			return bucket.isEmpty();
-		}
-		else if(phase == GameConstants.GAME_ON)
-		{
-			return numSteps >= 1 && pushPosition == null;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	/**
-	 * Return the number of moves remaining in this turn.
-	 * 
-	 * @return
-	 */
-	public int getRemainingMoves()
-	{
-		if(phase == GameConstants.GAME_ON)
-		{
-			return 4 - numSteps;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	
 	private void addToBucket(PieceData piece, BucketPosition position)
 	{
 		List<PieceData> bucket;
@@ -695,7 +759,7 @@ public final class GameState
 		{
 			bucket = silverBucket;
 		}
-
+	
 		bucket.add(piece);
 		piece.setPosition(position);
 	}
@@ -711,20 +775,35 @@ public final class GameState
 		{
 			bucket = silverBucket;
 		}
-
+	
 		int pieceIndex = bucket.indexOf(piece);
 		bucket.remove(pieceIndex);
 		piece.setPosition(null);
 	}
 
 	/**
-	 * TODO: Describe method
-	 *
+	 * Return a random integer from min to max, inclusive.
+	 * 
+	 * @param min
+	 *            The lowest possible integer this method can return.
+	 * @param max
+	 *            The highest possible integer this method can return.
 	 * @return
 	 */
-	public boolean lastStepWasCapture()
+	private int getRandomInt(int min, int max)
 	{
-		return lastStepWasCapture;
+		return (int) (Math.random() * (max - min + 1)) + min;
+	}
+
+	/**
+	 * Set the game phase to GAME_WON and set the winner to the indicated player.
+	 * 
+	 * @param player
+	 */
+	private void setGameWinner(int player)
+	{
+		phase = GameConstants.GAME_WON;
+		winner = player;
 	}
 
 }
