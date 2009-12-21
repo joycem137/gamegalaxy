@@ -364,8 +364,8 @@ public class MoveGenerator
 			//Return all of the spaces on the board
 			for(int col = 0; col < 8; col++)
 			{
-				steps.add(new StepData(piece, new BoardPosition(col, row1)));
-				steps.add(new StepData(piece, new BoardPosition(col, row2)));
+				steps.add(new StepData(piece, new BoardPosition(row1, col)));
+				steps.add(new StepData(piece, new BoardPosition(row2, col)));
 			}
 			
 			//Add the appropriate bucket.

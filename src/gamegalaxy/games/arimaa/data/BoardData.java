@@ -56,9 +56,9 @@ public class BoardData
 			for(int c = 0; c < 8; c++)
 			{
 				//Create the space
-				if(spaces[c][r] == null)
+				if(spaces[r][c] == null)
 				{
-					spaces[c][r] = new SpaceData(SpaceData.NORMAL);
+					spaces[r][c] = new SpaceData(SpaceData.NORMAL);
 				}
 			}
 		}
@@ -72,7 +72,7 @@ public class BoardData
 	 */
 	public boolean isOccupied(BoardPosition space)
 	{
-		return spaces[space.getCol()][space.getRow()].isOccupied();
+		return spaces[space.getRow()][space.getCol()].isOccupied();
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class BoardData
 	public void placePiece(PieceData piece, BoardPosition space)
 	{
 		piece.setPosition(space);
-		spaces[space.getCol()][space.getRow()].placePiece(piece);
+		spaces[space.getRow()][space.getCol()].placePiece(piece);
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class BoardData
 	public void removePiece(BoardPosition space)
 	{
 		//Get the piece data.
-		SpaceData spaceData = spaces[space.getCol()][space.getRow()];
+		SpaceData spaceData = spaces[space.getRow()][space.getCol()];
 		spaceData.getPiece().setPosition(null);
 		spaceData.removePiece();
 	}
@@ -110,7 +110,7 @@ public class BoardData
 	 */
 	public PieceData getPieceAt(BoardPosition space)
 	{
-		return spaces[space.getCol()][space.getRow()].getPiece();
+		return spaces[space.getRow()][space.getCol()].getPiece();
 	}
 
 	/**
@@ -234,7 +234,7 @@ public class BoardData
 			for(int row = 0; row < 8; row++)
 			{
 				//Construct the piece position
-				BoardPosition position = new BoardPosition(col, row);
+				BoardPosition position = new BoardPosition(row, col);
 				
 				if(isOccupied(position))
 				{
