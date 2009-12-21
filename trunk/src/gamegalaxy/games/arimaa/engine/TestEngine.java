@@ -261,6 +261,62 @@ public class TestEngine
 	}
 	
 	/**
+	 * Test to ensure two adjacent pieces can't be captured on the same trap square
+	 *  in a single push action.
+	 */
+	@Test
+	public void testPushDoubleCapture()
+	{
+		//place an opposing Gold Elephant and Silver Rabbit on column 1.
+		placePieceTypeOnBoard(PieceData.ELEPHANT, 6, 1);		
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		placePieceTypeOnBoard(PieceData.RABBIT, 1, 1);
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//move the Gold Elephant up three spaces and end the gold turn.
+		PieceData gElephant = board.getPieceAt(new BoardPosition(6, 1));
+		for (int x=1; x<=3; x++)
+		{
+			movePieceUp(gElephant);
+		}
+		
+		engine.endMove();
+		
+		//move the Silver Rabbit down one square (next to the trap) and its
+		//neighbor down one square (onto the trap) and end the silver turn.
+		PieceData sRabbit = board.getPieceAt(new BoardPosition(1, 1));
+		movePieceDown(sRabbit);
+		PieceData sNeighbor = board.getPieceAt(new BoardPosition(1, 2));
+		movePieceDown(sNeighbor);
+		
+		engine.endMove();
+		
+		//the piece on the trap should still be safe.
+		List<PieceData> bucket = engine.getCurrentGameState().getGoldBucket();
+		assertEquals(0, bucket.size());
+		
+		//move the Gold Elephant up, which is a push move that should result in
+		//the Silver Rabbit being placed in hand and its neighbor being captured.
+		movePieceUp(gElephant);
+		
+		assertFalse(engine.getCurrentGameState().canPlayerEndTurn());
+		assertEquals(sRabbit, engine.getCurrentGameState().getPieceInHand());
+		assertEquals(1, bucket.size());
+		PieceData piece = bucket.get(0);
+		assertEquals(sNeighbor, piece);
+		
+		//confirm that the Silver Rabbit cannot be pushed onto the same trap square
+		//as part of the same push action.
+		StepData badPushStep = new StepData(sRabbit, new BoardPosition(2, 2));
+		assertFalse(engine.isValidStep(badPushStep));
+	}
+	
+	/**
 	 * Test incrementing of numSteps
 	 */
 	@Test
