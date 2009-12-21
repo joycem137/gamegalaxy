@@ -31,8 +31,10 @@ import gamegalaxy.games.arimaa.data.HandPosition;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.StepData;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -41,6 +43,7 @@ import java.util.Vector;
 public class MoveGenerator
 {
 	private GameState	gameState;
+	private Map<PieceData, List<StepData>> moveDatabase;
 
 	/**
 	 * Construct a move generator for the indicated game state.
@@ -50,6 +53,7 @@ public class MoveGenerator
 	public MoveGenerator(GameState gameState)
 	{
 		this.gameState = gameState;
+		moveDatabase = new HashMap<PieceData, List<StepData>>();
 	}
 
 	/**
@@ -60,19 +64,40 @@ public class MoveGenerator
 	 */
 	public List<StepData> generateSteps(PieceData piece)
 	{
-		//First, check the phase.
-		if(gameState.isSetupPhase())
+		if(moveDatabase.containsKey(piece))
 		{
-			return generateSetupSteps(piece);
-		}
-		else if(gameState.isGameOn())
-		{
-			return generateGameSteps(piece);
+			return moveDatabase.get(piece);
 		}
 		else
 		{
-			return new Vector<StepData>();
+			List<StepData> steps;
+			
+			//First, check the phase.
+			if(gameState.isSetupPhase())
+			{
+				steps = generateSetupSteps(piece);
+			}
+			else if(gameState.isGameOn())
+			{
+				steps = generateGameSteps(piece);
+			}
+			else
+			{
+				steps = new Vector<StepData>();
+			}
+			
+			moveDatabase.put(piece, steps);
+			return steps;
 		}
+	}
+
+	/**
+	 * Reset the internal database of moves.
+	 *
+	 */
+	public void reset()
+	{
+		moveDatabase.clear();
 	}
 
 	/**

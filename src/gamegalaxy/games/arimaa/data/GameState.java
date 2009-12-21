@@ -137,6 +137,9 @@ public final class GameState
 
 		//Reset the number of moves to 0
 		numSteps = 0;
+		
+		//Reset the move generator
+		moveGenerator.reset();
 	}
 	
 	/**
@@ -351,6 +354,16 @@ public final class GameState
 	public boolean lastStepWasCapture()
 	{
 		return lastStepWasCapture;
+	}
+
+	/**
+	 * Return the last step made.
+	 *
+	 * @return
+	 */
+	public StepData getLastStep()
+	{
+		return lastStep;
 	}
 
 	/**
@@ -609,6 +622,9 @@ public final class GameState
 			// Check to see if anyone has won the game.
 			checkForWinner();
 		}
+		
+		//Reset the move generator.
+		moveGenerator.reset();
 	}
 
 	public void endMove()
@@ -630,6 +646,8 @@ public final class GameState
 		}
 	
 		numSteps = 0;
+		
+		moveGenerator.reset();
 	}
 
 	/**
@@ -799,16 +817,6 @@ public final class GameState
 	{
 		phase = GameConstants.GAME_WON;
 		winner = player;
-	}
-
-	/**
-	 * Return the last step made.
-	 *
-	 * @return
-	 */
-	public StepData getLastStep()
-	{
-		return lastStep;
 	}
 
 }
