@@ -616,9 +616,13 @@ public final class GameState
 		if (phase == GameConstants.GAME_ON)
 		{
 			// Check the traps to see if there are pieces in them and if
-			// they are dead.
-			checkTheTraps();
-
+			// they are dead, as long as we are not in the middle of a push
+			// or pull move.
+			if (canPlayerEndTurn())
+			{
+				checkTheTraps();
+			}
+				
 			// Check to see if anyone has won the game.
 			checkForWinner();
 		}
@@ -629,25 +633,28 @@ public final class GameState
 
 	public void endMove()
 	{	
-		// You can't end the turn in the middle of a push
-		assert pushPosition != null;
-	
-		// Reset the pulled pieces.
-		pullPosition = null;
-		lastStep = null;
-	
-		// Switch the turn.
-		playerTurn = (playerTurn + 1) % 2;
-	
-		// If we're back to gold, the game phase has changed.
-		if (playerTurn == GameConstants.GOLD)
+		// Check to be sure ending the move is legal.
+		if (canPlayerEndTurn())
 		{
-			phase = GameConstants.GAME_ON;
-		}
-	
-		numSteps = 0;
+			assert pushPosition != null;
 		
-		moveGenerator.reset();
+			// Reset the pulled pieces.
+			pullPosition = null;
+			lastStep = null;
+		
+			// Switch the turn.
+			playerTurn = (playerTurn + 1) % 2;
+		
+			// If we're back to gold, the game phase has changed.
+			if (playerTurn == GameConstants.GOLD)
+			{
+				phase = GameConstants.GAME_ON;
+			}
+		
+			numSteps = 0;
+			
+			moveGenerator.reset();
+		}
 	}
 
 	/**

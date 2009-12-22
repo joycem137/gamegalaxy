@@ -183,8 +183,7 @@ public class TestEngine
 		
 		//Switch to the silver player.
 		PieceData piece = board.getPieceAt(new BoardPosition(6, 3));
-		BoardPosition newPosition = ((BoardPosition) piece.getPosition()).moveUp();
-		engine.takeStep(new StepData(piece, newPosition.moveUp()));
+		movePieceUp(piece);
 		engine.endMove();
 		
 		//Now test the movement capabilities of silver.
@@ -301,19 +300,28 @@ public class TestEngine
 		assertEquals(0, bucket.size());
 		
 		//move the Gold Elephant up, which is a push move that should result in
-		//the Silver Rabbit being placed in hand and its neighbor being captured.
+		//the Silver Rabbit being placed in hand.  The neighbor should not be
+		//captured until the push action is complete.
 		movePieceUp(gElephant);
 		
 		assertFalse(engine.getCurrentGameState().canPlayerEndTurn());
 		assertEquals(sRabbit, engine.getCurrentGameState().getPieceInHand());
+		assertEquals(0, bucket.size());
+		
+		//since the trap has not yet been emptied, confirm that the Silver Rabbit
+		//cannot be pushed onto the trap square.
+		StepData pushStep = new StepData(sRabbit, new BoardPosition(2, 2));
+		assertFalse(engine.isValidStep(pushStep));
+		
+		//now complete the push action by pushing the Silver Rabbit up, which should
+		//finally capture the piece.
+		pushStep = new StepData(sRabbit, new BoardPosition(1, 1));
+		assertTrue(engine.isValidStep(pushStep));
+		engine.takeStep(pushStep);
+		
 		assertEquals(1, bucket.size());
 		PieceData piece = bucket.get(0);
 		assertEquals(sNeighbor, piece);
-		
-		//confirm that the Silver Rabbit cannot be pushed onto the same trap square
-		//as part of the same push action.
-		StepData badPushStep = new StepData(sRabbit, new BoardPosition(2, 2));
-		assertFalse(engine.isValidStep(badPushStep));
 	}
 	
 	/**
@@ -761,9 +769,14 @@ public class TestEngine
 		PieceData elephant = board.getPieceAt(new BoardPosition(3, 6));
 		
 		//Make it silver's turn again
+		PieceData dummy = board.getPieceAt(new BoardPosition(7, 0));
+		movePieceUp(dummy);
 		engine.endMove();
+		
+		//let the Silver Elephant make the final capture.
 		movePieceDown(elephant);
 		movePieceLeft(rabbit);
+		movePieceDown(elephant);
 		
 		GameState gameState = engine.getCurrentGameState();
 		assertTrue(gameState.isGameOver());
@@ -771,8 +784,9 @@ public class TestEngine
 	}
 	
 	/**
-	 * TODO: Describe method
-	 *
+	 * Creates a "near-death" situation for Gold player by suiciding all but
+	 * one rabbit.  At the end of this method it is Gold's turn, with the
+	 * last gold rabbit at (5,6) and a Silver elephant at (3,6).
 	 */
 	private void killAlmostAllOfTheRabbits()
 	{	
