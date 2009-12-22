@@ -122,10 +122,13 @@ public class ArimaaEngine
 	 */
 	public void endMove()
 	{
-		currentGameState.endMove();
-		lastGameState = currentGameState.copy();
+		if (currentGameState.canPlayerEndTurn())
+		{
+			currentGameState.endMove();
+			lastGameState = currentGameState.copy();
 
-		observable.notifyObservers();
+			observable.notifyObservers();
+		}
 	}
 	
 	public void undoMove()
