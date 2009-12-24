@@ -68,7 +68,10 @@ public final class StepData
 		if(o instanceof StepData)
 		{
 			StepData otherMove = (StepData)o;
-			return piece.equals(otherMove.piece) && destination.equals(otherMove.destination);
+			if (piece == null || otherMove.piece == null) return false;
+			if (sourcePosition == null || otherMove.sourcePosition == null) return false;
+			if (destination == null || otherMove.destination == null) return false;
+			return piece.equals(otherMove.piece) && sourcePosition.equals(otherMove.sourcePosition) && destination.equals(otherMove.destination);
 		}
 		else
 		{
