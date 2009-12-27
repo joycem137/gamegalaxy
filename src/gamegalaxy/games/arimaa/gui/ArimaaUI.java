@@ -206,6 +206,32 @@ public class ArimaaUI extends JPanel implements Observer
 					Point mousePosition = new Point(me.getX(), me.getY());
 					movePieceInHand(mousePosition);
 				}
+				else
+				{
+					boolean hasHighlight = false;
+					Component component = getComponentAt(me.getX(), me.getY());
+					if (component instanceof HighlightPanel)
+					{
+						hasHighlight = true;
+					}
+					if (component instanceof PiecePanel)
+					{
+						PiecePanel pieceAt = (PiecePanel)component;
+						if (engine.canPieceBeMoved(pieceAt.getData()))
+						{
+							PiecePosition position = pieceAt.getData().getPosition();
+							if (position instanceof BoardPosition)
+							{
+								highlightSpace((BoardPosition)position);
+								hasHighlight = true;
+							}
+						}
+					}
+					if (hasHighlight == false)
+					{
+						clearHighlight();
+					}
+				}
 			}
 			
 			public void mouseDragged(MouseEvent me)
@@ -297,6 +323,9 @@ public class ArimaaUI extends JPanel implements Observer
 		
 		//place our highlighter over this square:
 		highlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
+		
+		
+		setComponentZOrder(highlight, (getComponentZOrder(boardPanel) -1));
 	}
 
 	/**
@@ -527,6 +556,10 @@ public class ArimaaUI extends JPanel implements Observer
 		if(gameState.getPieceInHand() != null)
 		{
 			forcePieceInHand(gameState.getPieceInHand());
+		}
+		else
+		{
+			pieceInHand = null;
 		}
 		
 		if(gameState.isGameOver())
