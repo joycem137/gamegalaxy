@@ -167,9 +167,6 @@ public class ArimaaUI extends JPanel implements Observer
 					
 						if(engine.canPieceBeMoved(piecePanel.getData()))
 						{
-							//Reset the "mouse moved" variable
-							mouseDragged = false;
-
 							Point mousePosition = new Point(me.getX(), me.getY());
 							pickUpPiece(piecePanel, mousePosition);
 						}
@@ -189,6 +186,7 @@ public class ArimaaUI extends JPanel implements Observer
 					return;
 				}
 
+				//Don't do anything if the mouse hasn't moved at all.
 				if(pieceInHand != null && mouseDragged)
 				{
 					//Drop the piece, if appropriate.
@@ -196,6 +194,8 @@ public class ArimaaUI extends JPanel implements Observer
 					dropPieceInHand(mousePosition);
 				}
 				
+				//Reset the "mouse moved" flag.
+				mouseDragged = false;
 			}
 			
 			public void mouseMoved(MouseEvent me)
@@ -236,7 +236,15 @@ public class ArimaaUI extends JPanel implements Observer
 			
 			public void mouseDragged(MouseEvent me)
 			{
+				//for now, do nothing unless the mouse press was a left-click.
+				if (me.getButton() != MouseEvent.BUTTON1)
+				{
+					return;
+				}
+				
+				//keep track of the fact that the mouse has been moved.
 				mouseDragged = true;
+				
 				if(pieceInHand != null)
 				{
 					//Move the piece so that it is centered on the mouse.
