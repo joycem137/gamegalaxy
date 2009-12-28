@@ -588,6 +588,9 @@ public class ArimaaUI extends JPanel implements Observer
 		silverRandomSetupButton.setVisible(gameState.isSetupPhase() && 
 				gameState.getCurrentPlayer() == GameConstants.SILVER &&
 				gameState.getSilverBucket().size() > 0);
+		
+		//Finally, repaint the gui.
+		repaint();
 	}
 
 	/**
