@@ -73,7 +73,7 @@ public class StatusPanel extends JPanel
 		add(turnLabel);
 		
 		//Create the end turn button, but do not add it to the screen just yet.
-		endTurnButton = new JButton(new AbstractAction("End Turn")
+		endTurnButton = new JButton(new AbstractAction("End Move")
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -84,7 +84,7 @@ public class StatusPanel extends JPanel
 		add(endTurnButton);
 		
 		//Create the Undo turn button, but do not add it to the screen just yet.
-		undoTurnButton = new JButton(new AbstractAction("Undo Turn")
+		undoTurnButton = new JButton(new AbstractAction("Undo Move")
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -133,12 +133,12 @@ public class StatusPanel extends JPanel
 		if(turnState == GameConstants.GOLD)
 		{
 			turnLabel.setForeground(Color.YELLOW);
-			turnLabel.setText("Gold's Turn");
+			turnLabel.setText("Gold's Move");
 		}
 		else
 		{
 			turnLabel.setForeground(Color.GRAY);
-			turnLabel.setText("Silver's Turn");
+			turnLabel.setText("Silver's Move");
 		}
 
 		turnLabel.setVisible(true);
