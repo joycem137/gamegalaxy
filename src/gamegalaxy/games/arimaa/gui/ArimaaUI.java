@@ -282,7 +282,9 @@ public class ArimaaUI extends JPanel implements Observer
 		pieceInHand.setLocation(mousePosition.x - pieceInHand.getWidth() / 2, mousePosition.y - pieceInHand.getHeight() / 2);
 
 		//Find out where we're coming from
-		PieceHolder mouseOverPanel = getHolderAt(mousePosition.x, mousePosition.y); 	
+		PieceHolder mouseOverPanel = getHolderAt(mousePosition.x, mousePosition.y); 
+		
+		boolean hasValidHighlight = false;
 
 		if(mouseOverPanel == boardPanel)
 		{
@@ -291,18 +293,19 @@ public class ArimaaUI extends JPanel implements Observer
 			int relativeDragY = mousePosition.y - boardPanel.getY();
 			BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition(relativeDragX, relativeDragY);
 			
-			//Set the highlight, if appropriate
-			StepData step = new StepData(pieceInHand.getData(), mouseOverPosition);
-			if(engine.isValidStep(step))
+			if (mouseOverPosition != null)
 			{
-				highlightSpace(mouseOverPosition);
-			}
-			else
-			{
-				clearHighlight();
+				//Set the highlight, if appropriate
+				StepData step = new StepData(pieceInHand.getData(), mouseOverPosition);
+				if(engine.isValidStep(step))
+				{
+					hasValidHighlight = true;
+					highlightSpace(mouseOverPosition);
+				}
 			}
 		}
-		else
+		
+		if (!hasValidHighlight)
 		{
 			clearHighlight();
 		}

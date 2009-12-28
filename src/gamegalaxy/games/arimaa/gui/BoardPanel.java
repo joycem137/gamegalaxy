@@ -117,7 +117,7 @@ public class BoardPanel extends JPanel implements PieceHolder
 	 *
 	 * @param x		The x-coordinate of the location being tested.
 	 * @param y		The y-coordinate of the location being tested.
-	 * @return		the corresponding PiecePosition(col,row) in the range (0~7, 0~7) 
+	 * @return		the corresponding BoardPosition (0~7, 0~7), or null if on the border.
 	 */
 	public BoardPosition identifyBoardPosition(int x, int y)
 	{
@@ -125,11 +125,15 @@ public class BoardPanel extends JPanel implements PieceHolder
 		int col = (x - firstSquareX) / SPACE_WIDTH;
 		int row = (y - firstSquareY) / SPACE_HEIGHT;
 		
-		//Correct for boundary conditions
-		col = Math.max(0, Math.min(7, col));
-		row = Math.max(0, Math.min(7, row));
-		
-		return new BoardPosition(row, col);
+		//Test for boundaries.
+		if ((col > 7) || (row > 7) || (x < firstSquareX) || (y < firstSquareY))
+		{
+			return null;
+		}
+		else
+		{
+			return new BoardPosition(row, col);
+		}
 	}
 
 	/**
