@@ -27,11 +27,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -100,12 +99,19 @@ public class GPLPopup extends JDialog
 	public void loadText()
 	{
 		// Load the GPL text from memory.
-		File gplFile = new File("resources/COPYING");
+		String path = "/resources/COPYING";
+		URL gplURL = getClass().getResource(path);
+		
+		if(gplURL == null)
+		{
+			System.err.println("Could not find GPL file " + path);
+			System.exit(-1);
+		}
 		
 		InputStream inputStream = null;
 		try
 		{
-			inputStream = new FileInputStream(gplFile);
+			inputStream = gplURL.openStream();
 		} catch (IOException e1)
 		{
 			e1.printStackTrace();

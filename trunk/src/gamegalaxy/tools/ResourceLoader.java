@@ -26,9 +26,9 @@ package gamegalaxy.tools;
 
 import java.awt.Image;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -67,15 +67,13 @@ public class ResourceLoader
 	public void loadResources(String applicationName)
 	{
 		//Load the properties file for this application
-		String propertiesPath = "resources" + File.separator + applicationName + ".properties";
-		FileInputStream inStream = null;
-		try
+		String propertiesPath = "/resources/" + applicationName + ".properties";
+		URL propertiesURL = getClass().getResource(propertiesPath);
+		
+		//Verify that we found a file
+		if(propertiesURL == null)
 		{
-			inStream = new FileInputStream (propertiesPath);
-		} catch (FileNotFoundException e1)
-		{
-			e1.printStackTrace();
-			System.err.println("Could not open resource manifest at " + propertiesPath);
+			System.err.println("Could not load path " + propertiesPath);
 			System.exit(-1);
 		}
 		
@@ -83,6 +81,7 @@ public class ResourceLoader
 		Properties resources = new Properties();
 		try
 		{
+			InputStream inStream = propertiesURL.openStream();
 			resources.load(inStream);
 		} catch (IOException e1)
 		{
@@ -91,7 +90,7 @@ public class ResourceLoader
 			System.exit(-1);
 		}
 		
-		//Now run through the various image files and laod them.
+		//Now run through the various image files and load them.
 		Iterator iterator = resources.keySet().iterator();
 		
 		while(iterator.hasNext())
@@ -100,35 +99,33 @@ public class ResourceLoader
 			String name = (String)iterator.next();
 			String filename = resources.getProperty(name);
 			
-			String path = RESOURCE_DIRECTORY + File.separator + applicationName + File.separator + filename;
-			File imageFile = new File(path);
-			
-			//Determine if the image file actuall exists.
-			if(imageFile.exists())
+			String path = File.separator + RESOURCE_DIRECTORY + File.separator + applicationName + File.separator + filename;
+			URL imageFile = getClass().getResource(path);
+
+			//Verify that we found a file
+			if(imageFile == null)
 			{
-				//Read the file in.
-				try
+				System.err.println("Could not load path " + path);
+				System.exit(-1);
+			}
+			
+			//Read the file in.
+			try
+			{
+				Image image = ImageIO.read(imageFile);
+				
+				if(image== null)
 				{
-					Image image = ImageIO.read(imageFile);
-					
-					if(image== null)
-					{
-						System.err.println("Error Loading " + path);
-						System.exit(-1);
-					}
-					
-					//Store the image with its name
-					map.put(name, image);
-				} catch (IOException e)
-				{
-					e.printStackTrace();
-					System.err.println("Failed to load " + path);
+					System.err.println("Error Loading " + path);
 					System.exit(-1);
 				}
-			}
-			else
+				
+				//Store the image with its name
+				map.put(name, image);
+			} catch (IOException e)
 			{
-				System.err.println("File does not exist " + path);
+				e.printStackTrace();
+				System.err.println("Failed to load " + path);
 				System.exit(-1);
 			}
 		}

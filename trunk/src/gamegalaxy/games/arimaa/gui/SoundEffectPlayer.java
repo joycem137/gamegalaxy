@@ -22,8 +22,8 @@
  */
 package gamegalaxy.games.arimaa.gui;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -45,14 +45,14 @@ public class SoundEffectPlayer
 
 	public SoundEffectPlayer()
 	{
-		pickupSound = loadSoundFile("resources/arimaa/pickup.wav");
-		dropSound = loadSoundFile("resources/arimaa/dropsound.wav");
-		trapSound = loadSoundFile("resources/arimaa/trap.wav");
-		bzztSound = loadSoundFile("resources/arimaa/bzzt.wav");
+		pickupSound = loadSoundFile("/resources/arimaa/pickup.wav");
+		dropSound = loadSoundFile("/resources/arimaa/dropsound.wav");
+		trapSound = loadSoundFile("/resources/arimaa/trap.wav");
+		bzztSound = loadSoundFile("/resources/arimaa/bzzt.wav");
 	}
 
 	/**
-	 * TODO: Describe method
+	 * Load a sound file with the given filename.
 	 *
 	 * @param string
 	 * @return
@@ -61,7 +61,14 @@ public class SoundEffectPlayer
 	{
 		try
 		{
-			File soundFile = new File(filename);
+			URL soundFile = getClass().getResource(filename);
+			
+			if(soundFile == null)
+			{
+				System.err.println("Could not find file " + filename);
+				System.exit(-1);
+			}
+			
 			AudioInputStream sound = AudioSystem.getAudioInputStream(soundFile);
 
 			DataLine.Info info = new DataLine.Info(Clip.class, sound.getFormat());
@@ -96,10 +103,6 @@ public class SoundEffectPlayer
 		playSound(pickupSound);
 	}
 
-	/**
-	 * TODO: Describe method
-	 *
-	 */
 	public void playDropSound()
 	{
 		playSound(dropSound);
