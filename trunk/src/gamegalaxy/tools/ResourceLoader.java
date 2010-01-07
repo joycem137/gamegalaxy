@@ -67,7 +67,7 @@ public class ResourceLoader
 	public void loadResources(String applicationName)
 	{
 		//Load the properties file for this application
-		String propertiesPath = "/resources/" + applicationName + ".properties";
+		String propertiesPath = "/" + RESOURCE_DIRECTORY + "/" + applicationName + ".properties";
 		URL propertiesURL = getClass().getResource(propertiesPath);
 		
 		//Verify that we found a file
@@ -99,7 +99,7 @@ public class ResourceLoader
 			String name = (String)iterator.next();
 			String filename = resources.getProperty(name);
 			
-			String path = File.separator + RESOURCE_DIRECTORY + File.separator + applicationName + File.separator + filename;
+			String path = "/" + RESOURCE_DIRECTORY + "/" + applicationName + "/" + filename;
 			URL imageFile = getClass().getResource(path);
 
 			//Verify that we found a file
