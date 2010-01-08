@@ -31,6 +31,7 @@ import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
+import gamegalaxy.games.arimaa.data.PiecePosition;
 import gamegalaxy.games.arimaa.data.StepData;
 
 import java.util.Iterator;
@@ -781,6 +782,86 @@ public class TestEngine
 		GameState gameState = engine.getCurrentGameState();
 		assertTrue(gameState.isGameOver());
 		assertEquals(GameConstants.SILVER, gameState.getGameWinner());
+	}
+	
+	/**
+	 * Test overridden equals methods, and confirm that hashing methods create
+	 *  identical hashes for equal objects.
+	 */
+	@Test
+	public void testEqualsAndHashing()
+	{
+		placePieceTypeOnBoard(PieceData.ELEPHANT, 6, 0);
+		randomlySetupBoard();
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		BoardPosition boardPosition1 = new BoardPosition(6, 2);
+		PieceData goldDie1 = board.getPieceAt(boardPosition1);
+		PiecePosition goldDiePosition1 = goldDie1.getPosition();
+		
+		//boardPosition1 should be same as goldDiePosition1.
+		assertTrue(goldDiePosition1.equals(boardPosition1));
+		assertTrue(boardPosition1.equals(goldDiePosition1));
+		assertEquals(goldDiePosition1.hashCode(), boardPosition1.hashCode());
+		
+		movePieceUp(goldDie1);
+		goldDiePosition1 = goldDie1.getPosition();
+		
+		BoardPosition boardPosition2 = new BoardPosition(6, 5);	
+		PieceData goldDie2 = board.getPieceAt(boardPosition2);
+		PiecePosition goldDiePosition2 = goldDie2.getPosition();
+		
+		//boardPosition2 should be same as goldDiePosition2.
+		assertTrue(goldDiePosition2.equals(boardPosition2));
+		assertTrue(boardPosition2.equals(goldDiePosition2));
+		assertEquals(goldDiePosition2.hashCode(), boardPosition2.hashCode());
+		
+		//goldDiePosition1 is the bucket, goldDiePosition2 is the board.
+		assertFalse(goldDiePosition1.equals(goldDiePosition2));
+		
+		movePieceUp(goldDie2);
+		goldDiePosition2 = goldDie2.getPosition();
+		
+		//goldDie1 and goldDie2 should now be in the bucket.
+		assertTrue(goldDiePosition1.equals(goldDiePosition2));
+		assertEquals(goldDiePosition1.hashCode(), goldDiePosition2.hashCode());
+		
+		engine.endMove();
+		
+		PieceData silverDie1 = board.getPieceAt(new BoardPosition(1, 2));
+		movePieceDown(silverDie1);
+		PiecePosition silverDiePosition1 = silverDie1.getPosition();
+		
+		//goldDie1 and silverDie1 are in different buckets.
+		assertFalse(goldDiePosition1.equals(silverDiePosition1));
+		assertFalse(goldDiePosition1.hashCode() == silverDiePosition1.hashCode());
+		
+		engine.endMove();
+		
+		PieceData goldLive1 = board.getPieceAt(new BoardPosition(6, 0));
+		PieceData goldLive2 = board.getPieceAt(new BoardPosition(6, 1));
+		
+		//remember stepToCheck1.  we will test equality/hashing later.
+		StepData stepToCheck1 = new StepData(goldLive1, ((BoardPosition)goldLive1.getPosition()).moveUp());
+		engine.takeStep(stepToCheck1);
+		
+		//move another piece so that we can return goldLive1 to its original position.
+		movePieceUp(goldLive2);
+		movePieceDown(goldLive1);
+		
+		assertTrue(goldLive1.getPosition().equals(new BoardPosition(6, 0)));
+		engine.endMove();
+		
+		//make a quick move to return to gold's turn.
+		movePieceDown(board.getPieceAt(new BoardPosition(1, 0)));
+		engine.endMove();
+
+		StepData stepToCheck2 = new StepData(goldLive1, new BoardPosition(5, 0));
+		engine.takeStep(stepToCheck2);
+		
+		//check that stepToCheck1 is equal to stepToCheck2.
+		assertTrue(stepToCheck1.equals(stepToCheck2));
+		assertEquals(stepToCheck1.hashCode(), stepToCheck2.hashCode());
 	}
 	
 	/**

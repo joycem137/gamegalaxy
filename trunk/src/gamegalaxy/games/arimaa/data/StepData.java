@@ -56,11 +56,12 @@ public final class StepData
 	}
 	
 	/**
+	 * Compares this StepData object with another object.  Returns true only if both
+	 * objects are StepData objects with the same piece, sourcePosition, and destination.
 	 * 
-	 * TODO: Describe overridden method
-	 *
-	 * @param o
-	 * @return
+	 * @param o The object to compare this object to.
+	 * @return <code>true</code> if the two objects are equal
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	public boolean equals(Object o)
@@ -77,6 +78,23 @@ public final class StepData
 		{
 			return false;
 		}
+	}
+	
+	/**
+	 * Hashes the StepData.  For any two StepData objects a and b,
+	 * if a.equals(b), then a.hashCode() = b.hashCode() as well.
+	 * 
+	 * @return  <code>int</code> value representing the object's hashCode.
+	 * 
+	 * @see java.lang.Object#hashCode(java.lang.Object)
+	 */
+	public int hashCode()
+	{
+		int hash = 1;
+		hash = hash * 31 + sourcePosition.hashCode();
+		hash = hash * 31 + destination.hashCode();
+		hash = hash * 31 + piece.hashCode();
+		return hash;
 	}
 
 	/**

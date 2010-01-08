@@ -60,36 +60,13 @@ public final class BucketPosition implements PiecePosition
 	{
 		return "Bucket " + color;
 	}
-
-	/**
-	 * TODO: Describe overridden method
-	 *
-	 * @param otherPosition
-	 * @return
-	 * @see gamegalaxy.games.arimaa.data.PiecePosition#equals(gamegalaxy.games.arimaa.data.PiecePosition)
-	 */
-	public boolean equals(PiecePosition otherPosition)
-	{
-		//Verify that this is actually a PiecePosition object.
-		if(otherPosition instanceof BucketPosition)
-		{
-			BucketPosition other = (BucketPosition)otherPosition;
-			return other.color == color;
-		}
-		else
-		{
-			//This isn't a BucketPosition object.  The two objects cannot be the same.
-			return false;
-		}
-	}
 	
 	/**
-	 * 
-	 * Compares this BoardPosition object with another object.  Returns true if the two
-	 * objects are both PiecePosition objects and both have the same row and column.
+	 * Compares this BucketPosition object with another object.  Returns true if the two
+	 * objects are both BucketPosition objects contained in the same bucket.
 	 *
 	 * @param o The object to compare this object to.
-	 * @return <code>true</code> if the two objects are equivalent
+	 * @return <code>true</code> if the two objects are equal
 	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -106,6 +83,21 @@ public final class BucketPosition implements PiecePosition
 			//This isn't a BucketPosition object.  The two objects cannot be the same.
 			return false;
 		}
+	}
+	
+	/** 
+	 * Hashes the BucketPosition.  For any two BucketPosition objects a and b,
+	 * if a.equals(b), then a.hashCode() = b.hashCode() as well.
+	 * 
+	 * @return  <code>int</code> value representing the object's hashCode.
+	 * 
+	 * @see java.lang.Object#hashCode(java.lang.Object)
+	 */
+	public int hashCode()
+	{
+		int hash = 1;
+		hash = hash * 31 + color;
+		return hash;
 	}
 
 }
