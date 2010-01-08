@@ -148,4 +148,13 @@ public class PieceData
 		newPiece.position = position;
 		return newPiece;
 	}
+	
+	public int hashCode()
+	{
+		int hash = 1;
+		hash = hash * 31 + position.hashCode();
+		hash = hash * 31 + color;
+		hash = hash * 31 + value;
+		return hash;
+	}
 }

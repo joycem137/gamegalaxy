@@ -181,35 +181,13 @@ public final class BoardPosition implements PiecePosition
 			return null;
 		}
 	}
-
-	/**
-	 * Returns true if this piece position is the same as the parameter.
-	 *
-	 * @param otherPosition
-	 * @return
-	 * @see gamegalaxy.games.arimaa.data.PiecePosition#equals(gamegalaxy.games.arimaa.data.PiecePosition)
-	 */
-	public boolean equals(PiecePosition otherPosition)
-	{
-		//Verify that this is actually a PiecePosition object.
-		if(otherPosition instanceof BoardPosition)
-		{
-			return ((BoardPosition)otherPosition).row == row && ((BoardPosition)otherPosition).col == col;
-		}
-		else
-		{
-			//This isn't a BoardPosition object.  The two objects cannot be the same.
-			return false;
-		}
-	}
 	
 	/**
-	 * 
 	 * Compares this BoardPosition object with another object.  Returns true if the two
-	 * objects are both PiecePosition objects and both have the same row and column.
+	 * objects are both BoardPosition objects and both have the same row and column.
 	 *
 	 * @param o The object to compare this object to.
-	 * @return <code>true</code> if the two objects are equivalent
+	 * @return <code>true</code> if the two objects are equal
 	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -225,5 +203,21 @@ public final class BoardPosition implements PiecePosition
 			//This isn't a BoardPosition object.  The two objects cannot be the same.
 			return false;
 		}
+	}
+	
+	/** 
+	 * Hashes the BoardPosition.  For any two BoardPosition objects a and b,
+	 * if a.equals(b), then a.hashCode() = b.hashCode() as well.
+	 * 
+	 * @return  <code>int</code> value representing the object's hashCode.
+	 * 
+	 * @see java.lang.Object#hashCode(java.lang.Object)
+	 */
+	public int hashCode()
+	{
+		int hash = 1;
+		hash = hash * 31 + row;
+		hash = hash * 31 + col;
+		return hash;
 	}
 }

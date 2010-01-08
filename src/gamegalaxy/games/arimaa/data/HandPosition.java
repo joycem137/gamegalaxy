@@ -36,17 +36,19 @@ public final class HandPosition implements PiecePosition
 	}
 
 	/**
-	 * TODO: Describe overridden method
+	 * Compares this HandPosition object with another object.  Returns true if the two
+	 * objects are both HandPosition objects with the same oldPosition.
 	 *
-	 * @param otherPosition
-	 * @return
-	 * @see gamegalaxy.games.arimaa.data.PiecePosition#equals(gamegalaxy.games.arimaa.data.PiecePosition)
+	 * @param o The object to compare this object to.
+	 * @return <code>true</code> if the two objects are equal
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
-	public boolean equals(PiecePosition otherPosition)
+	public boolean equals(Object o)
 	{
-		if(otherPosition instanceof HandPosition)
+		if(o instanceof HandPosition)
 		{
-			return oldPosition.equals(((HandPosition)otherPosition).oldPosition);
+			return oldPosition.equals(((HandPosition)o).oldPosition);
 		}
 		else
 		{
@@ -54,25 +56,19 @@ public final class HandPosition implements PiecePosition
 		}
 	}
 	
-	/**
+	/** 
+	 * Hashes the HandPosition.  For any two HandPosition objects a and b,
+	 * if a.equals(b), then a.hashCode() = b.hashCode() as well.
 	 * 
-	 * Returns equals if this is the parameter object is a HandPosition that
-	 * has the same values as this one.
-	 *
-	 * @param o
-	 * @return
-	 * @see java.lang.Object#equals(java.lang.Object)
+	 * @return  <code>int</code> value representing the object's hashCode.
+	 * 
+	 * @see java.lang.Object#hashCode(java.lang.Object)
 	 */
-	public boolean equals(Object o)
+	public int hashCode()
 	{
-		if(o instanceof PiecePosition)
-		{
-			return equals((PiecePosition)o);
-		}
-		else
-		{
-			return false;
-		}
+		int hash = 1;
+		hash = hash * 31 + oldPosition.hashCode();
+		return hash;
 	}
 
 	/**
