@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="" href="">
+    <information>
+        <title>Arimaa</title>
+        <vendor>WeirdGals</vendor>
+        <icon href="http://gamegalaxy.googlecode.com/files/arimaaicon.jpg"/> 
+        <offline-allowed/>
+    </information>
+    <resources>
+        <!-- Application Resources -->
+        <j2se version="1.5+"
+              href="http://java.sun.com/products/autodl/j2se"/>
+        <jar href="http://gamegalaxy.googlecode.com/files/arimaa.jar" main="true" />
+
+    </resources>
+    <application-desc
+         name="Arimaa"
+         main-class="gamegalaxy.MainGameGalaxy"
+         width="891"
+         height="640">
+     </application-desc>
+</jnlp>	
