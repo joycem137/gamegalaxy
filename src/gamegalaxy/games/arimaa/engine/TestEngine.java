@@ -28,6 +28,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import gamegalaxy.games.arimaa.data.BoardData;
 import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.BucketPosition;
 import gamegalaxy.games.arimaa.data.GameConstants;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
@@ -738,6 +739,8 @@ public class TestEngine
 		engine.takeStep(new StepData(rabbit, new BoardPosition(1, 3)));
 		engine.takeStep(new StepData(rabbit, new BoardPosition(0, 3)));
 		
+		engine.endMove();
+		
 		//Assert that the game has been won.
 		assertTrue(engine.getCurrentGameState().isGameOver());
 		assertEquals(GameConstants.GOLD, engine.getCurrentGameState().getGameWinner());
@@ -751,8 +754,10 @@ public class TestEngine
 	{
 		killAlmostAllOfTheRabbits();
 		PieceData rabbit = engine.getCurrentGameState().getBoardData().getPieceAt(new BoardPosition(5, 6));
-		movePieceLeft(rabbit); //And that should win the game for silver.
+		movePieceLeft(rabbit);
+		engine.endMove();
 		
+		//And that should win the game for silver.
 		GameState gameState = engine.getCurrentGameState();
 		assertTrue(gameState.isGameOver());
 		assertEquals(GameConstants.SILVER, gameState.getGameWinner());
@@ -778,10 +783,396 @@ public class TestEngine
 		movePieceDown(elephant);
 		movePieceLeft(rabbit);
 		movePieceDown(elephant);
+		engine.endMove();
 		
 		GameState gameState = engine.getCurrentGameState();
 		assertTrue(gameState.isGameOver());
 		assertEquals(GameConstants.SILVER, gameState.getGameWinner());
+	}
+	
+	/**
+	 * Test scenario where a player pushes an opponent's rabbit onto its winning
+	 *  rank and then pulls it away in the same turn.  The game should not end.
+	 */
+	@Test
+	public void testRabbitPushPullNoWin()
+	{
+		rabbitSeason();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		GameState game = engine.getCurrentGameState();
+			
+		PieceData goldRabbit = board.getPieceAt(new BoardPosition(6, 6));
+		PieceData silverRabbit = board.getPieceAt(new BoardPosition(1, 6));
+		PieceData silverElephant = board.getPieceAt(new BoardPosition(0, 6));
+		
+		//move the gold rabbit up to (2,6).
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		engine.endMove();
+		
+		//move the silver elephant to (1,5) and the silver rabbit out of the way.
+		movePieceRight(silverRabbit);
+		movePieceDown(silverElephant);
+		movePieceLeft(silverElephant);
+		engine.endMove();
+		
+		//move the gold rabbit up to (1,6) which freezes it due to the silver elephant.
+		movePieceUp(goldRabbit);
+		assertFalse(game.canPieceBeMoved(goldRabbit));
+		engine.endMove();
+		
+		//push the gold rabbit up to the goal line (0,6).
+		movePieceUp(goldRabbit);
+		movePieceRight(silverElephant);
+		assertTrue(goldRabbit.getPosition().equals(new BoardPosition(0, 6)));
+		assertTrue(game.isGameOn());
+		
+		//pull the gold rabbit back down to (1,6).
+		movePieceDown(silverElephant);
+		movePieceDown(goldRabbit);
+		engine.endMove();
+		
+		//now make sure the game is not over.
+		assertFalse(game.isGameOver());
+		assertTrue(goldRabbit.getPosition().equals(new BoardPosition(1, 6)));
+	}
+	
+	/**
+	 * Test game-winning situation where a player advances a rabbit to the other
+	 *  end of the board and pushes an opponent's rabbit onto their own winning
+	 *  rank in the same turn.  The player whose turn it is should be declared winner.
+	 */
+	@Test
+	public void testBothRabbitsAdvancingVictory()
+	{
+		rabbitSeason();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		GameState game = engine.getCurrentGameState();
+			
+		PieceData goldRabbit = board.getPieceAt(new BoardPosition(6, 6));
+		PieceData goldElephant = board.getPieceAt(new BoardPosition(7, 6));
+		PieceData silverRabbit = board.getPieceAt(new BoardPosition(1, 6));
+		PieceData silverElephant = board.getPieceAt(new BoardPosition(0, 6));
+		
+		//move the gold rabbit to (3,7).
+		movePieceRight(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		engine.endMove();
+		
+		//move the silver rabbit to (5,6).
+		movePieceDown(silverRabbit);
+		movePieceDown(silverRabbit);
+		movePieceDown(silverRabbit);
+		movePieceDown(silverRabbit);	
+		engine.endMove();
+		
+		//get the gold elephant out of the way to (6,4).
+		movePieceUp(goldElephant);
+		movePieceLeft(goldElephant);
+		movePieceLeft(goldElephant);
+		engine.endMove();
+		
+		//get the silver elephant into position at (1,5).
+		movePieceDown(silverElephant);
+		movePieceLeft(silverElephant);
+		engine.endMove();
+		
+		//move the gold rabbit up to (1,6) and freeze it.
+		movePieceLeft(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		assertFalse(engine.canPieceBeMoved(goldRabbit));
+		engine.endMove();
+		
+		//with the silver elephant, push the gold rabbit up to its goal (0,6).
+		movePieceUp(goldRabbit);
+		movePieceRight(silverElephant);
+		assertTrue(goldRabbit.getPosition().equals(new BoardPosition(0, 6)));
+		assertTrue(game.isGameOn());
+		
+		//now move the silver rabbit down to its goal (7,6).
+		movePieceDown(silverRabbit);
+		movePieceDown(silverRabbit);
+		assertTrue(silverRabbit.getPosition().equals(new BoardPosition(7, 6)));
+		assertTrue(game.isGameOn());
+		
+		//end the turn.  silver should win.
+		engine.endMove();
+		assertTrue(game.isGameOver());
+		assertEquals(GameConstants.SILVER, game.getGameWinner());	
+	}
+	
+	/**
+	 * Test the Undo Move tool to be sure it does not prevent the game from ending
+	 * normally when a player fulfills a win condition.
+	 */
+	@Test
+	public void testUndo()
+	{
+		placePieceTypeOnBoard(PieceData.RABBIT, 6, 3);
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		placePieceTypeOnBoard(PieceData.RABBIT, 1, 2);
+		placePieceTypeOnBoard(PieceData.RABBIT, 1, 4);
+		placePieceTypeOnBoard(PieceData.RABBIT, 0, 2);
+		placePieceTypeOnBoard(PieceData.RABBIT, 0, 4);
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		
+		//do a couple oopsies.
+		PieceData goldRabbit = board.getPieceAt(new BoardPosition(6, 3));
+		movePieceUp(goldRabbit);
+		movePieceLeft(goldRabbit);
+		
+		engine.undoMove();
+		
+		//undoMove() nukes our referenced objects, so let's get them again.
+		board = engine.getCurrentGameState().getBoardData();
+		goldRabbit = board.getPieceAt(new BoardPosition(6, 3));
+		movePieceUp(goldRabbit);
+		
+		PieceData piece = board.getPieceAt(new BoardPosition(6, 2));
+		movePieceUp(piece);
+		engine.endMove();
+		
+		//more oopsies
+		piece = board.getPieceAt(new BoardPosition(1, 2));
+		movePieceDown(piece);
+		piece = board.getPieceAt(new BoardPosition(1, 5));
+		movePieceDown(piece);
+		
+		//that's dumb!  let's undo that
+		engine.undoMove();
+		board = engine.getCurrentGameState().getBoardData();
+		
+		piece = board.getPieceAt(new BoardPosition(1, 3));
+		movePieceDown(piece);
+		movePieceLeft(piece);
+		movePieceLeft(piece);
+		engine.endMove();
+		
+		goldRabbit = board.getPieceAt(new BoardPosition(5, 3));
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceLeft(goldRabbit);
+		
+		//that was a misclick!  I swear!
+		assertTrue(goldRabbit.getPosition() instanceof BucketPosition);
+		
+		engine.undoMove();
+		board = engine.getCurrentGameState().getBoardData();
+		goldRabbit = board.getPieceAt(new BoardPosition(5, 3));
+		assertTrue(goldRabbit.getPosition() instanceof BoardPosition);
+		//whew!
+		
+		//move the gold rabbit up to (3,3).
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		engine.endMove();
+		
+		//let's get the piece at (0,3) out of the gold rabbit's way. no mistakes this time.
+		piece = board.getPieceAt(new BoardPosition(0, 3));
+		movePieceDown(piece);
+		movePieceDown(piece);
+		movePieceRight(piece);
+		movePieceRight(piece);
+		engine.endMove();
+		
+		//that gold rabbit sure hates itself...
+		movePieceUp(goldRabbit);
+		movePieceLeft(goldRabbit);
+		
+		engine.undoMove();
+		board = engine.getCurrentGameState().getBoardData();
+		goldRabbit = board.getPieceAt(new BoardPosition(3, 3));
+		
+		//now the gold rabbit is ready to win
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+
+		//...but we're going to taunt the opponent first.
+		assertFalse(engine.getCurrentGameState().isGameOver());
+		engine.undoMove();
+		assertTrue(engine.getCurrentGameState().isGameOn());
+		
+		board = engine.getCurrentGameState().getBoardData();
+		goldRabbit = board.getPieceAt(new BoardPosition(3, 3));
+		
+		//for real this time
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		movePieceUp(goldRabbit);
+		engine.endMove();
+		
+		//make sure the game recognizes the gold player victory.
+		assertTrue(engine.getCurrentGameState().isGameOver());
+		assertEquals(GameConstants.GOLD, engine.getCurrentGameState().getGameWinner());
+	}
+	
+	/**
+	 * Test game-winning situation where a player captures the opponent's final
+	 *  rabbit and sacrifices their own final rabbit in the same turn.  The player whose
+	 *  turn it is should be declared winner.
+	 */
+	@Test
+	public void testDoubleKOVictory()
+	{
+		rabbitSeason();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		PieceData goldRabbit = board.getPieceAt(new BoardPosition(6, 6));
+		PieceData goldElephant = board.getPieceAt(new BoardPosition(7, 6));
+		PieceData silverRabbit = board.getPieceAt(new BoardPosition(1, 6));
+		PieceData silverElephant = board.getPieceAt(new BoardPosition(0, 6));
+		
+		//move the gold rabbit one square down from the (5,5) trap, and
+		//start moving the elephant up.
+		movePieceLeft(goldRabbit);
+		movePieceUp(goldElephant);
+		movePieceUp(goldElephant);
+		engine.endMove();
+		
+		//move the silver rabbit one square down from the (2,5) trap.
+		movePieceDown(silverRabbit);
+		movePieceDown(silverRabbit);
+		movePieceLeft(silverRabbit);
+		engine.endMove();
+		
+		//position the elephant one square up from the (5,5) trap, and the
+		//gold rabbit onto the trap.
+		movePieceUp(goldElephant);
+		movePieceLeft(goldElephant);
+		movePieceUp(goldRabbit);
+		assertTrue(goldRabbit.getPosition() instanceof BoardPosition);
+		engine.endMove();
+		
+		//dummy move for silver.
+		movePieceDown(silverElephant);
+		engine.endMove();
+		
+		//the gold elephant does a push move up, capturing the silver rabbit.
+		//this also sacrifices the gold rabbit to the trap.
+		movePieceUp(silverRabbit);
+		movePieceUp(goldElephant);
+		assertTrue(goldRabbit.getPosition() instanceof BucketPosition);
+		assertTrue(silverRabbit.getPosition() instanceof BucketPosition);
+		engine.endMove();
+		
+		//confirm that gold is the winner.
+		GameState gameState = engine.getCurrentGameState();
+		assertTrue(gameState.isGameOver());
+		assertEquals(GameConstants.GOLD, gameState.getGameWinner());
+	}
+	
+	/**
+	 * Test situation where a player has no legal moves at the beginning of their
+	 *  turn, resulting in victory for the other player.
+	 */
+	@Test
+	public void testNoLegalMovesVictory()
+	{
+		rabbitSeason();
+		
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		PieceData goldRabbit = board.getPieceAt(new BoardPosition(6, 6));
+		PieceData goldElephant = board.getPieceAt(new BoardPosition(7, 6));
+		PieceData silverRabbit = board.getPieceAt(new BoardPosition(1, 6));
+		PieceData silverElephant = board.getPieceAt(new BoardPosition(0, 6));
+		
+		//move the gold rabbit out of the way.
+		movePieceRight(goldRabbit);
+		engine.endMove();
+		
+		//move the silver rabbit to (1,7) and kill the silver elephant.
+		movePieceRight(silverRabbit);
+		movePieceDown(silverElephant);
+		movePieceDown(silverElephant);
+		movePieceLeft(silverElephant);
+		engine.endMove();
+		
+		//move the gold elephant up to (6,6).
+		movePieceUp(goldElephant);
+		engine.endMove();
+		
+		//kill the silver piece at (0,0).
+		PieceData silverPiece = board.getPieceAt(new BoardPosition(0, 0));
+		movePieceDown(silverPiece);
+		movePieceDown(silverPiece);
+		movePieceRight(silverPiece);
+		movePieceRight(silverPiece);
+		engine.endMove();
+		
+		//move the gold elephant up to (5,6).
+		movePieceUp(goldElephant);
+		engine.endMove();	
+		
+		//kill the silver piece at (0,1).
+		silverPiece = board.getPieceAt(new BoardPosition(0, 1));
+		movePieceDown(silverPiece);
+		movePieceDown(silverPiece);
+		movePieceRight(silverPiece);
+		engine.endMove();	
+		
+		//move the gold elephant up to (4,6).
+		movePieceUp(goldElephant);
+		engine.endMove();	
+		
+		//kill the silver piece at (0,2).
+		silverPiece = board.getPieceAt(new BoardPosition(0, 2));
+		movePieceDown(silverPiece);
+		movePieceDown(silverPiece);
+		engine.endMove();
+		
+		//move the gold elephant up to (3,6).
+		movePieceUp(goldElephant);
+		engine.endMove();	
+		
+		//kill the silver piece at (0,3).
+		silverPiece = board.getPieceAt(new BoardPosition(0, 3));
+		movePieceDown(silverPiece);
+		movePieceDown(silverPiece);
+		movePieceLeft(silverPiece);
+		//move the silver piece at (0,7) to (0,6).
+		silverPiece = board.getPieceAt(new BoardPosition(0, 7));
+		movePieceLeft(silverPiece);		
+		engine.endMove();
+		
+		//move the gold elephant up to (2,6).
+		movePieceUp(goldElephant);
+		engine.endMove();	
+		
+		//kill the silver piece at (0,4).
+		silverPiece = board.getPieceAt(new BoardPosition(0, 4));
+		movePieceDown(silverPiece);
+		movePieceDown(silverPiece);
+		movePieceRight(silverPiece);
+		//move the silver piece at (0,5) to (1,5).
+		silverPiece = board.getPieceAt(new BoardPosition(0, 5));
+		movePieceDown(silverPiece);		
+		engine.endMove();
+		
+		//at this point, silver has three pieces at (0,6), (1,5), and (1,7).
+		//since none of these are the silver elephant, moving the gold
+		//elephant up to (1,6) should freeze all three.
+		movePieceUp(goldElephant);
+		engine.endMove();
+		
+		//the game should be over with gold player as the winner.
+		GameState gameState = engine.getCurrentGameState();
+		assertFalse(gameState.playerHasValidMoves());
+		assertTrue(gameState.isGameOver());
+		assertEquals(GameConstants.GOLD, gameState.getGameWinner());
 	}
 	
 	/**
@@ -951,6 +1342,105 @@ public class TestEngine
 		engine.endMove();
 	}
 
+	/**
+	 * Creates a "near-death" situation for both players by suiciding all but
+	 * one rabbit on each side.  At the end of this method it is Gold's turn, with the
+	 * last gold rabbit at (6,6) and gold elephant at (7,6); and silver rabbit
+	 * at (1,6) and silver elephant at (0,6).
+	 */
+	private void rabbitSeason()
+	{	
+		//Line the front row with rabbits.
+		for(int col = 0; col < 8; col++)
+		{
+			placePieceTypeOnBoard(PieceData.RABBIT, 6, col);
+		}
+		
+		//Place the elephant in a known position.
+		placePieceTypeOnBoard(PieceData.ELEPHANT, 7, 6);
+		
+		//Do the rest randomly.
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Line the front row with rabbits.
+		for(int col = 0; col < 8; col++)
+		{
+			placePieceTypeOnBoard(PieceData.RABBIT, 1, col);
+		}
+		
+		//Place the elephant in a known position.
+		placePieceTypeOnBoard(PieceData.ELEPHANT, 0, 6);
+		
+		//Do the rest randomly.
+		engine.doRandomSetup();
+		engine.endMove();
+
+		BoardData board = engine.getCurrentGameState().getBoardData();
+
+		//First turn: kill rabbits in columns 0 and 2.
+		PieceData rabbit = board.getPieceAt(new BoardPosition(6, 2));
+		movePieceUp(rabbit);
+		rabbit = board.getPieceAt(new BoardPosition(6, 0));
+		movePieceUp(rabbit);
+		movePieceRight(rabbit);
+		movePieceRight(rabbit);
+		engine.endMove();
+		
+		rabbit = board.getPieceAt(new BoardPosition(1, 2));
+		movePieceDown(rabbit);
+		rabbit = board.getPieceAt(new BoardPosition(1, 0));
+		movePieceDown(rabbit);
+		movePieceRight(rabbit);
+		movePieceRight(rabbit);
+		engine.endMove();
+		
+		//Second turn: kill rabbits in columns 1 and 3.
+		rabbit = board.getPieceAt(new BoardPosition(6, 1));
+		movePieceUp(rabbit);
+		movePieceRight(rabbit);
+		rabbit = board.getPieceAt(new BoardPosition(6, 3));
+		movePieceUp(rabbit);
+		movePieceLeft(rabbit);
+		engine.endMove();
+		
+		rabbit = board.getPieceAt(new BoardPosition(1, 1));
+		movePieceDown(rabbit);
+		movePieceRight(rabbit);
+		rabbit = board.getPieceAt(new BoardPosition(1, 3));
+		movePieceDown(rabbit);
+		movePieceLeft(rabbit);
+		engine.endMove();
+		
+		//Third turn: kill rabbits in columns 4 and 5.
+		rabbit = board.getPieceAt(new BoardPosition(6, 5));
+		movePieceUp(rabbit);
+		rabbit = board.getPieceAt(new BoardPosition(6, 4));
+		movePieceUp(rabbit);
+		movePieceRight(rabbit);
+		engine.endMove();
+		
+		rabbit = board.getPieceAt(new BoardPosition(1, 5));
+		movePieceDown(rabbit);
+		rabbit = board.getPieceAt(new BoardPosition(1, 4));
+		movePieceDown(rabbit);
+		movePieceRight(rabbit);
+		engine.endMove();
+		
+		//Finally: kill rabbits in column 7.
+		rabbit = board.getPieceAt(new BoardPosition(6, 7));
+		movePieceUp(rabbit);
+		movePieceLeft(rabbit);
+		movePieceLeft(rabbit);		
+		engine.endMove();
+		
+		rabbit = board.getPieceAt(new BoardPosition(1, 7));
+		movePieceDown(rabbit);
+		movePieceLeft(rabbit);
+		movePieceLeft(rabbit);		
+		engine.endMove();
+	}
+	
 	/**
 	 * TODO: Describe method
 	 *
