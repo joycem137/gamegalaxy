@@ -81,11 +81,38 @@ public final class GameState
 	{
 		GameState newState = new GameState();
 		
-		newState.board = board.copy();
-
-		newState.pieces = copyList(pieces);
-		newState.goldBucket = copyList(goldBucket);
-		newState.silverBucket = copyList(silverBucket);
+		newState.board = new BoardData();
+		newState.pieces = new Vector<PieceData>(32);
+		newState.goldBucket = new Vector<PieceData>(16);
+		newState.silverBucket = new Vector<PieceData>(16);
+		
+		Iterator<PieceData> iterator = pieces.iterator();
+		while (iterator.hasNext())
+		{
+			PieceData newPiece = iterator.next().copy();
+			newState.pieces.add(newPiece);
+			
+			if (newPiece.getPosition() instanceof BoardPosition)
+			{
+				newState.board.placePiece(newPiece, (BoardPosition)newPiece.getPosition());
+			}
+			if (newPiece.getPosition() instanceof BucketPosition)
+			{
+				BucketPosition newBucket = (BucketPosition)newPiece.getPosition();
+				if (newBucket.getColor() == GameConstants.SILVER)
+				{
+					newState.silverBucket.add(newPiece);
+				}
+				else
+				{
+					newState.goldBucket.add(newPiece);
+				}
+			}
+			if (newPiece.getPosition() instanceof HandPosition)
+			{
+				newState.pieceInHand = newPiece;
+			}
+		}
 		
 		newState.playerTurn = playerTurn;
 		newState.numSteps = numSteps;
@@ -102,6 +129,8 @@ public final class GameState
 		newState.winner = winner;
 		
 		newState.lastStepWasCapture = lastStepWasCapture;
+		
+		newState.moveGenerator = new MoveGenerator(newState);
 				
 		return newState;
 	}
@@ -622,9 +651,6 @@ public final class GameState
 			{
 				checkTheTraps();
 			}
-				
-			// Check to see if anyone has won the game.
-			checkForWinner();
 		}
 		
 		//Reset the move generator.
@@ -642,11 +668,17 @@ public final class GameState
 			pullPosition = null;
 			lastStep = null;
 		
+			// Check to see if this ends the game.
+			if (phase == GameConstants.GAME_ON)
+			{
+				checkForWinner();
+			}
+				
 			// Switch the turn.
 			playerTurn = (playerTurn + 1) % 2;
 		
 			// If we're back to gold, the game phase has changed.
-			if (playerTurn == GameConstants.GOLD)
+			if (playerTurn == GameConstants.GOLD && phase == GameConstants.SETUP_PHASE)
 			{
 				phase = GameConstants.GAME_ON;
 			}
@@ -654,47 +686,55 @@ public final class GameState
 			numSteps = 0;
 			
 			moveGenerator.reset();
+			
+			// If the player has no valid moves at the beginning of the turn, they lose.
+			if (phase == GameConstants.GAME_ON && !playerHasValidMoves())
+			{
+				setGameWinner((playerTurn + 1) % 2);
+			}
 		}
 	}
 
 	/**
 	 * Evaluate the current game situation to determine if there has been a winner.
-	 * 
+	 *  This is performed after a player ends their turn, but before the opponent's turn
+	 *  begins.
 	 */
 	private void checkForWinner()
 	{
-		boolean foundGoldRabbit = false;
-		boolean foundSilverRabbit = false;
+		boolean aliveGoldRabbit = false;
+		boolean aliveSilverRabbit = false;
+		boolean winningGoldRabbit = false;
+		boolean winningSilverRabbit = false;
+		
 		Iterator<PieceData> iterator = pieces.iterator();
 		while (iterator.hasNext())
 		{
 			PieceData piece = iterator.next();
 	
-			// If we find a rabbit piece, check to see if it is in the back row.
+			// Check through our pieces for rabbits.
 			if (piece.getValue() == PieceData.RABBIT)
 			{
-				// Check if the rabbit is in the back row.
 				if (piece.getPosition() != null)
 				{
+					// Check if the rabbit is still on the board.
 					if (piece.getPosition() instanceof BoardPosition)
 					{
 						BoardPosition position = (BoardPosition) piece.getPosition();
 						if (piece.getColor() == GameConstants.GOLD)
 						{
-							foundGoldRabbit = true;
+							aliveGoldRabbit = true;
 							if (position.getRow() == 0)
 							{
-								// Gold won!!!
-								setGameWinner(GameConstants.GOLD);
+								winningGoldRabbit = true;
 							}
 						}
 						else
 						{
-							foundSilverRabbit = true;
+							aliveSilverRabbit = true;
 							if (position.getRow() == 7)
 							{
-								// Silver won!
-								setGameWinner(GameConstants.SILVER);
+								winningSilverRabbit = true;
 							}
 						}
 					}
@@ -702,17 +742,72 @@ public final class GameState
 			}
 		}
 	
-		// If we made it here, make sure we found rabbits of each color.
-		if (!foundGoldRabbit)
+		// Now that we've checked through our rabbits, see if the game is over.
+		
+		// If both players have advanced rabbits to the other side, the current player wins.	
+		if (winningGoldRabbit && winningSilverRabbit)
 		{
-			setGameWinner(GameConstants.SILVER);
+			setGameWinner(playerTurn);
 		}
-		else if (!foundSilverRabbit)
+		else
 		{
-			setGameWinner(GameConstants.GOLD);
+			// If only one rabbit has made it across, the player whose color it is wins.
+			if (winningGoldRabbit)
+			{
+				setGameWinner(GameConstants.GOLD);
+			}
+			
+			if (winningSilverRabbit)
+			{
+				setGameWinner(GameConstants.SILVER);
+			}
+		}
+		
+		if (!winningGoldRabbit && !winningSilverRabbit)
+		{
+			// If all sixteen rabbits have been captured, the current player wins.
+			if (!aliveGoldRabbit && !aliveSilverRabbit)
+			{
+				setGameWinner(playerTurn);
+			}
+			else
+			{
+				// If only one player's rabbits have been captured, the other player wins.
+				if (!aliveGoldRabbit)
+				{
+					setGameWinner(GameConstants.SILVER);
+				}
+				
+				if (!aliveSilverRabbit)
+				{
+					setGameWinner(GameConstants.GOLD);
+				}
+			}
 		}
 	}
 
+	/**
+	 * Checks to see if the current player has any valid moves at all.
+	 * 
+	 * @return <code>true</code> if at least one piece can be moved.
+	 */
+	public boolean playerHasValidMoves()
+	{
+		boolean validMoveFound = false;
+		Iterator<PieceData> iterator = pieces.iterator();
+		
+		while (iterator.hasNext() && !validMoveFound)
+		{
+			PieceData piece = iterator.next();
+			if (canPieceBeMoved(piece))
+			{
+				validMoveFound = true;
+			}
+		}
+		
+		return validMoveFound;
+	}
+	
 	/**
 	 * Check all of the traps to see if there are any pieces that need to be captured.
 	 * 
