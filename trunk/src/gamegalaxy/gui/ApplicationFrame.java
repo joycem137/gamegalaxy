@@ -24,6 +24,7 @@
 
 package gamegalaxy.gui;
 
+import gamegalaxy.games.arimaa.engine.ArimaaEngine;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 import gamegalaxy.tools.GPLPopup;
 import gamegalaxy.tools.GeneralKeyStrokeFactory;
@@ -52,6 +53,8 @@ public class ApplicationFrame extends JFrame
 {
 	private KeyStrokeFactory	keyStrokeFactory;
 	private JDialog				gplPopup;
+	
+	private ArimaaEngine		engine;
 
 	/**
 	 * 
@@ -59,9 +62,11 @@ public class ApplicationFrame extends JFrame
 	 *
 	 * @param gui The Game UI associated with this frame.
 	 */
-	public ApplicationFrame(ArimaaUI gui)
+	public ApplicationFrame(ArimaaUI gui, ArimaaEngine engine)
 	{
 		super("Arimaa");
+		
+		this.engine = engine;
 		
 		// Determine which keystroke factory to grab.
 		if (System.getProperty("os.name").contains("Mac OS X"))
@@ -105,8 +110,25 @@ public class ApplicationFrame extends JFrame
 		// Build the file menu
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic(KeyEvent.VK_F);
+				
+		// Build the New Game item.
+		JMenuItem newGameItem = new JMenuItem("New Game", KeyEvent.VK_N);
+		newGameItem.setAccelerator(keyStrokeFactory.getNewGameAcceleratorKeyStroke());
+		fileMenu.add(newGameItem);
 		
-		// Build the exit item.
+		newGameItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt)
+			{
+				engine.newGame();
+			}
+		});
+		
+		// Build the Save Game item.
+		
+		// Build the Load Game item.
+				
+		// Build the Exit item.
 		JMenuItem exitItem = new JMenuItem("Exit", KeyEvent.VK_X);
 		exitItem.setAccelerator(keyStrokeFactory.getExitGameAcceleratorKeyStroke());
 		fileMenu.add(exitItem);
