@@ -60,7 +60,7 @@ public class MainGameGalaxy
 				ArimaaUI gui = new ArimaaUI(engine, loader);
 				
 				//Add the GUI to the application frame.
-				new ApplicationFrame(gui);
+				new ApplicationFrame(gui, engine);
 			}
 		});
 	}

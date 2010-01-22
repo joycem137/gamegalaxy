@@ -51,10 +51,8 @@ public class ArimaaEngine
 	 */
 	public ArimaaEngine()
 	{
-		currentGameState = new GameState();
-		currentGameState.initializeGameState();
-		lastGameState = currentGameState.copy();
 		observable = new SimpleObservable();
+		newGame();
 	}
 
 	/**
@@ -169,6 +167,17 @@ public class ArimaaEngine
 	public boolean lastStepWasCapture()
 	{
 		return currentGameState.lastStepWasCapture();
+	}
+
+	/**
+	 * Starts a new game.
+	 */
+	public void newGame()
+	{
+		currentGameState = new GameState();
+		currentGameState.initializeGameState();
+		lastGameState = currentGameState.copy();	
+		observable.notifyObservers();
 	}
 
 }
