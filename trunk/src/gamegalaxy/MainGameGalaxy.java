@@ -3,7 +3,7 @@
  * 
  *  This file is part of gamegalaxy.
  *  
- *  gamegalaxy is Copyright 2009 Joyce Murton
+ *  gamegalaxy is Copyright 2009-2010 Joyce Murton, Andrea Kilpatrick, and Melissa Bollen
  *  
  *  Arimaa and other content here copyright their respective copyright holders.
  *  
