@@ -108,27 +108,35 @@ public class MoveGenerator
 	 */
 	private List<StepData> generateGameSteps(PieceData piece)
 	{
+		//This will pick up the set of available moves
 		List<StepData> steps = new Vector<StepData>();
 		
+		//Ensure that there are moves remaining
 		if(gameState.getRemainingMoves() > 0)
 		{
-			//Check to see about forced moves, first.
+			//If there are forced moves, those get added
 			if(gameState.getPieceInHand() != null)
 			{
 				steps.addAll(getForcedSteps(piece));
 			}
+			//??? 
 			else if(piece.getPosition() instanceof BoardPosition)
 			{ 
+				//If this piece is NOT yours, add moves you can do to an enemy piece
+				//IE initiating a push/pull
 				if(piece.getColor() != gameState.getCurrentPlayer())
-				{
+				{			
 					steps.addAll(getOpponentPieceSteps(piece));
 				}
+				//Otherwise, check to ensure the piece isn't frozen
 				else if(!gameState.getBoardData().isPieceFrozen(piece))
 				{
+					//??? forced pushes or something i dunno
 					if(gameState.getPushPosition() != null)
 					{
 						steps.addAll(getForcedPush(piece));
 					}
+					//Add the normal moves for the piece
 					else
 					{
 						steps.addAll(getNormalSteps(piece));
@@ -206,8 +214,8 @@ public class MoveGenerator
 						}
 					}
 					
-					//Now add the move, if appropriate.
-					if(canPush)
+					//Add the move if the piece can push AND there are sufficient moves to do a push
+					if(canPush && gameState.getRemainingMoves() >= 2)
 					{
 						steps.add(new StepData(piece, adjacentPosition));
 					}
