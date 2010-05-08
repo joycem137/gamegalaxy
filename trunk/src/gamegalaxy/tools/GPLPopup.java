@@ -46,7 +46,7 @@ import javax.swing.JTextArea;
 @SuppressWarnings("serial")
 public class GPLPopup extends JDialog
 {
-	private String	gplTextString;
+	
 
 	/**
 	 * 
@@ -63,7 +63,7 @@ public class GPLPopup extends JDialog
 		setLayout(new BorderLayout());
 
 		//Load the GPL text
-		loadText();
+		String gplTextString = loadText();
 		
 		// Create the text area for the GPL
 		JTextArea textPane = new JTextArea();
@@ -94,11 +94,13 @@ public class GPLPopup extends JDialog
 	
 	/**
 	 * 
-	 * Construct the class to read in the GPL license.
+	 * This loads the GPL license from a file in to the global 
 	 */
-	public void loadText()
+	public String loadText()
 	{
-		// Load the GPL text from memory.
+		String gplTextString;
+		
+		//Get the path of the file and confirm it is valid
 		String path = "/resources/COPYING";
 		URL gplURL = getClass().getResource(path);
 		
@@ -108,6 +110,7 @@ public class GPLPopup extends JDialog
 			System.exit(-1);
 		}
 		
+		//Open the file for reading
 		InputStream inputStream = null;
 		try
 		{
@@ -119,8 +122,16 @@ public class GPLPopup extends JDialog
 		
 		InputStreamReader reader = new InputStreamReader(inputStream);
 
+
+
+		
+		//Adjust the array size if using a larger license! (Included license is 32471 characters)
 		char gplTextChars[] = new char[36000];
+		
+		//Tracks the total number of characters read
 		int charsRead = 0;
+		
+		//Read each character of the license file
 		try
 		{
 			charsRead = reader.read(gplTextChars);
@@ -128,9 +139,19 @@ public class GPLPopup extends JDialog
 		{
 			e.printStackTrace();
 		}
+		
+		//(Optional) This can safely be commented out 
+		//Output the # of characters to the terminal
 		System.out.println("Read " + charsRead + " bytes from GPL.");
 
+		//Convert the characters to a string
 		gplTextString = new String(gplTextChars);
+		
+		//This shortens the string to only include the characters found in the file
+		//Otherwise we get null characters appended to the end
+		gplTextString = gplTextString.substring(0,charsRead);
+
+		return gplTextString;
 	}
 }
 
