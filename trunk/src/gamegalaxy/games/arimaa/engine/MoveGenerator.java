@@ -64,6 +64,7 @@ public class MoveGenerator
 	 */
 	public List<StepData> generateSteps(PieceData piece)
 	{
+		//If this move is already in our database, just return the cached value
 		if(moveDatabase.containsKey(piece))
 		{
 			return moveDatabase.get(piece);
@@ -72,20 +73,24 @@ public class MoveGenerator
 		{
 			List<StepData> steps;
 			
-			//First, check the phase.
+			//Create our steps based on the phase
 			if(gameState.isSetupPhase())
 			{
+				//Moves for setting up the board
 				steps = generateSetupSteps(piece);
 			}
 			else if(gameState.isGameOn())
 			{
+				//Moves during the actual game
 				steps = generateGameSteps(piece);
 			}
 			else
 			{
+				//If the game has ended, return an empty set of moves
 				steps = new Vector<StepData>();
 			}
 			
+			//Cache this info in the database for future reference
 			moveDatabase.put(piece, steps);
 			return steps;
 		}
@@ -114,24 +119,24 @@ public class MoveGenerator
 		//Ensure that there are moves remaining
 		if(gameState.getRemainingMoves() > 0)
 		{
-			//If there are forced moves, those get added
+			//If the previous move displaced an enemy piece, we have to complete the push
 			if(gameState.getPieceInHand() != null)
 			{
 				steps.addAll(getForcedSteps(piece));
 			}
-			//??? 
+			//Ensure this is a real board position (i.e. not null)
 			else if(piece.getPosition() instanceof BoardPosition)
 			{ 
 				//If this piece is NOT yours, add moves you can do to an enemy piece
-				//IE initiating a push/pull
+				//i.e. initiating a push/pull OR completing a pull
 				if(piece.getColor() != gameState.getCurrentPlayer())
-				{			
+				{	
 					steps.addAll(getOpponentPieceSteps(piece));
 				}
 				//Otherwise, check to ensure the piece isn't frozen
 				else if(!gameState.getBoardData().isPieceFrozen(piece))
 				{
-					//??? forced pushes or something i dunno
+					//If the last move moved an opponent piece, we must complete the push
 					if(gameState.getPushPosition() != null)
 					{
 						steps.addAll(getForcedPush(piece));
@@ -146,6 +151,84 @@ public class MoveGenerator
 		}
 		
 		return steps;
+	}
+	
+	/**
+	 * This set of three functions validates whether one piece can push/pull another
+	 * 
+	 * validPush() and validPull() exist solely as entry points
+	 * validPushPull() runs the actual validation, as the code is largely the same for both moves
+	 * 
+	 * INPUTS: The piece that is pushing, piece that is being pushed
+	 *		These two pieces MUST be adjacent (this is NOT checked within this code)
+	 */
+	
+	private boolean validPush(PieceData myPiece, PieceData enemyPiece){
+		return validPushPull(myPiece,enemyPiece,true);
+	}
+	
+	private boolean validPull(PieceData myPiece, PieceData enemyPiece){
+		return validPushPull(myPiece,enemyPiece,false);
+	}
+	
+	private boolean validPushPull(PieceData myPiece, PieceData enemyPiece, boolean isPush){
+		BoardData board = gameState.getBoardData();
+		
+		BoardPosition myPosition = (BoardPosition) myPiece.getPosition();
+		BoardPosition enemyPosition = (BoardPosition) enemyPiece.getPosition();
+		
+		//Ensure we have sufficient moves to push (requires 2)
+		if (gameState.getRemainingMoves() < 2){
+			return false;
+		}
+		
+		//Ensure that myPiece really belongs to the active player
+		//And that the enemyPiece belongs to a different player
+		if (myPiece.getColor() != gameState.getCurrentPlayer() ||
+				myPiece.getColor() == enemyPiece.getColor())
+		{
+			return false;
+		}
+		
+		//Ensure that active player's piece isn't frozen
+		if (board.isPieceFrozen(myPiece)){
+			return false;
+		}
+		
+		//Ensure that the active player's piece has the higher value
+		if(myPiece.getValue() < enemyPiece.getValue()){
+			return false;
+		}
+
+		//Determine which piece we need to check for valid moves
+		//If pushing, ensure that the pushed(enemy) piece has a place to move
+		//If pulling, ensure that the displaced(my) piece has a place to move
+		BoardPosition activePosition;
+		
+		if (isPush){
+			activePosition = enemyPosition;
+		}else{
+			activePosition = myPosition;			
+		}
+		
+		//Ensure that the active piece has an open space		
+		boolean foundOpening = false;
+		List<BoardPosition> adjacentSpaces = activePosition.getAdjacentSpaces();
+		Iterator<BoardPosition> iterator = adjacentSpaces.iterator();
+
+		//Check each adjacent square
+		while(iterator.hasNext())
+		{
+			BoardPosition adjacentPosition = iterator.next();
+
+			//If the square is occupied
+			if(!board.isOccupied(adjacentPosition))
+			{
+				foundOpening = true;
+			}
+		}
+
+		return foundOpening;
 	}
 
 	/**
@@ -163,10 +246,13 @@ public class MoveGenerator
 		BoardPosition position = (BoardPosition) piece.getPosition();
 		List<BoardPosition> adjacentSpaces = position.getAdjacentSpaces();
 		Iterator<BoardPosition> iterator = adjacentSpaces.iterator();
+		
+		//For each adjacent space
 		while(iterator.hasNext())
 		{
 			BoardPosition adjacentPosition = iterator.next();
 			
+			//If this square isn't occupied
 			if(!board.isOccupied(adjacentPosition))
 			{
 				//Handle normal moves to unoccupied locations
@@ -194,32 +280,22 @@ public class MoveGenerator
 					steps.add(new StepData(piece, adjacentPosition));
 				}
 			}
+			//If this square IS occupied
 			else
 			{
 				//Handle pushes
 				PieceData adjacentPiece = board.getPieceAt(adjacentPosition);
-				if(adjacentPiece.getColor() != gameState.getCurrentPlayer() &&
-					adjacentPiece.getValue() < piece.getValue())
-				{
-					//Verify that the other piece has a location to move into.
-					List<BoardPosition> spacesToPushInto = adjacentPosition.getAdjacentSpaces();
-					Iterator<BoardPosition> pushIterator = spacesToPushInto.iterator();
-					boolean canPush = false;
-					while(pushIterator.hasNext())
-					{
-						BoardPosition pushPosition = pushIterator.next();
-						if(!board.isOccupied(pushPosition))
-						{
-							canPush = true;
-						}
-					}
-					
-					//Add the move if the piece can push AND there are sufficient moves to do a push
-					if(canPush && gameState.getRemainingMoves() >= 2)
+				
+				//Ensure the piece is the opponent's, and has a lower value
+				//if(adjacentPiece.getColor() != gameState.getCurrentPlayer() &&
+				//	adjacentPiece.getValue() < piece.getValue())
+				//{
+					//Verify that this piece could be pushed
+					if(validPush(piece,adjacentPiece))
 					{
 						steps.add(new StepData(piece, adjacentPosition));
 					}
-				}
+				//}
 			}
 		}
 
@@ -241,9 +317,11 @@ public class MoveGenerator
 		//We can either finish a pull, start a pull, or start a push.
 		
 		//Check to see if we can finish a pull.
+		//(i.e. if this is not the first move, and the last piece moved had a greater value
 		if(gameState.getLastStep() != null &&
 			piece.getValue() < gameState.getLastStep().getPiece().getValue())
 		{
+			//Ensure that there is a PullPosition adjacent to this piece
 			if(gameState.getPullPosition() != null && position.distanceFrom(gameState.getPullPosition()) == 1)
 			{
 				steps.add(new StepData(piece, gameState.getPullPosition()));
@@ -260,21 +338,24 @@ public class MoveGenerator
 			List<BoardPosition> openSpaces = new Vector<BoardPosition>();
 			boolean foundPusher = false;
 			Iterator<BoardPosition> iterator = adjacentSpaces.iterator();
+			
+			//Check each adjacent square
 			while(iterator.hasNext())
 			{
 				BoardPosition adjacentPosition = iterator.next();
 				
+				//If the square is occupied
 				if(board.isOccupied(adjacentPosition))
 				{
-					PieceData adjacentPiece = board.getPieceAt(adjacentPosition);
-					if(adjacentPiece.getColor() == gameState.getCurrentPlayer() &&
-							!board.isPieceFrozen(adjacentPiece))
-					{
-						if(adjacentPiece.getValue() > piece.getValue())
-						{
-							foundPusher = true;
-							possiblePullers.add(adjacentPiece);
-						}
+					//Check if the adjacent piece can push this one
+					PieceData pushingPiece = board.getPieceAt(adjacentPosition);
+					if(validPush(pushingPiece,piece)){
+						foundPusher = true;
+					}
+					
+					//And check if that piece can pull this one
+					if(validPull(pushingPiece,piece)){
+						possiblePullers.add(pushingPiece);
 					}
 				}
 				else
@@ -284,6 +365,7 @@ public class MoveGenerator
 			}
 			
 			//Now add any possible pushes.
+			//(i.e. If I can be pushed, what open spaces do I have that I can be pushed IN to)
 			if(foundPusher)
 			{
 				//Add all of the open spaces as possible moves.
@@ -294,7 +376,7 @@ public class MoveGenerator
 				}
 			}
 			
-			//Add the pullers, too.
+			//Add moves that place the piece on top of a valid Puller
 			Iterator<PieceData> pullerIterator = possiblePullers.iterator();
 			while(pullerIterator.hasNext())
 			{
@@ -316,11 +398,13 @@ public class MoveGenerator
 	{
 		List<StepData> steps = new Vector<StepData>();
 		
-		//Verify a few facts about this piece and its relationship to the push piece
+		//Verify the piece has a higher value than the pushee, and is owned by the active player
 		if(piece.getValue() > gameState.getLastStep().getPiece().getValue() &&
 			piece.getColor() == gameState.getCurrentPlayer())
 		{
 			BoardPosition position = (BoardPosition)piece.getPosition();
+			
+			//Ensure that the distance between the two is exactly 1 square
 			if(position.distanceFrom(gameState.getPushPosition()) == 1)
 			{
 				steps.add(new StepData(piece, gameState.getPushPosition()));
@@ -378,23 +462,29 @@ public class MoveGenerator
 	{
 		List<StepData> steps = new Vector<StepData>();
 		
+		//Ensure we're really placing one of our own pieces
+		//FIXME: Is this validation really necessary?
 		if(piece.getColor() == gameState.getCurrentPlayer())
 		{
-			//Return all of the spaces on the board
+			//Calculate which rows pieces can be placed on
 			int row1;
 			int row2;
+			
+			//The gold player uses the last two rows
 			if(gameState.getCurrentPlayer() == GameConstants.GOLD)
 			{
 				row1 = 6;
 				row2 = 7;
 			}
+			
+			//The silver player use the first two rows
 			else
 			{
 				row1 = 0;
 				row2 = 1;
 			}
 			
-			//Return all of the spaces on the board
+			//Add all of the squares in those two rows
 			for(int col = 0; col < 8; col++)
 			{
 				steps.add(new StepData(piece, new BoardPosition(row1, col)));
@@ -409,3 +499,4 @@ public class MoveGenerator
 	}
 
 }
+
