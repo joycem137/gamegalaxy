@@ -286,16 +286,11 @@ public class MoveGenerator
 				//Handle pushes
 				PieceData adjacentPiece = board.getPieceAt(adjacentPosition);
 				
-				//Ensure the piece is the opponent's, and has a lower value
-				//if(adjacentPiece.getColor() != gameState.getCurrentPlayer() &&
-				//	adjacentPiece.getValue() < piece.getValue())
-				//{
 					//Verify that this piece could be pushed
 					if(validPush(piece,adjacentPiece))
 					{
 						steps.add(new StepData(piece, adjacentPosition));
 					}
-				//}
 			}
 		}
 
