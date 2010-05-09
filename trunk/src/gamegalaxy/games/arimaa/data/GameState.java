@@ -489,6 +489,18 @@ public final class GameState
 		List<StepData> steps = moveGenerator.generateSteps(step.getPiece());
 		return steps.contains(step);
 	}
+	
+	/**
+	 * Returns true if the player is trying to place a piece on the enemy's row instead of theirs
+	 * 
+	 * @param step
+	 * @return
+	 */
+	public boolean isEnemyRow(StepData step)
+	{
+		List<StepData> steps = moveGenerator.isEnemyRow(step.getPiece());
+		return steps.contains(step);		
+	}
 
 	/**
 	 * Submit the indicated move to the game engine for implementation. Upon completion of the move, the engine will ask the GUI to update to the latest game

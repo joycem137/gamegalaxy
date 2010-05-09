@@ -492,6 +492,55 @@ public class MoveGenerator
 		
 		return steps;
 	}
+	
+	/**
+	 * This returns all of the rows that the opposing player can place pieces on
+	 * 
+	 * FIXME: This is just generateSetupSteps run for the enemy's rows instead
+	 * 	Should be possible to make this more modular!
+	 *
+	 * @param piece
+	 * @return
+	 */
+	public List<StepData> isEnemyRow(PieceData piece)
+	{
+		List<StepData> steps = new Vector<StepData>();
+		
+		//Ensure we're really placing one of our own pieces
+		//FIXME: Is this validation really necessary?
+		if(piece.getColor() == gameState.getCurrentPlayer())
+		{
+			//Calculate which rows pieces can be placed on
+			int row1;
+			int row2;
+			
+			//The gold player uses the last two rows
+			if(gameState.getCurrentPlayer() != GameConstants.GOLD)
+			{
+				row1 = 6;
+				row2 = 7;
+			}
+			
+			//The silver player use the first two rows
+			else
+			{
+				row1 = 0;
+				row2 = 1;
+			}
+			
+			//Add all of the squares in those two rows
+			for(int col = 0; col < 8; col++)
+			{
+				steps.add(new StepData(piece, new BoardPosition(row1, col)));
+				steps.add(new StepData(piece, new BoardPosition(row2, col)));
+			}
+			
+			//Add the appropriate bucket.
+			steps.add(new StepData(piece, new BucketPosition(gameState.getCurrentPlayer())));
+		}
+		
+		return steps;
+	}
 
 }
 

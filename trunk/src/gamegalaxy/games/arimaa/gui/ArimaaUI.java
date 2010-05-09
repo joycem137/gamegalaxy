@@ -217,15 +217,29 @@ public class ArimaaUI extends JPanel implements Observer
 					if (component instanceof PiecePanel)
 					{
 						PiecePanel pieceAt = (PiecePanel)component;
+						//Highlight if this piece can be moved
 						if (engine.canPieceBeMoved(pieceAt.getData()))
 						{
 							PiecePosition position = pieceAt.getData().getPosition();
 							if (position instanceof BoardPosition)
 							{
-								highlightSpace((BoardPosition)position);
+								highlightSpace((BoardPosition)position, HighlightPanel.BLUE);
+								hasHighlight = true;
+						}
+							
+						//Highlight if this is a frozen piece
+							//FIXME: Marker
+						}else if (engine.getCurrentGameState().isGameOn()){
+							if (engine.getCurrentGameState().getBoardData().isPieceFrozen(pieceAt.getData()))
+							{
+								PiecePosition position = pieceAt.getData().getPosition();
+								highlightSpace((BoardPosition)position, HighlightPanel.FROZEN);
 								hasHighlight = true;
 							}
 						}
+						
+						
+						
 					}
 					if (hasHighlight == false)
 					{
@@ -308,7 +322,14 @@ public class ArimaaUI extends JPanel implements Observer
 				if(engine.isValidStep(step))
 				{
 					hasValidHighlight = true;
-					highlightSpace(mouseOverPosition);
+					highlightSpace(mouseOverPosition, HighlightPanel.BLUE);
+				}
+				//Highlight if player is trying to setup pieces on the wrong side of board
+				else if (engine.getCurrentGameState().isSetupPhase()){
+					if (engine.isEnemyRow(step)){
+						hasValidHighlight = true;
+						highlightSpace(mouseOverPosition, HighlightPanel.RED);
+					}
 				}
 			}
 		}
@@ -324,10 +345,10 @@ public class ArimaaUI extends JPanel implements Observer
 	 *
 	 * @param mouseOverPosition
 	 */
-	private void highlightSpace(BoardPosition mouseOverPosition)
+	private void highlightSpace(BoardPosition mouseOverPosition, int highlightCOlor)
 	{
 		//Set the color of the highlight.
-		highlight.setColor(HighlightPanel.BLUE);
+		highlight.setColor(highlightCOlor);
 		
 		//get coords of upper-left corner of this square:
 		Point coords = boardPanel.identifyCoordinates(mouseOverPosition);
