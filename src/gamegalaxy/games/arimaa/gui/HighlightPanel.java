@@ -39,8 +39,11 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class HighlightPanel extends JPanel
 {
-	public static final int BLUE 	= 1;
-	public static final int OFF		= 0;
+	public static final int
+		OFF		= 0,
+		BLUE 	= 1,
+		FROZEN	= 2,
+		RED		= 3;
 	
 	//store a copy of the ResourceLoader, since highlight panels can change images.
 	private ResourceLoader loader;
@@ -131,6 +134,8 @@ public class HighlightPanel extends JPanel
 		switch(color)
 		{
 			case BLUE: return "Blue";
+			case FROZEN: return "Frozen";
+			case RED: return "Red";
 			default: return "";
 		}
 	}

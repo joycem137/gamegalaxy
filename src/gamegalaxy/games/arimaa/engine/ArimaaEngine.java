@@ -80,6 +80,7 @@ public class ArimaaEngine
 	/**
 	 * Checks to see if the selected piece can be legally moved from their original space to the new space selected.
 	 * 
+	 * FIXME: Is this documentation correct?
 	 * @param piece
 	 *            PieceData of the piece being checked.
 	 * @param originalSpace
@@ -91,6 +92,18 @@ public class ArimaaEngine
 	public boolean isValidStep(StepData step)
 	{
 		return currentGameState.isValidStep(step);
+	}
+	
+	/**
+	 * Check to see if the player is trying to setup a piece on the wrong side of the board
+	 * 
+	 * @param step
+	 * 		The location we are trying to set up a piece at 
+	 * 
+	 */
+	public boolean isEnemyRow(StepData step)
+	{
+		return currentGameState.isEnemyRow(step);
 	}
 
 	/**
