@@ -345,10 +345,10 @@ public class ArimaaUI extends JPanel implements Observer
 	 *
 	 * @param mouseOverPosition
 	 */
-	private void highlightSpace(BoardPosition mouseOverPosition, int highlightCOlor)
+	private void highlightSpace(BoardPosition mouseOverPosition, int highlightColor)
 	{
 		//Set the color of the highlight.
-		highlight.setColor(highlightCOlor);
+		highlight.setColor(highlightColor);
 		
 		//get coords of upper-left corner of this square:
 		Point coords = boardPanel.identifyCoordinates(mouseOverPosition);
