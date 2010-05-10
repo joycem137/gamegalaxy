@@ -152,24 +152,38 @@ public class MoveGenerator
 		
 		return steps;
 	}
-	
+		
 	/**
-	 * This set of three functions validates whether one piece can push/pull another
+	 * Validates whether myPiece can push enemyPiece
 	 * 
-	 * validPush() and validPull() exist solely as entry points
-	 * validPushPull() runs the actual validation, as the code is largely the same for both moves
-	 * 
-	 * INPUTS: The piece that is pushing, piece that is being pushed
-	 *		These two pieces MUST be adjacent (this is NOT checked within this code)
+	 * @param myPiece
+	 * @param enemyPiece
+	 * @return true if the piece can be pushed, false otherwise
 	 */
-	
 	private boolean validPush(PieceData myPiece, PieceData enemyPiece){
 		return validPushPull(myPiece,enemyPiece,true);
 	}
 	
+	/**
+	 * Validates whether myPiece can pull enemyPiece
+	 * 
+	 * @param myPiece
+	 * @param enemyPiece
+	 * @return true if the piece can be pulled, false otherwise
+	 */
 	private boolean validPull(PieceData myPiece, PieceData enemyPiece){
 		return validPushPull(myPiece,enemyPiece,false);
 	}
+	
+	/**
+	 * Validates whether myPiece can push/pull enemyPiece
+	 * This should be called via validPush or validPull, NOT directly
+	 * 
+	 * @param myPiece
+	 * @param enemyPiece
+	 * @param isPush is true if Push, false if pull
+	 * @return true if the piece can be pushed/pulled, false otherwise
+	 */
 	
 	private boolean validPushPull(PieceData myPiece, PieceData enemyPiece, boolean isPush){
 		BoardData board = gameState.getBoardData();
