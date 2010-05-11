@@ -27,6 +27,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,7 +46,7 @@ import javax.swing.JTextArea;
  * The actual license is stored externally to this class, in the /resources/COPYING folder.
  */
 @SuppressWarnings("serial")
-public class GPLPopup extends JDialog
+public class GPLPopup extends JDialog implements KeyListener
 {
 	
 
@@ -90,6 +92,11 @@ public class GPLPopup extends JDialog
 			}
 		});
 		add(button, BorderLayout.SOUTH);
+		
+		//Make all components of the window listen for key presses
+		textPane.addKeyListener(this);
+		scrollPane.addKeyListener(this);
+		button.addKeyListener(this);
 	}
 	
 	/**
@@ -121,9 +128,6 @@ public class GPLPopup extends JDialog
 		}
 		
 		InputStreamReader reader = new InputStreamReader(inputStream);
-
-
-
 		
 		//Adjust the array size if using a larger license! (Included license is 32471 characters)
 		char gplTextChars[] = new char[36000];
@@ -153,5 +157,18 @@ public class GPLPopup extends JDialog
 
 		return gplTextString;
 	}
+	
+	public void keyPressed(KeyEvent e) {		
+		int keyCode = e.getKeyCode();
+		
+		//Hide the window when ESCAPE is pressed
+	    if( keyCode == KeyEvent.VK_ESCAPE) {
+	    	this.setVisible(false);
+	    }
+	}
+
+	//These methods do not get used, but are required by KeyListener
+	public void keyReleased(KeyEvent e) {}
+	public void keyTyped(KeyEvent e) {}
 }
 
