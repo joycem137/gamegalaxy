@@ -250,12 +250,6 @@ public class ArimaaUI extends JPanel implements Observer
 			
 			public void mouseDragged(MouseEvent me)
 			{
-				//for now, do nothing unless the mouse press was a left-click.
-				if (me.getButton() != MouseEvent.BUTTON1)
-				{
-					return;
-				}
-				
 				//keep track of the fact that the mouse has been moved.
 				mouseDragged = true;
 				
