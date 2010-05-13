@@ -516,7 +516,7 @@ public class MoveGenerator
 	 * @param piece
 	 * @return
 	 */
-	public List<StepData> isEnemyRow(PieceData piece)
+	public List<StepData> listEnemyRows(PieceData piece)
 	{
 		List<StepData> steps = new Vector<StepData>();
 		

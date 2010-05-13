@@ -498,7 +498,7 @@ public final class GameState
 	 */
 	public boolean isEnemyRow(StepData step)
 	{
-		List<StepData> steps = moveGenerator.isEnemyRow(step.getPiece());
+		List<StepData> steps = moveGenerator.listEnemyRows(step.getPiece());
 		return steps.contains(step);		
 	}
 
@@ -520,6 +520,7 @@ public final class GameState
 		PieceData piece = step.getPiece();
 		PiecePosition destination = step.getDestination();
 		
+		//Check if we are placing a piece from the hand
 		if(piece.equals(pieceInHand))
 		{
 			//Moving the piece in hand to a new location.
@@ -531,6 +532,7 @@ public final class GameState
 			//Increment the number of moves
 			numSteps++;
 		}
+		//Check if we are placing a piece from the setup buckets on to the board
 		else if (piece.getPosition() instanceof BucketPosition && destination instanceof BoardPosition)
 		{
 			// Moving from bucket to board.
@@ -556,6 +558,7 @@ public final class GameState
 			// Now place the piece on the board in the correct space.
 			board.placePiece(piece, (BoardPosition) destination);
 		}
+		//Check if we are placing a piece on the board
 		else if (destination instanceof BoardPosition)
 		{
 			// Moving from board to board

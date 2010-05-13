@@ -206,5 +206,13 @@ public class StatusPanel extends JPanel
 		turnLabel.setVisible(true);
 		repaint();
 	}
+	
+	public void clickEndTurn(){
+		endTurnButton.doClick();
+	}
+	
+	public void clickUndoTurn(){
+		undoTurnButton.doClick();
+	}
 
 }

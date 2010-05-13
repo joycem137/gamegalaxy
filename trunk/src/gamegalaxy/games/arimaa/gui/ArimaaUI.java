@@ -38,9 +38,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.List;
@@ -49,8 +51,11 @@ import java.util.Observer;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.event.MouseInputAdapter;
 
 /**
@@ -78,7 +83,8 @@ public class ArimaaUI extends JPanel implements Observer
 	private StatusPanel		statusPanel;
 	private RemainingMovesPanel	remainingMovesPanel;
 	
-	private HighlightPanel		highlight;
+	private HighlightPanel		highlightMouse;
+	private HighlightPanel		highlightKeyboard;
 	
 	//Store the resource loader
 	private ResourceLoader	loader;
@@ -86,8 +92,27 @@ public class ArimaaUI extends JPanel implements Observer
 	//Store information about the piece in hand.
 	protected PiecePanel	pieceInHand;
 	protected Point	pieceInHandOriginalLocation;
+	
+	//These points represent the Gold and Silver Buckets, for returning pieces
+	private static Point goldRow = new Point(90,456);
+	private static Point silverRow = new Point(799,456);
 
+	//The upper-left corner of the board, in mouse coordinates
+	private static Point boardTopLeft = new Point(210,43);
+
+	//Offset beteen the mouse coordinates and the on-board coordinates of the upper left corner
+	//Value = mouse location (210) minus board location (43)
+	private static int boardEdgeOffset = 167; 
+	
+	//Size of the tiles
+	private static int tileSize = 59;
+	
+	//Marks which square is currently highlighted by the keyboard movements
+	private Point keyboardSelection = new Point();
+	
 	private SoundEffectPlayer audioPlayer;
+	
+	boolean useMouse = true;
 	
 	/**
 	 * 
@@ -103,6 +128,7 @@ public class ArimaaUI extends JPanel implements Observer
 		//Store the resource loader
 		this.loader = loader;
 		
+		//Create the soundplayer
 		audioPlayer = new SoundEffectPlayer();
 		
 		//Configure this panel
@@ -112,10 +138,17 @@ public class ArimaaUI extends JPanel implements Observer
 		//Create the background image.
 		backgroundImage = loader.getResource("AppBackground");
 		
+		//Creates all of our panels, as well as the "Place Randomly" Buttons
+		//The "End Turn / Undo Turn" buttons are created by StatusPanel instead
 		createChildrenPanels();
+
+		//Create the keyboard input
+		createListener();
 		
+		//Create the mouse input
 		addMouseListeners();
 		
+		//Set the window size
 		setPreferredSize(new Dimension(891, 640));
 		
 		//Link the engine and GUI.
@@ -136,52 +169,24 @@ public class ArimaaUI extends JPanel implements Observer
 			private boolean mouseDragged;
 
 			public void mousePressed(MouseEvent me)
-			{	
+			{					
 				//for now, do nothing unless the mouse press was a left-click.
-				if (me.getButton() != MouseEvent.BUTTON1)
+				//Also do nothing if we are not using mouse input
+				if (me.getButton() != MouseEvent.BUTTON1  || !useMouse)
 				{
 					return;
 				}
 				
-				if(pieceInHand != null)
-				{
-					//We already have a piece in hand.  Drop it.
-					Point mousePosition = new Point(me.getX(), me.getY());
-					dropPieceInHand(mousePosition);
-				}
-				else
-				{
-					//We don't have a piece in hand.  See if there's one under the mouse to pick up:
-					
-					/*
-					 * NOTE: There is a dependency here.  If the PiecePanel is not the topmost Component object
-					 * at this location, this method will not return the PiecePanel even if the mouse is right
-					 * over it.  Be sure to refactor this later if necessary. 
-					 */
-					Component component = getComponentAt(me.getX(), me.getY());
-					
-					if(component instanceof PiecePanel)
-					{
-						//We have a piece panel!  Recast the variable.
-						PiecePanel piecePanel = (PiecePanel)component;
-					
-						if(engine.canPieceBeMoved(piecePanel.getData()))
-						{
-							Point mousePosition = new Point(me.getX(), me.getY());
-							pickUpPiece(piecePanel, mousePosition);
-						}
-						else
-						{
-							audioPlayer.playBzztSound();
-						}
-					}
-				}
+				//Pass the click to our input handlers
+				Point mousePosition = new Point(me.getX(), me.getY());
+				handleInputClick(mousePosition);				
 			}
 
 			public void mouseReleased(MouseEvent me)
 			{
 				//for now, do nothing unless the mouse press was a left-click.
-				if (me.getButton() != MouseEvent.BUTTON1)
+				//Also do nothing if we are not using mouse input
+				if (me.getButton() != MouseEvent.BUTTON1 || !useMouse)
 				{
 					return;
 				}
@@ -189,75 +194,36 @@ public class ArimaaUI extends JPanel implements Observer
 				//Don't do anything if the mouse hasn't moved at all.
 				if(pieceInHand != null && mouseDragged)
 				{
-					//Drop the piece, if appropriate.
+					//Pass the click to our input handlers
 					Point mousePosition = new Point(me.getX(), me.getY());
-					dropPieceInHand(mousePosition);
+					handleInputClick(mousePosition);				
+					
+					//Reset the "mouse moved" flag.
+					mouseDragged = false;
 				}
-				
-				//Reset the "mouse moved" flag.
-				mouseDragged = false;
 			}
 			
 			public void mouseMoved(MouseEvent me)
 			{
-				if(pieceInHand != null)
-				{
-					//Move the piece so that it is centered on the mouse.
+				//Only do this if we are using mouse input
+				if(useMouse){
+					//Pass the movement to our input handlers
 					Point mousePosition = new Point(me.getX(), me.getY());
-					movePieceInHand(mousePosition);
-				}
-				else
-				{
-					boolean hasHighlight = false;
-					Component component = getComponentAt(me.getX(), me.getY());
-					if (component instanceof HighlightPanel)
-					{
-						hasHighlight = true;
-					}
-					if (component instanceof PiecePanel)
-					{
-						PiecePanel pieceAt = (PiecePanel)component;
-						//Highlight if this piece can be moved
-						if (engine.canPieceBeMoved(pieceAt.getData()))
-						{
-							PiecePosition position = pieceAt.getData().getPosition();
-							if (position instanceof BoardPosition)
-							{
-								highlightSpace((BoardPosition)position, HighlightPanel.BLUE);
-								hasHighlight = true;
-						}
-							
-						//Highlight if this is a frozen piece
-							//FIXME: Marker
-						}else if (engine.getCurrentGameState().isGameOn()){
-							if (engine.getCurrentGameState().getBoardData().isPieceFrozen(pieceAt.getData()))
-							{
-								PiecePosition position = pieceAt.getData().getPosition();
-								highlightSpace((BoardPosition)position, HighlightPanel.FROZEN);
-								hasHighlight = true;
-							}
-						}
-						
-						
-						
-					}
-					if (hasHighlight == false)
-					{
-						clearHighlight();
-					}
+					handleInputHover(mousePosition);
 				}
 			}
 			
 			public void mouseDragged(MouseEvent me)
 			{
-				//keep track of the fact that the mouse has been moved.
-				mouseDragged = true;
-				
-				if(pieceInHand != null)
-				{
-					//Move the piece so that it is centered on the mouse.
+				//Only do this if we are using mouse input
+				if(useMouse){
+					//Indicate that yes, the piece has been dragged
+					//FIXME: Occurs even if moved 1 pixel
+					mouseDragged = true;
+					
+					//Pass the movement to our input handlers
 					Point mousePosition = new Point(me.getX(), me.getY());
-					movePieceInHand(mousePosition);
+					handleInputHover(mousePosition);
 				}
 			}
 		};
@@ -266,7 +232,112 @@ public class ArimaaUI extends JPanel implements Observer
 		addMouseListener(ma);
 		addMouseMotionListener(ma);
 	}
+	
+	/**
+	 * Handles an input event that picks up or drops a piece
+	 * 
+	 * @param input - the location we are acting on
+	 */
+	protected void handleInputClick(Point input){
+		if(pieceInHand != null)
+		{
+			//We already have a piece in hand.  Drop it.
+			dropPieceInHand(input);
+		}
+		else
+		{
+			//We don't have a piece in hand.  See if there's one under the mouse to pick up:
+			Component component = getComponentAt((int) input.getX(), (int) input.getY());
 
+			if(component instanceof PiecePanel)
+			{
+				//We have a piece panel!  Recast the variable.
+				PiecePanel piecePanel = (PiecePanel)component;
+
+				if(engine.canPieceBeMoved(piecePanel.getData()))
+				{						
+					pickUpPiece(piecePanel, input);
+				}
+				else
+				{
+					audioPlayer.playBzztSound();
+				}
+			}
+		}
+	}//End handleInputClick
+
+	/**
+	 * Handles an input event that moves the selection cursor
+	 * This highlights whether the move is valid
+	 * And moves the piece in hand to hover over that spot
+	 * 
+	 * @param input - the location we are selecting
+	 */
+	protected void handleInputHover(Point input){
+		if(pieceInHand != null)
+		{
+			movePieceInHand(input);
+		}
+		//Formerly else
+		if (pieceInHand == null || !useMouse)
+		{
+			boolean hasHighlight = false;
+			Component component = getComponentAt((int) input.getX(), (int) input.getY());
+			if (component instanceof HighlightPanel)
+			{
+				hasHighlight = true;
+			}
+			if (component instanceof PiecePanel)
+			{
+				PiecePanel pieceAt = (PiecePanel)component;
+				//Highlight if this piece can be moved
+				if (engine.canPieceBeMoved(pieceAt.getData()))
+				{
+					PiecePosition position = pieceAt.getData().getPosition();
+					if (position instanceof BoardPosition)
+					{
+						highlightSpace((BoardPosition)position, HighlightPanel.BLUE);
+						hasHighlight = true;
+					}
+
+					//Highlight if this is a frozen piece
+				}else if (engine.getCurrentGameState().isGameOn()){
+					if (engine.getCurrentGameState().getBoardData().isPieceFrozen(pieceAt.getData()))
+					{
+						PiecePosition position = pieceAt.getData().getPosition();
+						highlightSpace((BoardPosition)position, HighlightPanel.FROZEN);
+						hasHighlight = true;
+					}
+				}
+			}
+			
+			//If we are using keyboard input
+			if (useMouse == false)
+			{
+				//If no other highlight, show the select-square highlight
+				if (hasHighlight == false){
+					BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition((int) input.getX()-boardEdgeOffset, (int) input.getY());
+					
+					if (mouseOverPosition != null)
+					{	
+						highlightSelection(mouseOverPosition);
+					}
+				}else{
+					//Otherwise, hide the previous select-square highlight
+					//This ensures only one highlight is ever shown at a time
+					hideKeyboardSelector();
+				}
+			}
+			
+			//If no square is highlighted, ensure the previous highlight is cleared
+			if (hasHighlight == false)
+			{
+				clearHighlight();
+			}
+		}
+	}//End of handleInputHover
+		
+	
 	private void pickUpPiece(PiecePanel piecePanel, Point mousePosition)
 	{
 		//Play the pickup audio
@@ -294,6 +365,11 @@ public class ArimaaUI extends JPanel implements Observer
 	 */
 	private void movePieceInHand(Point mousePosition)
 	{
+		//Offsets the location if using keyboard input
+		if (!useMouse){
+			mousePosition = new Point ((int) mousePosition.getX()+30, (int) mousePosition.getY()+30);
+		}
+		
 		//Move the piece itself to the center of the mouse position.
 		pieceInHand.setLocation(mousePosition.x - pieceInHand.getWidth() / 2, mousePosition.y - pieceInHand.getHeight() / 2);
 
@@ -335,33 +411,67 @@ public class ArimaaUI extends JPanel implements Observer
 	}
 
 	/**
-	 * Highlight the indicated board position
+	 * Update the highlight used for the keyboard selection cursor
+	 */
+	private void highlightSelection(BoardPosition mouseOverPosition)
+	{
+		//Set highlight color based on active player
+		int highlightColor;
+		if (engine.getCurrentGameState().getCurrentPlayer() == GameConstants.GOLD){
+			highlightColor = HighlightPanel.GOLD;
+		}else{
+			highlightColor = HighlightPanel.SILVER;			
+		}
+		setHighlight(highlightKeyboard, mouseOverPosition, highlightColor);
+	}
+	
+	/**
+	 * Update the main highlight
 	 *
 	 * @param mouseOverPosition
 	 */
 	private void highlightSpace(BoardPosition mouseOverPosition, int highlightColor)
 	{
+		setHighlight(highlightMouse, mouseOverPosition, highlightColor);
+	}
+
+	/**
+	 * This should be called via highlightSpace or highlight Selection
+	 * Sets the specified HighlightPanel's position and image
+	 * 
+	 * @param thisHighlight     - the HighlightPanel to modify
+	 * @param mouseOverPosition - where we want the panel to be
+	 * @param highlightColor    - Integer index for color/image used
+	 */
+	private void setHighlight(HighlightPanel thisHighlight, BoardPosition mouseOverPosition, int highlightColor){
 		//Set the color of the highlight.
-		highlight.setColor(highlightColor);
+		thisHighlight.setColor(highlightColor);
 		
 		//get coords of upper-left corner of this square:
 		Point coords = boardPanel.identifyCoordinates(mouseOverPosition);
 		
 		//place our highlighter over this square:
-		highlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
+		thisHighlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
 		
-		
-		setComponentZOrder(highlight, (getComponentZOrder(boardPanel) -1));
+		setComponentZOrder(thisHighlight, (getComponentZOrder(boardPanel) -1));		
 	}
-
+	
 	/**
 	 * Clear the highlight by turning it off and moving it off the screen.
 	 *
 	 */
 	private void clearHighlight()
 	{
-		highlight.setLocation(0, 0);
-		highlight.setColor(HighlightPanel.OFF);
+		highlightMouse.setLocation(0, 0);
+		highlightMouse.setColor(HighlightPanel.OFF);
+	}
+	
+	/**
+	 * ADD DOC
+	 */
+	private void hideKeyboardSelector(){
+		highlightKeyboard.setLocation(0, 0);
+		highlightKeyboard.setColor(HighlightPanel.OFF);		
 	}
 
 	/**
@@ -378,13 +488,10 @@ public class ArimaaUI extends JPanel implements Observer
 		//allow other dragged pieces to display over this one.
 		setComponentZOrder(pieceToDrop, 1);	
 		
-		//Turn off highlighting.
-		clearHighlight();
-		
 		//Determine where we're going to drop the piece.
 		PiecePosition dropPosition = getPiecePositionAt(dropLocation);
 		
-		//Now see if it makes sense to move this piece.
+		//Check if we are moving the piece back to it's original location
 		if(pieceToDrop.getData().getPosition().equals(dropPosition))
 		{
 			//Set the piece in its original location.
@@ -393,6 +500,7 @@ public class ArimaaUI extends JPanel implements Observer
 		}
 		else
 		{
+			//Check that this is a valid move
 			StepData step = new StepData(pieceToDrop.getData(), dropPosition);
 			if(engine.isValidStep(step))
 			{	
@@ -409,9 +517,12 @@ public class ArimaaUI extends JPanel implements Observer
 					audioPlayer.playDropSound();
 				}
 			}
+			//Otherwise, if not a valid move...
 			else
 			{
 				audioPlayer.playBzztSound();
+				
+				//Check if we can put the piece back in our hand
 				if(pieceToDrop.getData().getPosition() instanceof HandPosition)
 				{
 					//Do a bit of a hack to allow the piece to not drop incorrectly.
@@ -420,6 +531,7 @@ public class ArimaaUI extends JPanel implements Observer
 					//allow other dragged pieces to display over this one.
 					setComponentZOrder(pieceInHand, 0);	
 				}
+				//Otherwise just drop it back to it's original location
 				else
 				{
 					pieceToDrop.setLocation(pieceInHandOriginalLocation);
@@ -434,8 +546,10 @@ public class ArimaaUI extends JPanel implements Observer
 	private void createChildrenPanels()
 	{
 		//Create highlight panel.
-		highlight = new HighlightPanel(loader);
-		add(highlight);
+		highlightMouse = new HighlightPanel(loader);
+		highlightKeyboard = new HighlightPanel(loader);
+		add(highlightMouse);
+		add(highlightKeyboard);
 		
 		//Create the panel for displaying the remaining number of moves.
 		remainingMovesPanel = new RemainingMovesPanel(loader);
@@ -568,6 +682,12 @@ public class ArimaaUI extends JPanel implements Observer
 	 */
 	private void displayGameState(GameState gameState)
 	{	
+		//If this is the setup phase, ensure we are using mouse input
+		if (gameState.isSetupPhase())
+		{
+			setUseMouse(true);
+		}
+		
 		//Remove all pieces.
 		clearPieces();
 		
@@ -612,7 +732,22 @@ public class ArimaaUI extends JPanel implements Observer
 				gameState.getCurrentPlayer() == GameConstants.SILVER &&
 				gameState.getSilverBucket().size() > 0);
 		
-		//Finally, repaint the gui.
+		//If we are using keyboard input, refresh the position display
+		//This ensures the cursor shows as the correct color for the new turn
+		if (!useMouse){
+			handleInputHover(keyboardSelection);
+		}
+		
+		/*
+		 * Reset focus on to this window
+		 * 
+		 * This must be done because focus is otherwise null
+		 * and thus the keyboard listeners will never trigger
+		 * (the focus having moved to the now-vanished EndTurn button)
+		 */
+		this.requestFocus();
+		
+		//Finally, repaint the gui.	
 		repaint();
 	}
 
@@ -638,8 +773,12 @@ public class ArimaaUI extends JPanel implements Observer
 		//Set the original location to the hand.
 		pieceInHandOriginalLocation = null;
 		
-		//Move the piece so that it is centered on the mouse.
-		movePieceInHand(getMousePosition());
+		//Move the piece so that it is centered on the mouse, if using mouse input
+		if (useMouse){
+			movePieceInHand(getMousePosition());
+		}else{
+			movePieceInHand(keyboardSelection);			
+		}
 	}
 
 	/**
@@ -760,4 +899,258 @@ public class ArimaaUI extends JPanel implements Observer
 	{
 		displayGameState(engine.getCurrentGameState());
 	}
+	
+	
+	
+	
+
+	
+	/**
+	 * Creates input/action maps for keyboard input
+	 */
+	
+	/*
+	 * These work in both Mouse and Keyboard input modes
+	 * ESC    = Return pieceInHand to it's original spot on board
+	 * DELETE = Return pieceInHand to the bucket (only works during Setup Phase)
+	 * ENTER  = Enable/Disable Keyboard Input
+	 * F1     = (DEBUG) Outputs mouse location and origin of pieceInHand to console
+	 * 
+	 * These commands only work in Keyboard input mode:
+	 * ARROWS = Move selection
+	 * SPACE  = Grab/Drop piece at this location
+	 */
+	
+	private void createListener(){
+		//Escape key
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "keyDrop");
+		getActionMap().put("keyDrop", actionKeyDrop);
+		
+		//Delete key (treats Backspace as same key)
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "keyReturnPiece");
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "keyReturnPiece");
+		getActionMap().put("keyReturnPiece", actionKeyReturn);
+		
+		//Slash key : keyToggle
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, 0), "keyToggleInput");
+		getActionMap().put("keyToggleInput", actionKeyToggle);
+		
+		//F1 Key : keyDebug
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "keyDebug");
+		getActionMap().put("keyDebug", actionKeyDebug);
+		
+		//Arrow keys
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "pressedUp");
+		getActionMap().put("pressedUp", actionKeyUp);
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "pressedDown");
+		getActionMap().put("pressedDown", actionKeyDown);
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "pressedLeft");
+		getActionMap().put("pressedLeft", actionKeyLeft);
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "pressedRight");
+		getActionMap().put("pressedRight", actionKeyRight);
+		
+		//Spacebar key : keyClick
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "keyClick");
+		getActionMap().put("keyClick", actionKeyClick);
+		
+		//Enter key : endTurn
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "keyEndTurn");
+		getActionMap().put("keyEndTurn", actionEndTurn);
+		
+		//'Z' key : undoTurn
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0), "keyUndoTurn");
+		getActionMap().put("keyUndoTurn", actionUndoTurn);
+	}
+
+	/**
+	 *
+	 */
+	
+	private void keyboardClick(){
+		if (!useMouse){
+			handleInputClick(keyboardSelection);
+    	}
+	}
+	
+	/**
+	 * 
+	 */
+	private void returnPieceToBucket(){
+		//Check that we have held piece to return
+    	if (pieceInHand != null){
+    		
+    		//Returns the piece to the bucket it came from
+    		if(pieceInHand.getData().getColor() == GameConstants.GOLD){
+    			handleInputClick(goldRow);
+    		}else{
+    			handleInputClick(silverRow);
+    		}
+    	}
+	}
+	
+	/**
+	 * 
+	 */
+	private void dropHeldPiece(){
+		//Check that we are holding a piece AND that it has a location to return to
+		//The latter will only be false in the case of swaps
+		//FIXME: Add support to Undo Swaps (blocked on issue 135)
+    	if (pieceInHand != null && pieceInHandOriginalLocation != null){
+    		handleInputClick(pieceInHandOriginalLocation);
+    	}
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param xOffset
+	 * @param yOffset
+	 */
+	private void movePiece(int xOffset, int yOffset){
+		//Create the new location based on the offset
+		Point newLocation = new Point((int) keyboardSelection.getX() + xOffset, (int) keyboardSelection.getY() + yOffset);
+
+		//Ensure this moves to a valid BoardPosition
+		BoardPosition newPosition = boardPanel.identifyBoardPosition((int) newLocation.getX()-boardEdgeOffset, (int) newLocation.getY());
+		if (newPosition != null)
+		{	
+			keyboardSelection = newLocation;
+			handleInputHover(keyboardSelection);
+		}		
+	}
+	
+	/**
+	 * Set whether or not we are using mouse input
+	 * Will force this to "true" if we are still in the setup phase
+	 * 
+	 * @param willUseMouse
+	 */
+	private void setUseMouse(boolean willUseMouse){	
+		//Force mouse-only during setup phase
+		//FIXME: Mouse doesn't currently support the setup phase,
+		// as it cannot select from the bucket yet
+		if (engine.getCurrentGameState().isSetupPhase()){
+			willUseMouse = true;
+		}
+		
+    	if (willUseMouse){
+    		//Set the input to mouse
+    		useMouse = true;
+    		
+    		//Hide the keyboard selection indicator
+    		hideKeyboardSelector();
+    		
+    		//If possible, drop any piece that was picked up
+    		dropHeldPiece();
+    	}else{
+    		//Set the input to keyboard (i.e. disable mouse)
+    		useMouse = false;
+    		
+    		//Start with the selected square being the top left of the board
+    		keyboardSelection = boardTopLeft;
+    		
+    		//Highlight the selected square
+    		handleInputHover(keyboardSelection);
+    	}
+	}
+	
+	private void toggleInputMode(){
+    	//Toggle mouse input
+    	if (useMouse){
+    		setUseMouse(false);
+    	}else{
+    		setUseMouse(true);
+    	}
+	}
+	
+	/*
+	 * ACTION DEFINITIONS FOR KEYBOARD INPUT
+	 */
+	
+	//NOTE: This action is solely for debugging purposes
+	Action actionKeyDebug = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {			
+			if (pieceInHandOriginalLocation != null){
+				Point fromPosition = pieceInHandOriginalLocation;	
+				System.out.println("Piece is from: " + fromPosition.getX() + ":" + fromPosition.getY());
+			}
+
+			//This outputs the mouse location
+			Point mousePosition = MouseInfo.getPointerInfo().getLocation();
+			System.out.println("Mouse is at: " + mousePosition.getX() + ":" + mousePosition.getY());
+		}
+	};
+	
+	Action actionKeyReturn = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	returnPieceToBucket();
+	    }
+	};
+	
+	Action actionKeyToggle = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	//Toggle between mouse and keyboard input
+	    	toggleInputMode();
+	    }
+	};
+	
+	Action actionKeyDrop = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	//Return any held piece to it's original location
+	    	dropHeldPiece();
+	    }
+	};
+	
+	/*
+	 * THESE KEYS ONLY GET USED WHEN IN KEYBOARD INPUT MODE
+	 */
+
+	Action actionKeyRight = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	movePiece(+tileSize,0);
+	    }
+	};
+	
+	Action actionKeyLeft = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	movePiece(-tileSize,0);
+	    }
+	};
+
+	Action actionKeyDown = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	movePiece(0,+tileSize);
+	    }
+	};
+	
+
+	Action actionKeyUp = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	movePiece(0,-tileSize);
+	    }
+	};
+	
+
+	Action actionKeyClick = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	//Click the selected space
+	    	keyboardClick();
+	    }
+	};
+	
+
+	Action actionEndTurn = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	//Clicks the "End Turn" button
+	    	statusPanel.clickEndTurn();
+	    }
+	};
+	
+	Action actionUndoTurn = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	//Clicks the "Undo Turn" button
+	    	statusPanel.clickUndoTurn();
+	    }
+	};	
+
 }

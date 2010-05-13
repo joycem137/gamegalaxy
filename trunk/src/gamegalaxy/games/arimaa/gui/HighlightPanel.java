@@ -43,7 +43,9 @@ public class HighlightPanel extends JPanel
 		OFF		= 0,
 		BLUE 	= 1,
 		FROZEN	= 2,
-		RED		= 3;
+		RED		= 3,
+		SILVER  = 4,
+		GOLD    = 5;
 	
 	//store a copy of the ResourceLoader, since highlight panels can change images.
 	private ResourceLoader loader;
@@ -136,6 +138,8 @@ public class HighlightPanel extends JPanel
 			case BLUE: return "Blue";
 			case FROZEN: return "Frozen";
 			case RED: return "Red";
+			case SILVER: return "Silver";
+			case GOLD: return "Gold";
 			default: return "";
 		}
 	}
