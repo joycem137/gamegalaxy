@@ -85,6 +85,7 @@ public class ArimaaUI extends JPanel implements Observer
 	
 	private HighlightPanel		highlightMouse;
 	private HighlightPanel		highlightKeyboard;
+	private HighlightPanel		highlightOrigin;
 	
 	//Store the resource loader
 	private ResourceLoader	loader;
@@ -346,6 +347,13 @@ public class ArimaaUI extends JPanel implements Observer
 		//Pick up the piece.
 		pieceInHand = piecePanel;
 		
+		//ADD DOC
+		if (!engine.getCurrentGameState().isSetupPhase() && engine.getCurrentGameState().getPushPosition() == null){
+			//Mark that we have picked up the piece
+			BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition((int) mousePosition.getX()-boardEdgeOffset, (int) mousePosition.getY());
+			highlightOrigin(mouseOverPosition);
+		}
+		
 		//ensure that the dragged piece is topmost and visible.
 		setComponentZOrder(piecePanel, 0);
 		
@@ -411,6 +419,14 @@ public class ArimaaUI extends JPanel implements Observer
 	}
 
 	/**
+	 * Update the origin highlighting
+	 */
+	
+	private void highlightOrigin(BoardPosition mouseOverPosition){
+		setHighlight(highlightOrigin, mouseOverPosition, HighlightPanel.GREEN);		
+	}
+	
+	/**
 	 * Update the highlight used for the keyboard selection cursor
 	 */
 	private void highlightSelection(BoardPosition mouseOverPosition)
@@ -456,6 +472,12 @@ public class ArimaaUI extends JPanel implements Observer
 		setComponentZOrder(thisHighlight, (getComponentZOrder(boardPanel) -1));		
 	}
 	
+	private void clearHighlightOrigin()
+	{
+		highlightOrigin.setLocation(0, 0);
+		highlightOrigin.setColor(HighlightPanel.OFF);
+	}
+	
 	/**
 	 * Clear the highlight by turning it off and moving it off the screen.
 	 *
@@ -494,6 +516,9 @@ public class ArimaaUI extends JPanel implements Observer
 		//Check if we are moving the piece back to it's original location
 		if(pieceToDrop.getData().getPosition().equals(dropPosition))
 		{
+			//Clear the origin highlight
+			clearHighlightOrigin();
+			
 			//Set the piece in its original location.
 			pieceToDrop.setLocation(pieceInHandOriginalLocation);
 			audioPlayer.playDropSound();
@@ -507,6 +532,11 @@ public class ArimaaUI extends JPanel implements Observer
 				//Now update the engine.
 				engine.takeStep(step);
 	
+				//ADD DOC
+				if (pieceInHand == null && engine.getCurrentGameState().getPushPosition() == null)
+					//Clear the origin highlight
+					clearHighlightOrigin();
+				
 				//Play an effect
 				if(engine.lastStepWasCapture())
 				{
@@ -534,6 +564,9 @@ public class ArimaaUI extends JPanel implements Observer
 				//Otherwise just drop it back to it's original location
 				else
 				{
+					//Clear the origin highlight
+					clearHighlightOrigin();
+					
 					pieceToDrop.setLocation(pieceInHandOriginalLocation);
 				}
 			}
@@ -548,8 +581,10 @@ public class ArimaaUI extends JPanel implements Observer
 		//Create highlight panel.
 		highlightMouse = new HighlightPanel(loader);
 		highlightKeyboard = new HighlightPanel(loader);
+		highlightOrigin = new HighlightPanel(loader);
 		add(highlightMouse);
 		add(highlightKeyboard);
+		add(highlightOrigin);
 		
 		//Create the panel for displaying the remaining number of moves.
 		remainingMovesPanel = new RemainingMovesPanel(loader);
