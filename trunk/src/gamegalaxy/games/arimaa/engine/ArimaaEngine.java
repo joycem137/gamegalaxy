@@ -29,6 +29,7 @@ import gamegalaxy.games.arimaa.data.StepData;
 import gamegalaxy.tools.SimpleObservable;
 
 import java.util.Observer;
+import java.util.Vector;
 
 /**
  * This class manages all of the data associated with an Arimaa game. It accepts and validates incoming moves as well as storing all of the data for
@@ -38,10 +39,10 @@ public class ArimaaEngine
 {
 	// The current game state.
 	private GameState	currentGameState;
-	
-	// The game state at the beginning of the current turn, for undo purposes.
-	private GameState	lastGameState;
 
+	// Archive the game
+	private Vector<GameState> archiveGameState;
+	
 	// Store a link to the UI
 	private SimpleObservable observable;
 
@@ -136,16 +137,17 @@ public class ArimaaEngine
 		if (currentGameState.canPlayerEndTurn())
 		{
 			currentGameState.endMove();
-			lastGameState = currentGameState.copy();
-
+			
+			archiveGameState.add(currentGameState.copy());
+			
 			observable.notifyObservers();
 		}
 	}
 	
 	public void undoMove()
 	{
-		currentGameState = lastGameState.copy();
-
+		currentGameState = archiveGameState.get(archiveGameState.size()-1).copy();
+		
 		observable.notifyObservers();		
 	}
 
@@ -189,7 +191,10 @@ public class ArimaaEngine
 	{
 		currentGameState = new GameState();
 		currentGameState.initializeGameState();
-		lastGameState = currentGameState.copy();	
+		
+		archiveGameState=new Vector<GameState>();
+		archiveGameState.add(currentGameState.copy());
+		
 		observable.notifyObservers();
 	}
 
