@@ -75,5 +75,13 @@ public class MacKeyStrokeFactory implements KeyStrokeFactory
 	{
 		return KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.META_MASK);
 	}
+	
+    /**
+     * Return the (@link KeyStroke} that will undo the move in Mac OS X	
+     */
+	public KeyStroke getUndoTurnAcceleratorKeyStroke()
+	{
+		return KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.META_MASK);
+	}
 
 }

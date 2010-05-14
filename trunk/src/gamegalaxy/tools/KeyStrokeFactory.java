@@ -67,5 +67,7 @@ public interface KeyStrokeFactory
 	 * @return The KeyStroke that will quit the game.
 	 */
 	public KeyStroke getExitGameAcceleratorKeyStroke();
+	
+	public KeyStroke getUndoTurnAcceleratorKeyStroke();
 
 }
