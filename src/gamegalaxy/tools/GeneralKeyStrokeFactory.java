@@ -82,4 +82,11 @@ public class GeneralKeyStrokeFactory implements KeyStrokeFactory
 		return KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK);
 	}
 
+    /**
+     * Return the (@link KeyStroke} that will undo the move in Linux or Windows	
+     */
+	public KeyStroke getUndoTurnAcceleratorKeyStroke()
+	{
+		return KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK);
+	}
 }

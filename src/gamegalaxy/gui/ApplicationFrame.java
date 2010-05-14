@@ -25,6 +25,7 @@
 package gamegalaxy.gui;
 
 import gamegalaxy.games.arimaa.engine.ArimaaEngine;
+import gamegalaxy.games.arimaa.gui.ArimaaMenu;
 import gamegalaxy.games.arimaa.gui.ArimaaUI;
 import gamegalaxy.tools.GPLPopup;
 import gamegalaxy.tools.GeneralKeyStrokeFactory;
@@ -42,6 +43,7 @@ import java.awt.event.KeyListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -49,7 +51,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * A generic frame for putting game applications into.  This frame may also be used for other
@@ -60,7 +65,6 @@ import javax.swing.KeyStroke;
 public class ApplicationFrame extends JFrame
 {
 	private KeyStrokeFactory	keyStrokeFactory;
-	private JDialog				gplPopup;
 	
 	private ArimaaEngine		engine;
 	private ArimaaUI				gui;
@@ -87,9 +91,6 @@ public class ApplicationFrame extends JFrame
 		{
 			keyStrokeFactory = new GeneralKeyStrokeFactory();
 		}
-		
-		//Create some components for the window.
-		gplPopup = new GPLPopup(this);
 	
 		//Create the main window.
 		Dimension preferredSize = gui.getPreferredSize();
@@ -103,7 +104,8 @@ public class ApplicationFrame extends JFrame
 		setLayout(new BorderLayout());
 		
 		//Create the menubar
-		createMenu();
+		gui.menuBar = new ArimaaMenu(gui,engine,keyStrokeFactory,this);
+		setJMenuBar(gui.menuBar);
 		
 		//Drop the GUI in.
 		add(gui);
@@ -112,115 +114,4 @@ public class ApplicationFrame extends JFrame
 		setVisible(true);
 		
 	}
-
-
-
-	
-	//Create the standard UI menu bar.
-	private void createMenu()
-	{
-		JMenuBar jMenuBar = new JMenuBar();
-
-		// Build the file menu
-		JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic(KeyEvent.VK_F);
-				
-		// Build the New Game item.
-		JMenuItem newGameItem = new JMenuItem("New Game", KeyEvent.VK_N);
-		newGameItem.setAccelerator(keyStrokeFactory.getNewGameAcceleratorKeyStroke());
-		fileMenu.add(newGameItem);
-		
-		newGameItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-			{
-				engine.newGame();
-			}
-		});
-		
-		// Build the Save Game item.
-		
-		// Build the Load Game item.
-				
-		// Build the Exit item.
-		JMenuItem exitItem = new JMenuItem("Exit", KeyEvent.VK_X);
-		exitItem.setAccelerator(keyStrokeFactory.getExitGameAcceleratorKeyStroke());
-		fileMenu.add(exitItem);
-
-		exitItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-			{
-				System.exit(0);
-			}
-		});
-
-		// Add the file menu to the menu bar.
-		jMenuBar.add(fileMenu);
-
-		// Create the help menu for the GNU stuff.
-		JMenu helpMenu = new JMenu("Help");
-		helpMenu.setMnemonic(KeyEvent.VK_H);
-
-		// Create the "GPL Text" item.
-		JMenuItem gplItem = new JMenuItem("GPL License", KeyEvent.VK_G);
-		helpMenu.add(gplItem);
-
-		gplItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-			{
-				displayGPLPopup();
-			}
-		});
-		
-		// Add the GPLPopup
-		JMenuItem keyboardItem = new JMenuItem("Keyboard Controls", KeyEvent.VK_G);
-		helpMenu.add(keyboardItem);
-
-		keyboardItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-			{
-				displayKeyboardPopup();
-			}
-		});		
-
-		// Add the help menu to the menu bar.
-		jMenuBar.add(helpMenu);
-		
-		setJMenuBar(jMenuBar);
-	}
-
-	private void displayGPLPopup()
-	{
-		gplPopup.setVisible(true);
-	}
-	
-	private void displayKeyboardPopup()
-	{
-		//Creates a new line and indents it
-		String indent = "\n     ";
-		
-		//Create our pop-up text
-		String text = "";
-		text += "Keyboard commands for Arimaa:";
-		text += "\n\n";
-		text += "General Keys:";
-		text += indent + "ESCAPE: Return pieceInHand to it's original spot on the board";
-		text += indent + "DELETE: Return pieceInHand to the bucket during the setup phase";
-		text += indent + "ENTER: End Turn";
-		text += indent + "'Z': Undo Turn (can also be used during setup)";
-		text += indent + "'/': Toggles between mouse and keyboard controls";
-		text += "\n\n" ;
-		text += "These commands only work when using keyboard controls:";
-		text += indent + "ARROWS: Move selection";
-		text += indent + "SPACE: Grab/Drop piece at the selected location";
-
-
-		//And create a basic pop-up with that text
-		JOptionPane.showMessageDialog(this,text);
-	}
-
-
 }

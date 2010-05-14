@@ -113,7 +113,10 @@ public class ArimaaUI extends JPanel implements Observer
 	
 	private SoundEffectPlayer audioPlayer;
 	
-	boolean useMouse = true;
+	private boolean useMouse = true;
+	
+	//FIXME
+	public ArimaaMenu menuBar;
 	
 	/**
 	 * 
@@ -128,7 +131,7 @@ public class ArimaaUI extends JPanel implements Observer
 		
 		//Store the resource loader
 		this.loader = loader;
-		
+				
 		//Create the soundplayer
 		audioPlayer = new SoundEffectPlayer();
 		
@@ -723,6 +726,12 @@ public class ArimaaUI extends JPanel implements Observer
 			setUseMouse(true);
 		}
 		
+		//Ensure this isn't run during setup
+		if (menuBar != null){
+			//Toggle whether the menu's keyboardInput option is shown
+			menuBar.setKeyboardEnabled(canUseKeyboard());
+		}
+		
 		//Remove all pieces.
 		clearPieces();
 		
@@ -1055,16 +1064,34 @@ public class ArimaaUI extends JPanel implements Observer
 	}
 	
 	/**
+	 * Check if we are using the mouse for input
+	 * 
+	 * @return true if using mouse, false if using keyboard
+	 */
+	
+	public boolean isUsingMouse(){
+		return useMouse;
+	}
+	
+	/**
+	 * TODO
+	 * 
+	 */
+	public boolean canUseKeyboard(){
+		//FIXME: Mouse doesn't currently support the setup phase,
+		// as it cannot select from the bucket yet
+		return !engine.getCurrentGameState().isSetupPhase();
+	}
+	
+	/**
 	 * Set whether or not we are using mouse input
 	 * Will force this to "true" if we are still in the setup phase
 	 * 
 	 * @param willUseMouse
 	 */
-	private void setUseMouse(boolean willUseMouse){	
-		//Force mouse-only during setup phase
-		//FIXME: Mouse doesn't currently support the setup phase,
-		// as it cannot select from the bucket yet
-		if (engine.getCurrentGameState().isSetupPhase()){
+	public void setUseMouse(boolean willUseMouse){	
+		//If we cannot currently use the mouse, then always set to true
+		if (!canUseKeyboard()){
 			willUseMouse = true;
 		}
 		
