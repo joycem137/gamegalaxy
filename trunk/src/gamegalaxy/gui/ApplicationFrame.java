@@ -104,8 +104,8 @@ public class ApplicationFrame extends JFrame
 		setLayout(new BorderLayout());
 		
 		//Create the menubar
-		gui.menuBar = new ArimaaMenu(gui,engine,keyStrokeFactory,this);
-		setJMenuBar(gui.menuBar);
+		gui.setMenu (new ArimaaMenu(gui,engine,keyStrokeFactory,this));
+		setJMenuBar(gui.getMenu());
 		
 		//Drop the GUI in.
 		add(gui);
