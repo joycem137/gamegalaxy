@@ -114,9 +114,8 @@ public class ArimaaUI extends JPanel implements Observer
 	private SoundEffectPlayer audioPlayer;
 	
 	private boolean useMouse = true;
-	
-	//FIXME
-	public ArimaaMenu menuBar;
+
+	private ArimaaMenu menuBar;
 	
 	/**
 	 * 
@@ -236,6 +235,16 @@ public class ArimaaUI extends JPanel implements Observer
 		addMouseListener(ma);
 		addMouseMotionListener(ma);
 	}
+
+	public void setMenu(ArimaaMenu menu){
+		this.menuBar = menu;
+	}
+	
+	public ArimaaMenu getMenu(){
+		return menuBar;
+	}
+	
+	
 	
 	/**
 	 * Handles an input event that picks up or drops a piece
