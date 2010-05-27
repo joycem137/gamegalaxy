@@ -359,18 +359,21 @@ public class ArimaaUI extends JPanel implements Observer
 		//Pick up the piece.
 		pieceInHand = piecePanel;
 		
-		//ADD DOC
-		if (!engine.getCurrentGameState().isSetupPhase() && engine.getCurrentGameState().getPushPosition() == null){
-			//Mark that we have picked up the piece
-			BoardPosition mouseOverPosition = boardPanel.identifyBoardPosition((int) mousePosition.getX()-boardEdgeOffset, (int) mousePosition.getY());
-			highlightOrigin(mouseOverPosition);
-		}
-		
 		//ensure that the dragged piece is topmost and visible.
 		setComponentZOrder(piecePanel, 0);
 		
 		//Identify the original location of the piece.
 		pieceInHandOriginalLocation = piecePanel.getLocation();
+		
+		//ADD DOC
+		if (!engine.getCurrentGameState().isSetupPhase() && engine.getCurrentGameState().getPushPosition() == null){
+			//Convert the coordinates from MousePosition -> BoardPosition, and then from TileCorner->TileCenter
+			//  This is because the highlight functions expect a tileCenter coordinate
+			Point boardPoint = convertCornerToCenter(convertMouseToBoard(pieceInHandOriginalLocation));
+			
+			//Mark that we have picked up the piece
+			highlightOrigin(boardPoint);
+		}
 		
 		//Move the piece so that it is centered on the mouse.
 		movePieceInHand(mousePosition);
@@ -433,9 +436,8 @@ public class ArimaaUI extends JPanel implements Observer
 	/**
 	 * Update the origin highlighting
 	 */
-	
-	private void highlightOrigin(BoardPosition mouseOverPosition){
-		setHighlight(highlightOrigin, mouseOverPosition, HighlightPanel.GREEN);		
+	private void highlightOrigin(Point coords){
+		setHighlight(highlightOrigin, coords, HighlightPanel.GREEN);		
 	}
 	
 	/**
@@ -464,6 +466,24 @@ public class ArimaaUI extends JPanel implements Observer
 	}
 
 	/**
+	 * Overloads setHighlight to work with a BoardPosition instead of a Point
+	 * Simply converts the BoardPosition to a Point
+	 * 
+	 * FIXME: Please refactor the rest of the code to just use a Point instead of this...
+	 * 
+	 * @param thisHighlight
+	 * @param coords
+	 * @param highlightColor
+	 */
+	private void setHighlight(HighlightPanel thisHighlight, BoardPosition mouseOverPosition, int highlightColor){	
+		//get coords of upper-left corner of this square:
+		Point coords = boardPanel.identifyCoordinates(mouseOverPosition);
+		
+		//place our highlighter over this square:
+		setHighlight(thisHighlight,coords,highlightColor);	
+	}
+	
+	/**
 	 * This should be called via highlightSpace or highlight Selection
 	 * Sets the specified HighlightPanel's position and image
 	 * 
@@ -471,12 +491,9 @@ public class ArimaaUI extends JPanel implements Observer
 	 * @param mouseOverPosition - where we want the panel to be
 	 * @param highlightColor    - Integer index for color/image used
 	 */
-	private void setHighlight(HighlightPanel thisHighlight, BoardPosition mouseOverPosition, int highlightColor){
+	private void setHighlight(HighlightPanel thisHighlight, Point coords, int highlightColor){
 		//Set the color of the highlight.
 		thisHighlight.setColor(highlightColor);
-		
-		//get coords of upper-left corner of this square:
-		Point coords = boardPanel.identifyCoordinates(mouseOverPosition);
 		
 		//place our highlighter over this square:
 		thisHighlight.setLocation(coords.x + boardPanel.getX(), coords.y + boardPanel.getY());
@@ -953,6 +970,22 @@ public class ArimaaUI extends JPanel implements Observer
 		displayGameState(engine.getCurrentGameState());
 	}
 	
+	private Point convertMouseToBoard(Point mousePosition){
+		int xOffset = (-boardTopLeft.x);
+		int yOffset = (-boardTopLeft.y);
+		Point boardPosition = new Point(mousePosition.x + xOffset, mousePosition.y + yOffset);
+		
+		return boardPosition;
+	}
+	
+	private Point convertCornerToCenter (Point tileCorner){
+		int xOffset = (tileSize/2) - 1;
+		int yOffset = (tileSize/2) - 1;
+		
+		Point tileCenter = new Point(tileCorner.x + xOffset, tileCorner.y + yOffset);
+		
+		return tileCenter;
+	}
 	
 	
 	
