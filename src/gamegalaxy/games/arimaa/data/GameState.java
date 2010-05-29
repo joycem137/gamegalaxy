@@ -25,8 +25,10 @@ package gamegalaxy.games.arimaa.data;
 
 import gamegalaxy.games.arimaa.engine.MoveGenerator;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -501,7 +503,7 @@ public final class GameState
 		List<StepData> steps = moveGenerator.listEnemyRows(step.getPiece());
 		return steps.contains(step);		
 	}
-
+	
 	/**
 	 * Submit the indicated move to the game engine for implementation. Upon completion of the move, the engine will ask the GUI to update to the latest game
 	 * state.
@@ -511,14 +513,50 @@ public final class GameState
 	 * @param newSpace
 	 */
 	public void takeStep(StepData step)
-	{
+	{		
+		PiecePosition destination = step.getDestination();
+		
+		/*
+		 * Find the piece on the board
+		 * 
+		 * Doing this refreshes the pointer to match the current gameState.
+		 * This must be done because otherwise a StepData.copy() will
+		 *  sometimes include a pointer to a non-existent PieceData.
+		 * 
+		 * If we have a piece already in hand, the move MUST be using that piece
+		 * 
+		 * This is skipped during setup, as all pieces in the bucket share
+		 *  the same position, and thus the last piece will always be returned.
+		 */
+		PieceData piece;
+		if (pieceInHand != null)
+		{
+			piece = pieceInHand;
+		}
+		else if (!isSetupPhase())
+		{
+			piece = getPieceAt(step.getSource());
+		}
+		else
+		{
+			piece = step.getPiece();
+		}
+		
+		//Confirm we actually found a legal piece
+		if (piece == null){
+			System.err.println("FATAL ERROR: Tried to move a non-existent piece");
+			System.exit(-1);
+		}
+		
+		//Refresh the step data to match any adjustments we made above
+		step = new StepData(piece,destination);
+		
 		//Abort if this is not a valid step to take.
-		if(!isValidStep(step)) return;
+		if(!isValidStep(step)){
+			return;
+		}
 		
 		lastStepWasCapture = false;
-		
-		PieceData piece = step.getPiece();
-		PiecePosition destination = step.getDestination();
 		
 		//Check if we are placing a piece from the hand
 		if(piece.equals(pieceInHand))
@@ -936,4 +974,33 @@ public final class GameState
 		winner = player;
 	}
 
+	/**
+	 * Checks if there is a piece at the specified position
+	 * 
+	 * This is done by mapping the entire pieces list
+	 * 
+	 * @param checkPosition
+	 * @return
+	 */
+	
+	private PieceData getPieceAt(PiecePosition checkPosition)
+	{
+		Map<PiecePosition,PieceData> pieceMap;
+		pieceMap = new HashMap<PiecePosition,PieceData>();
+		
+		Iterator<PieceData> iterator = pieces.iterator();
+		while (iterator.hasNext())
+		{
+			PieceData piece = iterator.next();
+			PiecePosition position = piece.getPosition();
+			pieceMap.put(position, piece);
+		}
+		
+		if(pieceMap.containsKey(checkPosition))
+		{
+			return (PieceData) pieceMap.get(checkPosition);
+		}else{
+			return null;
+		}
+	}
 }

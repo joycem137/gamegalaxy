@@ -63,20 +63,6 @@ public class ArimaaMenu extends JMenuBar{
 			}
 		});
 		
-		//FIXME: Test item
-		/*
-		JMenuItem testItem = new JMenuItem("Undo Step", KeyEvent.VK_S);
-		fileMenu.add(testItem);
-		
-		testItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt)
-			{
-				engine.undoStep();
-			}
-		});
-		*/
-		
 		// Build the Save Game item.
 		
 		// Build the Load Game item.
@@ -242,7 +228,7 @@ public class ArimaaMenu extends JMenuBar{
 		text += indent + "ESCAPE: Return pieceInHand to it's original spot on the board";
 		text += indent + "DELETE: Return pieceInHand to the bucket during the setup phase";
 		text += indent + "ENTER: End Turn";
-		text += indent + "'Z': Undo Turn (can also be used during setup)";
+		text += indent + "'Z': Undo Last Step (cannot be used during setup)";
 		text += indent + "'/': Toggles between mouse and keyboard controls";
 		text += "\n\n" ;
 		text += "These commands only work when using keyboard controls:";
