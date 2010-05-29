@@ -43,6 +43,9 @@ public class ArimaaEngine
 	// Archive the game
 	private Vector<GameState> archiveGameState;
 	
+	// Archive the move history
+	private Vector<StepData> stepHistory;
+	
 	// Store a link to the UI
 	private SimpleObservable observable;
 
@@ -120,12 +123,74 @@ public class ArimaaEngine
 		// Validate the move and don't move onto the same space.
 		if (!step.getPiece().getPosition().equals(step.getDestination()))
 		{
+			//Archive, unless we are in the setup phase
+			if (!currentGameState.isSetupPhase()){
+				stepHistory.add(step.copy());
+			}
+			
+			//Make the move
 			currentGameState.takeStep(step);
 			
 			// Update the UI with the results.
 			observable.notifyObservers();
 		}
 
+	}
+	
+	private Boolean revertGameState(int index){
+		if (archiveGameState.size() < index+1){
+			System.out.println("Not enough history");
+			return false;
+		}else{
+			currentGameState = archiveGameState.get(index).copy();
+			
+			//Carve off the spare data
+			while (archiveGameState.size() > index+1){
+				archiveGameState.remove(index+1);
+			}
+			
+			return true;
+		}
+	}
+	
+	public void undoStep(){		
+		//Check that the setup phase is complete
+		if (archiveGameState.size() <= 1){
+			return;
+		}
+		
+		//Check that any steps have actually been made
+		if (stepHistory.size() <= 0){
+			return;
+		}
+		
+		//Revert the gamestate and check that it was successful
+		if (revertGameState(archiveGameState.size()-1)){
+
+			//Archive the old step history
+			Vector<StepData> oldHistory = new Vector<StepData>();
+			for (int i = 0; i < stepHistory.size() ; i++){
+				oldHistory.add(stepHistory.get(i));
+			}
+			
+			//Clear the current step history (since the takeSteps will recreate it)
+			stepHistory = new Vector<StepData>();
+			
+			//Redo each (archived) step
+			for (int i = 0; i < oldHistory.size()-1 ; i++){
+				takeStep(oldHistory.get(i));
+			}
+			
+			//If we have a piece in hand, go back one more step
+			// (This is because otherwise the UX is a bit confusing)
+			if(getCurrentGameState().getPieceInHand()  != null)
+			{
+				undoStep();
+			}
+			
+			//Update the display
+			observable.notifyObservers();
+		}
 	}
 
 	/**
@@ -139,6 +204,7 @@ public class ArimaaEngine
 			currentGameState.endMove();
 			
 			archiveGameState.add(currentGameState.copy());
+			stepHistory.removeAllElements();
 			
 			observable.notifyObservers();
 		}
@@ -192,8 +258,10 @@ public class ArimaaEngine
 		currentGameState = new GameState();
 		currentGameState.initializeGameState();
 		
-		archiveGameState=new Vector<GameState>();
+		archiveGameState = new Vector<GameState>();
 		archiveGameState.add(currentGameState.copy());
+		
+		stepHistory = new Vector<StepData>();
 		
 		observable.notifyObservers();
 	}

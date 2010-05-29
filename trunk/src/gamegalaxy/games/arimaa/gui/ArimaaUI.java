@@ -560,6 +560,9 @@ public class ArimaaUI extends JPanel implements Observer
 			{	
 				//Now update the engine.
 				engine.takeStep(step);
+				
+				//And clear the origin
+				clearHighlightOrigin();
 	
 				//ADD DOC
 				if (pieceInHand == null && engine.getCurrentGameState().getPushPosition() == null)
@@ -1012,7 +1015,7 @@ public class ArimaaUI extends JPanel implements Observer
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "keyDrop");
 		getActionMap().put("keyDrop", actionKeyDrop);
 		
-		//Delete key (treats Backspace as same key)
+		//Delete key : keyReturn (treats Backspace as same key)
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "keyReturnPiece");
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "keyReturnPiece");
 		getActionMap().put("keyReturnPiece", actionKeyReturn);
@@ -1043,9 +1046,9 @@ public class ArimaaUI extends JPanel implements Observer
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "keyEndTurn");
 		getActionMap().put("keyEndTurn", actionEndTurn);
 		
-		//'Z' key : undoTurn
-		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0), "keyUndoTurn");
-		getActionMap().put("keyUndoTurn", actionUndoTurn);
+		//'Z' key : undoStep
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0), "keyUndoStep");
+		getActionMap().put("keyUndoStep", actionUndoStep);
 	}
 
 	/**
@@ -1254,6 +1257,13 @@ public class ArimaaUI extends JPanel implements Observer
 	    public void actionPerformed(ActionEvent e) {
 	    	//Clicks the "Undo Turn" button
 	    	statusPanel.clickUndoTurn();
+	    }
+	};	
+	
+	Action actionUndoStep = new AbstractAction() {
+	    public void actionPerformed(ActionEvent e) {
+	    	//Clicks the "Undo Turn" button
+	    	engine.undoStep();
 	    }
 	};	
 
