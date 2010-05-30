@@ -633,11 +633,11 @@ public class ArimaaUI extends JPanel implements Observer
 				boardPanel.getY() + boardPanel.getHeight() - 20);
 		
 		//Create buckets
-		goldBucketPanel = new BucketPanel(loader);
+		goldBucketPanel = new BucketPanel(loader, GameConstants.GOLD);
 		add(goldBucketPanel);
 		goldBucketPanel.setLocation(15, 27);
 		
-		silverBucketPanel = new BucketPanel(loader);
+		silverBucketPanel = new BucketPanel(loader, GameConstants.SILVER);
 		add(silverBucketPanel);
 		silverBucketPanel.setLocation(724, 27);
 		
@@ -718,8 +718,10 @@ public class ArimaaUI extends JPanel implements Observer
 	 * Finds the PiecePosition corresponding to a particular (x,y) gui location.
 	 *
 	 * @param location	A point (x,y) on the gui.
-	 * @return	A PiecePosition which is either a board position (0~7, 0~7), GOLD_BUCKET,
-	 * 			SILVER_BUCKET, or null.
+	 * @return	A PiecePosition which is either a board position (0~7, 0~7),
+	 *  		GOLD_BUCKET (0~1)(0~7),
+	 * 			SILVER_BUCKET (0~1)(0~7),
+	 * 			or null.
 	 */
 	private PiecePosition getPiecePositionAt(Point location)
 	{
@@ -733,11 +735,15 @@ public class ArimaaUI extends JPanel implements Observer
 		}
 		else if(dropPanel == goldBucketPanel)
 		{
-			return new BucketPosition(GameConstants.GOLD);
+			int relativeDropX = location.x - goldBucketPanel.getX();
+			int relativeDropY = location.y - goldBucketPanel.getY();
+			return goldBucketPanel.identifyBucketPosition(relativeDropX, relativeDropY);
 		}
 		else if(dropPanel == silverBucketPanel)
 		{
-			return new BucketPosition(GameConstants.SILVER);
+			int relativeDropX = location.x - silverBucketPanel.getX();
+			int relativeDropY = location.y - silverBucketPanel.getY();
+			return silverBucketPanel.identifyBucketPosition(relativeDropX, relativeDropY);
 		}
 		return null;
 	}

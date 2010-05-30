@@ -23,6 +23,7 @@
  */
 package gamegalaxy.games.arimaa.engine;
 
+import gamegalaxy.games.arimaa.data.BoardPosition;
 import gamegalaxy.games.arimaa.data.GameState;
 import gamegalaxy.games.arimaa.data.PieceData;
 import gamegalaxy.games.arimaa.data.StepData;
@@ -123,10 +124,12 @@ public class ArimaaEngine
 		// Validate the move and don't move onto the same space.
 		if (!step.getPiece().getPosition().equals(step.getDestination()))
 		{
+
+			
 			//Archive, unless we are in the setup phase
-			if (!currentGameState.isSetupPhase()){
+			//if (!currentGameState.isSetupPhase()){
 				stepHistory.add(step.copy());
-			}
+			//}
 			
 			//Make the move
 			currentGameState.takeStep(step);
@@ -137,14 +140,29 @@ public class ArimaaEngine
 
 	}
 	
+	/**
+	 * Reverts the GameState to it's status at the start of the current move
+	 * @return true if we successfully reverted, false otherwise
+	 */
+	private Boolean revertToPreviousGameState(){
+		return revertGameState(archiveGameState.size()-1);
+	}
+	
+	/**
+	 * Revert to the saved GameState specified by the index value
+	 * 
+	 * @param index of saved GameState in archiveGameState.get()
+	 * @return true if we successfully reverted, false if the index was invalid
+	 */
 	private Boolean revertGameState(int index){
-		if (archiveGameState.size() < index+1){
-			System.out.println("Not enough history");
+		//Ensure the index doesn't exceed the last element in the vector
+		if (index >= archiveGameState.size()){
 			return false;
 		}else{
+			//Change the active gameState to the archived gameState
 			currentGameState = archiveGameState.get(index).copy();
 			
-			//Carve off the spare data
+			//Remove all future gameStates from the vector
 			while (archiveGameState.size() > index+1){
 				archiveGameState.remove(index+1);
 			}
@@ -152,20 +170,19 @@ public class ArimaaEngine
 			return true;
 		}
 	}
-	
-	public void undoStep(){		
-		//Check that the setup phase is complete
-		if (archiveGameState.size() <= 1){
-			return;
-		}
-		
-		//Check that any steps have actually been made
+	/**
+	 * Undoes the most recent step made.
+	 * Works by undoing the entire move and then re-doing all but the most recent step
+	 * Can be invoked multiple times, until no further steps exist that turn
+	 */
+	public void undoStep(){					
+		//Check that at least one step has been made
 		if (stepHistory.size() <= 0){
 			return;
 		}
 		
 		//Revert the gamestate and check that it was successful
-		if (revertGameState(archiveGameState.size()-1)){
+		if (revertToPreviousGameState()){
 
 			//Archive the old step history
 			Vector<StepData> oldHistory = new Vector<StepData>();
@@ -192,6 +209,21 @@ public class ArimaaEngine
 			observable.notifyObservers();
 		}
 	}
+	
+	/**
+	 * Reverts to the gameState as it was at the start of the move
+	 */
+	public void undoMove()
+	{
+		//Revert the gamestate
+		revertToPreviousGameState();
+		
+		//Clear the step history
+		stepHistory.removeAllElements();
+		
+		//Update the UI
+		observable.notifyObservers();		
+	}
 
 	/**
 	 * End the current player's turn.
@@ -208,13 +240,6 @@ public class ArimaaEngine
 			
 			observable.notifyObservers();
 		}
-	}
-	
-	public void undoMove()
-	{
-		currentGameState = archiveGameState.get(archiveGameState.size()-1).copy();
-		
-		observable.notifyObservers();		
 	}
 
 	/**

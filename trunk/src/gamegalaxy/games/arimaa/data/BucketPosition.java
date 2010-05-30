@@ -28,6 +28,8 @@ package gamegalaxy.games.arimaa.data;
 public final class BucketPosition implements PiecePosition
 {
 	private int	color;
+	private final int	col;
+	private final int	row;
 
 	/**
 	 * 
@@ -35,9 +37,32 @@ public final class BucketPosition implements PiecePosition
 	 *
 	 * @param color
 	 */
-	public BucketPosition(int color)
+	public BucketPosition(int color, int col, int row)
 	{
 		this.color = color;
+		this.col = col;
+		this.row = row;
+	}
+	
+	/**
+	 * Returns the column associated with this piece position.
+	 *
+	 * @return An integer representing the column of this piece position
+	 */
+	public int getCol()
+	{
+		return col;
+	}
+	
+	/**
+	 * 
+	 * Returns the row associate with this piece position.
+	 *
+	 * @return An integer representing the row of this piece position.
+	 */
+	public int getRow()
+	{
+		return row;
 	}
 
 	/**
@@ -97,6 +122,8 @@ public final class BucketPosition implements PiecePosition
 	{
 		int hash = 1;
 		hash = hash * 31 + color;
+		hash = hash * 31 + col;
+		hash = hash * 31 + row;
 		return hash;
 	}
 

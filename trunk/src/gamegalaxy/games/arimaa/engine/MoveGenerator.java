@@ -500,8 +500,20 @@ public class MoveGenerator
 				steps.add(new StepData(piece, new BoardPosition(row2, col)));
 			}
 			
+			//Add all of the bucket squares
+			for(int row = 0; row < 8; row++)
+			{
+				if(gameState.getCurrentPlayer() == GameConstants.GOLD){
+					gameState.goldBucketData.getPieceAt(new BucketPosition(GameConstants.GOLD, 0,row));
+					gameState.goldBucketData.getPieceAt(new BucketPosition(GameConstants.GOLD, 1,row));
+				}else{
+					gameState.silverBucketData.getPieceAt(new BucketPosition(GameConstants.SILVER, 0,row));
+					gameState.silverBucketData.getPieceAt(new BucketPosition(GameConstants.SILVER, 1,row));					
+				}
+			}
+			
 			//Add the appropriate bucket.
-			steps.add(new StepData(piece, new BucketPosition(gameState.getCurrentPlayer())));
+			steps.add(new StepData(piece, new BucketPosition(gameState.getCurrentPlayer(),0,0)));
 		}
 		
 		return steps;
@@ -550,7 +562,7 @@ public class MoveGenerator
 			}
 			
 			//Add the appropriate bucket.
-			steps.add(new StepData(piece, new BucketPosition(gameState.getCurrentPlayer())));
+			steps.add(new StepData(piece, new BucketPosition(gameState.getCurrentPlayer(),0,0)));
 		}
 		
 		return steps;
