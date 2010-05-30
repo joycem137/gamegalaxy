@@ -23,6 +23,8 @@
 
 package gamegalaxy.games.arimaa.gui;
 
+import gamegalaxy.games.arimaa.data.BoardPosition;
+import gamegalaxy.games.arimaa.data.BucketPosition;
 import gamegalaxy.tools.ResourceLoader;
 
 import java.awt.Graphics;
@@ -42,13 +44,15 @@ public class BucketPanel extends JPanel implements PieceHolder
 	//Store the background image for the bucket.
 	private Image	backgroundImage;
 	private int		numberOfPieces;
+	private int		color;
 	
 	private final static int SPACE_WIDTH = 59;
 	private final static int SPACE_HEIGHT = 59;
 	private final static int BORDER_WIDTH = 16;
 
-	public BucketPanel(ResourceLoader loader)
+	public BucketPanel(ResourceLoader loader, int color)
 	{
+		this.color = color;
 		backgroundImage = loader.getResource("BucketBackground");
 		setSize(backgroundImage.getWidth(this), backgroundImage.getHeight(this));
 		numberOfPieces = 0;
@@ -109,4 +113,24 @@ public class BucketPanel extends JPanel implements PieceHolder
 	{
 		numberOfPieces = 0;
 	}	
+	
+	public BucketPosition identifyBucketPosition(int x, int y)
+	{
+		int firstSquareX = BORDER_WIDTH + 1;
+		int firstSquareY = BORDER_WIDTH + 1;
+		
+		//Find out what row and col this piece is near:
+		int col = (x - firstSquareX) / SPACE_WIDTH;
+		int row = (y - firstSquareY) / SPACE_HEIGHT;
+		
+		//Test for boundaries.
+		if ((col > 7) || (row > 7) || (x < firstSquareX) || (y < firstSquareY))
+		{
+			return null;
+		}
+		else
+		{
+			return new BucketPosition(color, row, col);
+		}
+	}
 }

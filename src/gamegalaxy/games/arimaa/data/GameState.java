@@ -55,6 +55,10 @@ public final class GameState
 	private MoveGenerator	moveGenerator;
 	private PieceData	pieceInHand;
 
+	//FIXME: Setup Get/Set functions
+	public BucketData goldBucketData;
+	public BucketData silverBucketData;
+	
 	public GameState() 
 	{
 		pushPosition = null;
@@ -66,6 +70,9 @@ public final class GameState
 		goldBucket = null;
 		silverBucket = null;
 
+		goldBucketData = null;
+		silverBucketData = null;
+		
 		phase = 0;
 		playerTurn = 0;
 		numSteps = 0;
@@ -88,6 +95,9 @@ public final class GameState
 		newState.goldBucket = new Vector<PieceData>(16);
 		newState.silverBucket = new Vector<PieceData>(16);
 		
+		newState.goldBucketData = new BucketData(GameConstants.GOLD);
+		newState.silverBucketData = new BucketData(GameConstants.SILVER);
+		
 		Iterator<PieceData> iterator = pieces.iterator();
 		while (iterator.hasNext())
 		{
@@ -104,10 +114,12 @@ public final class GameState
 				if (newBucket.getColor() == GameConstants.SILVER)
 				{
 					newState.silverBucket.add(newPiece);
+					newState.silverBucketData.addPiece(newPiece);
 				}
 				else
 				{
 					newState.goldBucket.add(newPiece);
+					newState.goldBucketData.addPiece(newPiece);
 				}
 			}
 			if (newPiece.getPosition() instanceof HandPosition)
@@ -183,10 +195,13 @@ public final class GameState
 		// Initialize our lists.
 		goldBucket = new Vector<PieceData>(16);
 		silverBucket = new Vector<PieceData>(16);
+		
+		goldBucketData = new BucketData(GameConstants.GOLD);
+		silverBucketData = new BucketData(GameConstants.SILVER);
 
 		//Create positions for both buckets.
-		BucketPosition goldBucketPosition = new BucketPosition(GameConstants.GOLD);
-		BucketPosition silverBucketPosition = new BucketPosition(GameConstants.SILVER);
+		BucketPosition goldBucketPosition = new BucketPosition(GameConstants.GOLD,0,0);
+		BucketPosition silverBucketPosition = new BucketPosition(GameConstants.SILVER,0,0);
 		
 		// Populate our lists.
 		Iterator<PieceData> iterator = pieces.iterator();
@@ -196,12 +211,12 @@ public final class GameState
 			if (pieceData.getColor() == GameConstants.GOLD)
 			{
 				goldBucket.add(pieceData);
-				pieceData.setPosition(goldBucketPosition);
+				goldBucketData.addPiece(pieceData);
 			}
 			else
 			{
 				silverBucket.add(pieceData);
-				pieceData.setPosition(silverBucketPosition);
+				silverBucketData.addPiece(pieceData);
 			}
 		}
 	}
@@ -216,7 +231,7 @@ public final class GameState
 
 		// Create 8 rabbits of each color
 		for (int i = 0; i < 8; i++)
-		{
+		{		
 			pieces.add(new PieceData(GameConstants.GOLD, PieceData.RABBIT));
 			pieces.add(new PieceData(GameConstants.SILVER, PieceData.RABBIT));
 		}
@@ -533,13 +548,9 @@ public final class GameState
 		{
 			piece = pieceInHand;
 		}
-		else if (!isSetupPhase())
-		{
-			piece = getPieceAt(step.getSource());
-		}
 		else
 		{
-			piece = step.getPiece();
+			piece = getPieceAt(step.getSource());
 		}
 		
 		//Confirm we actually found a legal piece
@@ -902,11 +913,11 @@ public final class GameState
 					// Move the piece to the appropriate bucket.
 					if(trappedPiece.getColor() == GameConstants.GOLD)
 					{
-						addToBucket(trappedPiece, new BucketPosition(GameConstants.SILVER));
+						addToBucket(trappedPiece, new BucketPosition(GameConstants.SILVER,0,0));
 					}
 					else
 					{
-						addToBucket(trappedPiece, new BucketPosition(GameConstants.GOLD));
+						addToBucket(trappedPiece, new BucketPosition(GameConstants.GOLD,0,0));
 					}
 					
 					//Set the flag
