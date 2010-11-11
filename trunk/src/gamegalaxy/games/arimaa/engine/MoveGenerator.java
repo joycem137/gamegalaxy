@@ -210,7 +210,7 @@ public class MoveGenerator
 		}
 		
 		//Ensure that the active player's piece has the higher value
-		if(myPiece.getValue() < enemyPiece.getValue()){
+		if(myPiece.getValue() <= enemyPiece.getValue()){
 			return false;
 		}
 

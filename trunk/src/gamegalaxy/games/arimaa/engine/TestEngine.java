@@ -635,6 +635,39 @@ public class TestEngine
 		assertFalse(engine.canPieceBeMoved(rabbit));
 		assertTrue(engine.canPieceBeMoved(elephant));
 	}
+	
+	/**
+	 * Test that you cannot push/pull a piece that has the same value as you.
+	 */
+	@Test
+	public void testNoEqualPushPulls()
+	{
+		placePieceTypeOnBoard(PieceData.HORSE, 6, 3);
+		
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Grab the cat and move it to the front row.
+		placePieceTypeOnBoard(PieceData.HORSE, 1, 3);
+		
+		//Do the rest of the setup randomly
+		engine.doRandomSetup();
+		engine.endMove();
+		
+		//Move the gold horse up.
+		BoardData board = engine.getCurrentGameState().getBoardData();
+		PieceData goldHorse = board.getPieceAt(new BoardPosition(6, 3));
+		movePieceUp(goldHorse);
+		movePieceUp(goldHorse);
+		movePieceUp(goldHorse);
+		movePieceUp(goldHorse);
+		
+		engine.endMove();
+		
+		assertFalse(engine.canPieceBeMoved(goldHorse));
+		
+	}
 
 	/**
 	 * Test that pushing works.
