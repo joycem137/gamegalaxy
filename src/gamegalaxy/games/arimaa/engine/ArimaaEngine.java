@@ -115,9 +115,7 @@ public class ArimaaEngine
 	 * Submit the indicated move to the game engine for implementation. Upon completion of the move, the engine will ask the GUI to update to the latest game
 	 * state.
 	 * 
-	 * @param piece
-	 * @param originalSpace
-	 * @param newSpace
+	 * @param step one portion (1/4) of a move to be applied
 	 */
 	public void takeStep(StepData step)
 	{
